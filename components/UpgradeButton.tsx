@@ -58,7 +58,7 @@ export function UpgradeButton({
       return
     }
 
-    const paymentUrl = `${STRIPE_PAYMENT_LINK}?prefilled_email=${encodeURIComponent(user.email || '')}`
+    const paymentUrl = `${STRIPE_PAYMENT_LINK}?prefilled_email=${encodeURIComponent(user.email || '')}&client_reference_id=${user.id}`
     window.location.href = paymentUrl
   }
 
