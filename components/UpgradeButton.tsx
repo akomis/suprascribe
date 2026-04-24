@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import posthog from 'posthog-js'
 import { useEffect, useState } from 'react'
 
 interface UpgradeButtonProps {
@@ -16,6 +17,7 @@ interface UpgradeButtonProps {
   showIcon?: boolean
   hideIfPro?: boolean
   fullWidth?: boolean
+  location?: string
 }
 
 const STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
@@ -28,6 +30,7 @@ export function UpgradeButton({
   showIcon = true,
   hideIfPro = true,
   fullWidth = false,
+  location,
 }: UpgradeButtonProps) {
   const router = useRouter()
   const { data: tier, isLoading: isTierLoading } = useAccountTier()
@@ -53,6 +56,12 @@ export function UpgradeButton({
   }
 
   const handleClick = () => {
+    posthog.capture('upgrade_button_clicked', {
+      location: location ?? 'unknown',
+      is_logged_in: !!user,
+      user_tier: tier ?? 'BASIC',
+    })
+
     if (!user) {
       router.push(`/login`)
       return

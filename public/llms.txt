@@ -1,0 +1,42 @@
+# Suprascribe
+
+> Suprascribe is a free, open-source subscription tracker that automatically discovers recurring payments by scanning email (Gmail, Outlook, iCloud, or any IMAP account). No SaaS - core features free forever, Pro features unlocked with a one-time €5 purchase.
+
+## Key Information
+
+- Homepage: https://www.suprascribe.com
+- GitHub: https://github.com/akomis/suprascribe
+- Contact: https://www.suprascribe.com/contact
+- Pricing: Free (Basic) / €5 one-time (Pro)
+- Email providers supported: Gmail (OAuth), Outlook/Microsoft (OAuth), iCloud (IMAP), any standard IMAP account
+
+## Pages
+
+- [Home](https://www.suprascribe.com): Landing page with features, pricing, and product overview
+- [Demo](https://www.suprascribe.com/demo): Interactive product demo - see the dashboard without signing up
+- [Safety](https://www.suprascribe.com/safety): How email discovery works, what data is accessed, privacy guarantees
+- [Limits](https://www.suprascribe.com/limits): Discovery limits per tier and how to use your own AI API key (BYOK)
+- [IMAP Guide](https://www.suprascribe.com/imap): Step-by-step guide to configure IMAP access for Gmail, Outlook, iCloud, and other providers
+- [Contact](https://www.suprascribe.com/contact): Contact form for support, feedback, and questions
+- [Terms & Privacy](https://www.suprascribe.com/terms-and-privacy): Terms of Service and Privacy Policy
+
+## What Suprascribe Does
+
+- Scans email inboxes (read-only) to identify subscription receipts and recurring billing
+- Extracts service name, amount, currency, billing frequency, and renewal date using AI
+- Displays all discovered subscriptions in a unified dashboard
+- Tracks spending over time with insights and analytics
+- Sends renewal reminders before subscriptions charge
+
+## What Suprascribe Does NOT Do
+
+- Does not read, store, or transmit email body content - only subject lines and sender info are processed
+- Does not sell user data or share it with third parties
+- Does not require ongoing payment - no subscription model
+- Dashboard, user data, and API routes are private and not indexed by search engines
+
+## Technical Details
+
+- Built with Next.js (App Router), Supabase (PostgreSQL), and the Vercel AI SDK
+- Supports 11+ AI providers via BYOK (OpenAI, Anthropic, Google, Groq, OpenRouter, etc.)
+- Fully open source under MIT license

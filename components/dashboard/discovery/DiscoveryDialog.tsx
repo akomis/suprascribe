@@ -2,6 +2,7 @@
 
 import { DiscoveredSubscriptionGroupCard } from '@/components/dashboard/discovery/DiscoveredSubscriptionGroupCard'
 import { DiscoveryEditDialog } from '@/components/dashboard/discovery/DiscoveryEditDialog'
+import { SupportButton } from '@/components/shared/SupportButton'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -349,6 +350,7 @@ export function DiscoveryDialog({
               </div>
 
               <DialogFooter>
+                <SupportButton />
                 <Button variant="outline" onClick={handleClose}>
                   Close
                 </Button>
@@ -518,6 +520,7 @@ export function DiscoveryDialog({
               </div>
 
               <DialogFooter>
+                <SupportButton />
                 <Button onClick={handleClose}>Close</Button>
               </DialogFooter>
             </>

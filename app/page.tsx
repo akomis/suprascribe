@@ -11,7 +11,6 @@ import { TierCard } from '@/components/landing/TierCard'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { getEnabledFeaturesByTier } from '@/lib/config/features'
-import { createClient } from '@/lib/supabase/server'
 import { Github, Lock, ShieldCheck, User } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -19,27 +18,13 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Suprascribe - Free Subscription Tracker That Finds Your Subscriptions Automatically',
   description:
-    'Stop losing money to forgotten subscriptions. Suprascribe scans your Gmail, Outlook, or iCloud to automatically find every recurring payment. Free forever - Pro unlocked with a single €5 purchase.',
+    'Stop losing money on forgotten subscriptions. Suprascribe auto-scans Gmail, Outlook & iCloud to find every recurring payment. Free forever.',
   alternates: {
     canonical: 'https://www.suprascribe.com',
   },
 }
 
-export default async function Home() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  let isProUser = false
-  if (user) {
-    const { data } = await supabase
-      .from('USER_SETTINGS')
-      .select('tier')
-      .eq('user_id', user.id)
-      .maybeSingle()
-    isProUser = data?.tier === 'pro'
-  }
-
+export default function Home() {
   const basicFeatures = getEnabledFeaturesByTier('basic')
   const proFeatures = getEnabledFeaturesByTier('pro')
 
@@ -147,7 +132,6 @@ export default async function Home() {
                 buttonText="Get Started"
                 buttonVariant="outline"
                 href="/login?tab=signup"
-                hideCta={isProUser}
               />
             </Reveal>
             <Reveal delayMs={400}>
@@ -164,7 +148,6 @@ export default async function Home() {
                 highlighted={true}
                 checkmarkColor="text-primary"
                 additionalNote="Everything in Basic, plus:"
-                hideCta={isProUser}
               />
             </Reveal>
           </div>

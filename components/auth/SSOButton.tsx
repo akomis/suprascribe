@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabase/client'
 import posthog from 'posthog-js'
 import { useState } from 'react'
 
@@ -56,14 +57,32 @@ const providerConfig = {
   },
 } as const
 
+const providerOptions: Record<Provider, { scopes?: string; queryParams?: Record<string, string> }> =
+  {
+    google: { queryParams: { access_type: 'offline', prompt: 'consent' } },
+    azure: { scopes: 'email openid profile' },
+    apple: {},
+  }
+
 export function SSOButton({ provider, disabled }: SSOButtonProps) {
   const [loading, setLoading] = useState(false)
   const config = providerConfig[provider]
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     setLoading(true)
     posthog.capture('sso_sign_in_initiated', { provider })
-    window.location.href = `/api/auth/${provider}`
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback`,
+        ...providerOptions[provider],
+      },
+    })
+    if (error) {
+      console.error(`${provider} OAuth error:`, error.message)
+      setLoading(false)
+    }
   }
 
   return (

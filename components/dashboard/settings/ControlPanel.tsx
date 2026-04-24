@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useFeatureAccess } from '@/lib/hooks/useFeatureAccess'
 import { createClient } from '@/lib/supabase/client'
+import { SupportButton } from '@/components/shared/SupportButton'
 import { Bell, Key, Settings, User } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -128,15 +129,7 @@ export function ControlPanel() {
         {hasEmailSupport && (
           <>
             <DropdownMenuSeparator />
-            <Button
-              variant={'outline'}
-              type="button"
-              aria-label="Open support page"
-              className="w-full text-muted-foreground"
-              onClick={() => window.open('/dashboard/support', '_blank')}
-            >
-              Support
-            </Button>
+            <SupportButton className="w-full justify-start gap-2 text-muted-foreground font-normal" />
           </>
         )}
 

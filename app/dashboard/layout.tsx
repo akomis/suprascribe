@@ -1,5 +1,11 @@
+import { PostHogIdentifier } from '@/components/PostHogIdentifier'
 import { InsightsSettingsProvider } from '@/providers/InsightsSettingsProvider'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return <InsightsSettingsProvider>{children}</InsightsSettingsProvider>
+  return (
+    <InsightsSettingsProvider>
+      <PostHogIdentifier />
+      {children}
+    </InsightsSettingsProvider>
+  )
 }

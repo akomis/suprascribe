@@ -319,6 +319,10 @@ export async function POST(
       emails_scanned: emails.length,
       subscriptions_found: uniqueSubscriptions.length,
       duration_ms: duration,
+      input_tokens: totalUsage.inputTokens,
+      output_tokens: totalUsage.outputTokens,
+      cost_usd: parseFloat(totalCost.toFixed(6)),
+      model: isByokMode ? byokConfig?.model : EMAIL_DISCOVERY_CONFIG.analysisModel.modelName,
     },
   })
   await posthogComplete.shutdown()

@@ -1,8 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
+import { STRIPE_API_VERSION } from '@/lib/config/stripe'
 import { getPostHogClient } from '@/lib/posthog-server'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 import Stripe from 'stripe'
-import { STRIPE_API_VERSION } from '@/lib/config/stripe'
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         },
       )
 
-      // Insert the event record first — if it already exists (unique constraint), this will
+      // Insert the event record first - if it already exists (unique constraint), this will
       // return an error and we skip processing. This is atomic and fixes both the race
       // condition and the "event recorded after upgrade" ordering issue.
       const { error: eventError } = await supabaseAdmin.from('stripe_webhook_events').insert({
@@ -106,6 +106,18 @@ export async function POST(request: NextRequest) {
         console.error('Failed to update tier:', error)
         return NextResponse.json({ success: false, error: error.message }, { status: 500 })
       }
+
+      const posthogUpgrade = getPostHogClient()
+      posthogUpgrade.capture({
+        distinctId: userId,
+        event: 'pro_upgrade_completed',
+        properties: {
+          stripe_session_id: session.id,
+          amount_total: session.amount_total,
+          currency: session.currency,
+        },
+      })
+      await posthogUpgrade.shutdown()
 
       console.log(`✅ User ${userId} upgraded to PRO via session ${session.id}`)
       return NextResponse.json({ success: true })

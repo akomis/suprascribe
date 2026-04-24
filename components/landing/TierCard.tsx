@@ -29,7 +29,6 @@ interface TierCardProps {
   highlighted?: boolean
   checkmarkColor?: string
   additionalNote?: string
-  hideCta?: boolean
 }
 
 export function TierCard({
@@ -46,7 +45,6 @@ export function TierCard({
   highlighted = false,
   checkmarkColor = 'text-muted-foreground',
   additionalNote,
-  hideCta = false,
 }: TierCardProps) {
   return (
     <Card className={cn('relative h-full', highlighted && 'border-primary')}>
@@ -86,24 +84,23 @@ export function TierCard({
           ))}
         </ul>
       </CardContent>
-      {!hideCta && (
-        <CardFooter className="mt-auto">
-          {isUpgradeButton ? (
-            <UpgradeButton
-              text={buttonText}
-              variant={buttonVariant as any}
-              fullWidth={true}
-              hideIfPro={false}
-            />
-          ) : (
-            <Link href={href!} className="w-full">
-              <Button variant={buttonVariant} className="w-full">
-                {buttonText}
-              </Button>
-            </Link>
-          )}
-        </CardFooter>
-      )}
+      <CardFooter className="mt-auto">
+        {isUpgradeButton ? (
+          <UpgradeButton
+            text={buttonText}
+            variant={buttonVariant as any}
+            fullWidth={true}
+            hideIfPro={true}
+            location="landing_pricing"
+          />
+        ) : (
+          <Link href={href!} className="w-full">
+            <Button variant={buttonVariant} className="w-full">
+              {buttonText}
+            </Button>
+          </Link>
+        )}
+      </CardFooter>
     </Card>
   )
 }

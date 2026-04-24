@@ -9,7 +9,7 @@ Subscription management platform that automatically discovers and tracks your re
 - Subscription management dashboard with insights
 - Manual subscription creation (unlimited)
 - Multi-currency support
-- Bring Your Own Key (BYOK) — use your own AI API keys for unlimited discovery
+- Bring Your Own Key (BYOK) - use your own AI API keys for unlimited discovery
 
 **Pro (one-time)**
 
@@ -25,7 +25,7 @@ Subscription management platform that automatically discovers and tracks your re
 
 - **Framework:** Next.js 15 (App Router) + TypeScript
 - **Database:** Supabase (PostgreSQL) with Row-Level Security
-- **Auth:** Supabase Auth — Google, Microsoft, Apple OAuth
+- **Auth:** Supabase Auth - Google, Microsoft, Apple OAuth
 - **AI:** Vercel AI SDK with multi-provider support (OpenAI, Anthropic, Groq, etc.)
 - **Payments:** Stripe (one-time payment link)
 - **Styling:** Tailwind CSS v4 + shadcn/ui
@@ -54,7 +54,7 @@ yarn
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY`
-3. Run database migrations — in your Supabase project go to **SQL Editor** and run each file in `supabase/migrations/` in order, or use the Supabase CLI:
+3. Run database migrations - in your Supabase project go to **SQL Editor** and run each file in `supabase/migrations/` in order, or use the Supabase CLI:
 
 ```bash
 npx supabase link --project-ref <your-project-ref>
@@ -87,7 +87,7 @@ The default discovery model runs via [OpenRouter](https://openrouter.ai):
 
 - Create an account, generate an API key → `MODEL_API_KEY`
 
-Alternatively, leave `MODEL_API_KEY` empty — users can bring their own key (BYOK) via the dashboard settings.
+Alternatively, leave `MODEL_API_KEY` empty - users can bring their own key (BYOK) via the dashboard settings.
 
 ### 5. Optional services
 
@@ -116,7 +116,7 @@ openssl rand -base64 32
 # paste output into ENCRYPTION_SECRET
 ```
 
-Fill in all variables in `.env.local` — see `.env.example` for the full list and descriptions.
+Fill in all variables in `.env.local` - see `.env.example` for the full list and descriptions.
 
 ### 7. Run
 
@@ -151,7 +151,7 @@ yarn format       # Format with Prettier
 
 | Component                        | Role                                                                        |
 | -------------------------------- | --------------------------------------------------------------------------- |
-| `middleware.ts`                  | Auth guard — enforces session validity on every protected route             |
+| `middleware.ts`                  | Auth guard - enforces session validity on every protected route             |
 | `app/api/`                       | REST API route handlers (discovery, subscriptions, payments, user settings) |
 | `lib/services/email-fetcher.ts`  | Retrieves emails from Gmail API, Microsoft Graph, or IMAP                   |
 | `lib/services/email-analyzer.ts` | AI-powered extraction of subscription data from email content               |
@@ -169,4 +169,4 @@ yarn lint    # must pass
 yarn build   # must pass
 ```
 
-Please keep changes focused — one feature or fix per PR.
+Please keep changes focused - one feature or fix per PR.

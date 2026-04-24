@@ -142,6 +142,8 @@ function SubscriptionsSectionContent() {
 
           if (sortBy === 'name') {
             comparison = a.name.localeCompare(b.name)
+          } else if (sortBy === 'startDate') {
+            comparison = new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
           } else if (sortBy === 'endDate') {
             comparison = new Date(a.endDate).getTime() - new Date(b.endDate).getTime()
           } else if (sortBy === 'price') {

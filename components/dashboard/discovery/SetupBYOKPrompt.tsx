@@ -21,7 +21,7 @@ export function SetupBYOKPrompt() {
           </p>
         </div>
 
-        <UpgradeButton size="sm" hideIfPro={false} />
+        <UpgradeButton size="sm" hideIfPro={false} location="byok_prompt" />
 
         <div className="w-full border-t pt-4 mt-2">
           <p className="text-xs text-muted-foreground mb-3">
