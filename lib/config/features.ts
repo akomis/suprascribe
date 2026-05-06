@@ -32,20 +32,19 @@ export const Features = {
     tier: TIER.BASIC,
     enabled: true,
   },
+  subscription_history: {
+    key: 'subscription_history',
+    name: 'Complete History',
+    description: 'Complete subscription history & management',
+    tier: TIER.BASIC,
+    enabled: true,
+  },
   multiple_currency: {
     key: 'multiple_currency',
     name: 'Multiple Currency',
     description: 'Support for multiple currencies',
     tier: TIER.BASIC,
     enabled: true,
-  },
-  byok: {
-    key: 'byok',
-    name: 'Bring Your Own Key',
-    description: 'Use your own API keys for unlimited discovery with a variety of AI providers',
-    tier: TIER.BASIC,
-    enabled: true,
-    moreInfoLink: { label: 'Learn about BYOK', href: '/limits#byok' },
   },
   auto_discovery: {
     key: 'auto_discovery',
@@ -56,10 +55,10 @@ export const Features = {
     enabled: true,
     moreInfoLink: { label: 'Learn about discovery limits', href: '/limits' },
   },
-  subscription_history: {
-    key: 'subscription_history',
-    name: 'Complete History',
-    description: 'Complete subscription history & management',
+  quick_unsubscribe: {
+    key: 'quick_unsubscribe',
+    name: 'Quick Unsubscribe',
+    description: 'Quick service unsubscribe',
     tier: TIER.PRO,
     enabled: true,
   },
@@ -67,13 +66,6 @@ export const Features = {
     key: 'search_sort_group',
     name: 'Search, Sort & Group',
     description: 'Search, sort and group subscriptions',
-    tier: TIER.PRO,
-    enabled: true,
-  },
-  quick_unsubscribe: {
-    key: 'quick_unsubscribe',
-    name: 'Quick Unsubscribe',
-    description: 'Two-click service unsubscribe',
     tier: TIER.PRO,
     enabled: true,
   },
@@ -125,14 +117,6 @@ export const TierFeatures: Record<TierType, FeatureKey[]> = {
   PRO: [...BASIC_FEATURES, ...PRO_FEATURES],
 }
 
-export const FeatureNames: Record<FeatureKey, string> = Object.entries(Features).reduce(
-  (acc, [key, feature]) => {
-    acc[key as FeatureKey] = feature.name
-    return acc
-  },
-  {} as Record<FeatureKey, string>,
-)
-
 export const TierNames: Record<TierType, string> = {
   BASIC: 'Basic',
   PRO: 'Pro',
@@ -165,7 +149,7 @@ export function getRequiredTier(feature: FeatureKey): TierType | null {
   return null
 }
 
-export function getFeaturesByTier(tier: FeatureTier): FeatureDefinition[] {
+function getFeaturesByTier(tier: FeatureTier): FeatureDefinition[] {
   return Object.values(Features).filter((feature) => feature.tier === tier)
 }
 

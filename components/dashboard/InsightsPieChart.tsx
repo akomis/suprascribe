@@ -2,7 +2,7 @@
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { useCurrency } from '@/lib/hooks/useCurrency'
-import { InsightMode, InsightTab, PieDataItem } from '@/lib/hooks/useInsights'
+import type { InsightMode, InsightTab, PieDataItem } from '@/lib/types/subscriptions'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useTheme } from 'next-themes'
 import { useMemo } from 'react'

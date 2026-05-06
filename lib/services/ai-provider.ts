@@ -69,21 +69,6 @@ export const DEFAULT_MODELS: Record<LLMProvider, string[]> = {
   openrouter: [],
 }
 
-export const RECOMMENDED_MODELS: Record<LLMProvider, string> = {
-  openai: 'gpt-5-nano',
-  anthropic: 'claude-haiku-4-5-20251001',
-  google: 'gemini-2.5-flash-lite',
-  mistral: 'mistral-small-3.2-24b-instruct',
-  groq: 'llama-3.3-70b-versatile',
-  xai: 'grok-4-fast',
-  cohere: 'command-r-plus-08-2024',
-  deepseek: 'deepseek-chat',
-  perplexity: 'sonar',
-  togetherai: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
-  fireworks: 'accounts/fireworks/models/llama-v3p3-70b-instruct',
-  openrouter: 'google/gemini-2.5-flash-lite',
-}
-
 export const PROVIDER_NAMES: Record<LLMProvider, string> = {
   openai: 'OpenAI',
   anthropic: 'Anthropic',
@@ -204,16 +189,4 @@ export async function validateApiKey(
 
     return { valid: false, error: 'Failed to validate key - please check and try again' }
   }
-}
-
-export function isValidModel(provider: LLMProvider, model: string): boolean {
-  if (provider === 'openrouter') {
-    return model.trim().length > 0
-  }
-  return DEFAULT_MODELS[provider].includes(model)
-}
-
-export function getModelLabel(provider: LLMProvider, model: string): string {
-  const isRecommended = model === RECOMMENDED_MODELS[provider]
-  return isRecommended ? `${model} (Recommended)` : model
 }

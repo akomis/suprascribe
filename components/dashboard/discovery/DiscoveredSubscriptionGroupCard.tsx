@@ -4,7 +4,7 @@ import { ServiceLogo } from '@/components/shared/ServiceLogo'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { DiscoveredSubscription } from '@/lib/hooks/discovery/useGoogleDiscovery'
+import type { DiscoveredSubscription } from '@/lib/types/forms'
 import { CurrencyCode } from '@/lib/hooks/useCurrency'
 import {
   cn,

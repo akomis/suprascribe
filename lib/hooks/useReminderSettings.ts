@@ -1,14 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { reminderKeys, STALE_TIME } from './query-keys'
 
 export interface ReminderSettings {
   email_reminders_enabled: boolean
   reminder_days_before: number
-}
-
-const reminderKeys = {
-  all: ['reminder-settings'] as const,
-  settings: () => [...reminderKeys.all, 'settings'] as const,
 }
 
 async function fetchReminderSettings(): Promise<ReminderSettings> {
@@ -38,7 +34,7 @@ export function useReminderSettings() {
   const settingsQuery = useQuery({
     queryKey: reminderKeys.settings(),
     queryFn: fetchReminderSettings,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: STALE_TIME.default,
   })
 
   const updateMutation = useMutation({

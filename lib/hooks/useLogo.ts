@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react'
+import { STORE_URL_HOSTNAMES } from '@/lib/config/urls'
 
 const logoCache = new Map<string, string | null>()
 const inflight = new Map<string, Promise<string | null>>()
-
-const STORE_URL_HOSTNAMES = new Set([
-  'apps.apple.com',
-  'itunes.apple.com',
-  'play.google.com',
-  'market.android.com',
-])
 
 async function fetchLogoByQuery(query: string): Promise<string | null> {
   if (logoCache.has(query)) return logoCache.get(query)!

@@ -2,7 +2,17 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ExternalLink } from 'lucide-react'
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'IMAP Setup Guide - Connect Any Email Provider',
+  description:
+    'Step-by-step guide to configure IMAP access for Gmail, Outlook, iCloud, and other email providers. Learn how to generate app-specific passwords for secure email discovery.',
+  alternates: {
+    canonical: 'https://www.suprascribe.com/imap',
+  },
+}
 
 export default function ImapGuidePage() {
   return (

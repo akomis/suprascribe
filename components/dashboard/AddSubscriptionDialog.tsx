@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { useAutoDiscoveryAccess } from '@/lib/hooks/useAutoDiscoveryAccess'
 import { useCreateSubscription } from '@/lib/hooks/useSubscriptions'
 import { CreateSubscriptionFormData } from '@/lib/types/forms'
 import { Plus } from 'lucide-react'
@@ -18,20 +19,30 @@ import * as React from 'react'
 
 export type ViewType = 'options' | 'auto-discover' | 'manual'
 
-interface AddSubscriptionDialogProps {
+export type AddSubscriptionActions = {
+  create: {
+    mutateAsync: (data: CreateSubscriptionFormData) => Promise<unknown>
+    isPending: boolean
+    error: Error | null
+  }
+  autoDiscoverEnabled: boolean
+}
+
+type AddSubscriptionDialogBaseProps = {
   externalOpen?: boolean
   onExternalOpenChange?: (open: boolean) => void
   initialView?: ViewType
   hideTrigger?: boolean
+  actions: AddSubscriptionActions
 }
 
-export default function AddSubscriptionDialog({
+export function AddSubscriptionDialogBase({
   externalOpen,
   onExternalOpenChange,
   initialView = 'options',
   hideTrigger = false,
-}: AddSubscriptionDialogProps = {}) {
-  const createSubscriptionMutation = useCreateSubscription()
+  actions,
+}: AddSubscriptionDialogBaseProps) {
   const [internalOpen, setInternalOpen] = React.useState(false)
   const [currentView, setCurrentView] = React.useState<ViewType>(initialView)
 
@@ -45,8 +56,10 @@ export default function AddSubscriptionDialog({
     }
   }, [open, initialView])
 
-  const handleSubmit = async (data: CreateSubscriptionFormData) => {
-    await createSubscriptionMutation.mutateAsync(data)
+  const handleSubmit = async (entries: CreateSubscriptionFormData[]) => {
+    for (const entry of entries) {
+      await actions.create.mutateAsync(entry)
+    }
     setOpen(false)
     setCurrentView('options')
   }
@@ -59,8 +72,8 @@ export default function AddSubscriptionDialog({
   }
 
   const handleSelectAutoDiscover = React.useCallback(() => {
-    setCurrentView('auto-discover')
-  }, [])
+    if (actions.autoDiscoverEnabled) setCurrentView('auto-discover')
+  }, [actions.autoDiscoverEnabled])
 
   const handleSelectManual = React.useCallback(() => {
     setCurrentView('manual')
@@ -85,11 +98,13 @@ export default function AddSubscriptionDialog({
             <AddSubscriptionOptions
               onSelectAutoDiscover={handleSelectAutoDiscover}
               onSelectManual={handleSelectManual}
+              forceDisableAutoDiscovery={!actions.autoDiscoverEnabled}
+              disabledTooltipMessage="Email discovery requires sign-in"
             />
           </div>
         )}
 
-        {currentView === 'auto-discover' && (
+        {actions.autoDiscoverEnabled && currentView === 'auto-discover' && (
           <div className="fade-on-mount">
             <EmailProviderSelection />
           </div>
@@ -102,12 +117,32 @@ export default function AddSubscriptionDialog({
               onCancel={() => {
                 setCurrentView('options')
               }}
-              isSubmitting={createSubscriptionMutation.isPending}
-              submitError={createSubscriptionMutation.error}
+              isSubmitting={actions.create.isPending}
+              submitError={actions.create.error}
             />
           </div>
         )}
       </DialogContent>
     </Dialog>
+  )
+}
+
+export default function AddSubscriptionDialog({
+  externalOpen,
+  onExternalOpenChange,
+  initialView = 'options',
+  hideTrigger = false,
+}: Omit<AddSubscriptionDialogBaseProps, 'actions'> = {}) {
+  const createSubscriptionMutation = useCreateSubscription()
+  const { hasAccess: autoDiscoverEnabled } = useAutoDiscoveryAccess()
+
+  return (
+    <AddSubscriptionDialogBase
+      externalOpen={externalOpen}
+      onExternalOpenChange={onExternalOpenChange}
+      initialView={initialView}
+      hideTrigger={hideTrigger}
+      actions={{ create: createSubscriptionMutation, autoDiscoverEnabled }}
+    />
   )
 }

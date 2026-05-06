@@ -6,18 +6,19 @@ import { Separator } from '@/components/ui/separator'
 import type { DiscoveredSubscription } from '@/lib/types/forms'
 import { formatDateRangeWithDuration, formatLocalizedDate, isSubscriptionActive } from '@/lib/utils'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
+import { toDateString } from '@/lib/utils/date'
 import * as React from 'react'
 
 const daysAgo = (days: number) => {
   const date = new Date()
   date.setDate(date.getDate() - days)
-  return date.toISOString().split('T')[0]
+  return toDateString(date)
 }
 
 const daysFromNow = (days: number) => {
   const date = new Date()
   date.setDate(date.getDate() + days)
-  return date.toISOString().split('T')[0]
+  return toDateString(date)
 }
 
 const DEMO_DISCOVERED: DiscoveredSubscription[] = [

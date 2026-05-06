@@ -2,13 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Tier } from '@/lib/types/database'
-import { subscriptionKeys } from './useSubscriptions'
+import { accountKeys, insightKeys, subscriptionKeys, STALE_TIME } from './query-keys'
 import { discoveryRunKeys } from './discovery/useDiscoveryRuns'
-
-export const accountKeys = {
-  all: ['account'] as const,
-  tier: () => [...accountKeys.all, 'tier'] as const,
-}
 
 async function fetchTier(): Promise<Tier | null> {
   const res = await fetch('/api/user/tier', { method: 'GET' })
@@ -23,7 +18,7 @@ export function useAccountTier() {
   return useQuery({
     queryKey: accountKeys.tier(),
     queryFn: fetchTier,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.default,
   })
 }
 
@@ -89,7 +84,7 @@ export function useResetAccountData() {
       toast.success('Account data reset successfully')
       queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
       queryClient.invalidateQueries({ queryKey: discoveryRunKeys.all })
-      queryClient.invalidateQueries({ queryKey: ['insights'] })
+      queryClient.invalidateQueries({ queryKey: insightKeys.all })
     },
     onError: (err: any) => {
       toast.error(err?.message || 'Failed to reset account data')

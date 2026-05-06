@@ -33,9 +33,9 @@ export function DiscoveryEditDialog({
     auto_renew: subscription.auto_renew ?? false,
   } as unknown as UserSubscriptionWithDetails
 
-  const handleSubmit = async (data: CreateSubscriptionFormData) => {
+  const handleSubmit = async (data: CreateSubscriptionFormData[]) => {
     setIsSubmitting(true)
-    onSave(data)
+    onSave(data[0])
     setIsSubmitting(false)
     onOpenChange(false)
   }

@@ -1,5 +1,6 @@
 import { BackgroundRippleEffect } from '@/components/landing/BackgroundRippleEffect'
 import { DiscoveryLearnMoreButton } from '@/components/landing/DiscoveryLearnMoreButton'
+import { FAQSection } from '@/components/landing/FAQSection'
 import { FeatureCard } from '@/components/landing/FeatureCard'
 import { LandingCTA } from '@/components/landing/LandingCTA'
 import { Reveal } from '@/components/landing/Reveal'
@@ -8,38 +9,31 @@ import { ScrollToBottomButton } from '@/components/landing/ScrollToBottomButton'
 import { ShinyText } from '@/components/landing/ShinyText'
 import { SuprascribeLogo } from '@/components/landing/SuprascribeLogo'
 import { TierCard } from '@/components/landing/TierCard'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { competitors } from '@/lib/config/comparisons'
+import { featuredFaqItems } from '@/lib/config/faq'
 import { getEnabledFeaturesByTier } from '@/lib/config/features'
-import { createClient } from '@/lib/supabase/server'
-import { Github, Lock, ShieldCheck, User } from 'lucide-react'
+import { CheckCircle2, Github, Lock, ShieldCheck, User } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Suprascribe - Free Subscription Tracker That Finds Your Subscriptions Automatically',
   description:
-    'Stop losing money to forgotten subscriptions. Suprascribe scans your Gmail, Outlook, or iCloud to automatically find every recurring payment. Free forever - Pro unlocked with a single €5 purchase.',
+    'Stop losing money on forgotten subscriptions. Suprascribe auto-scans Gmail, Outlook & iCloud to find every recurring payment. Free forever.',
   alternates: {
     canonical: 'https://www.suprascribe.com',
   },
 }
 
-export default async function Home() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  let isProUser = false
-  if (user) {
-    const { data } = await supabase
-      .from('USER_SETTINGS')
-      .select('tier')
-      .eq('user_id', user.id)
-      .maybeSingle()
-    isProUser = data?.tier === 'pro'
-  }
-
+export default function Home() {
   const basicFeatures = getEnabledFeaturesByTier('basic')
   const proFeatures = getEnabledFeaturesByTier('pro')
 
@@ -55,7 +49,7 @@ export default async function Home() {
         <Reveal delayMs={300} animation="fadeIn" className="z-10 -mt-4">
           <span className="inline-flex items-center rounded-full border border-border bg-background/60 px-4 py-1 text-xs font-medium backdrop-blur-sm">
             <ShinyText
-              text="Release v1.0 - April 2026"
+              text="Release v1.0 - May 2026"
               speed={3}
               color="#888888"
               shineColor="#ffffff"
@@ -147,14 +141,15 @@ export default async function Home() {
                 buttonText="Get Started"
                 buttonVariant="outline"
                 href="/login?tab=signup"
-                hideCta={isProUser}
               />
             </Reveal>
             <Reveal delayMs={400}>
               <TierCard
-                name="Pro"
+                name="PRO"
                 description="For power users who want more"
                 price="€5"
+                originalPrice="€10"
+                earlyBirdLabel="50% OFF - Early Adopter"
                 period="once, forever"
                 features={proFeatures}
                 buttonText="Upgrade to Pro"
@@ -164,10 +159,118 @@ export default async function Home() {
                 highlighted={true}
                 checkmarkColor="text-primary"
                 additionalNote="Everything in Basic, plus:"
-                hideCta={isProUser}
               />
             </Reveal>
           </div>
+        </div>
+      </section>
+
+      <Separator className="data-[orientation=horizontal]:w-[60vw] mx-auto" />
+
+      <section className="container mx-auto py-10 sm:py-20 px-2 sm:px-4">
+        <div className="mx-auto max-w-2xl space-y-8 sm:space-y-12">
+          <Reveal>
+            <div className="text-center space-y-3">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
+                Suprascribe vs. The Alternatives
+              </h2>
+              <p className="text-base sm:text-lg text-muted-foreground">
+                See why Suprascribe outperforms every other subscription management app in both
+                features and price
+              </p>
+            </div>
+          </Reveal>
+          <Reveal>
+            <Accordion type="single" collapsible className="w-full">
+              {competitors.map((competitor) => (
+                <AccordionItem key={competitor.slug} value={competitor.slug}>
+                  <AccordionTrigger>
+                    <span>
+                      <span className="font-semibold">{competitor.name}</span>
+                      <span className="text-muted-foreground font-normal ml-2 text-xs">
+                        {competitor.tagline}
+                      </span>
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-5 pt-1">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                          Their Pricing
+                        </p>
+                        <p className={competitor.isSubscription ? 'text-destructive' : ''}>
+                          {competitor.pricing}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                          What They Do Well
+                        </p>
+                        <ul className="space-y-1">
+                          {competitor.strengths.map((strength) => (
+                            <li key={strength} className="text-muted-foreground">
+                              {strength}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                          Where Suprascribe Wins
+                        </p>
+                        <ul className="space-y-2">
+                          {competitor.suprascribeWins.map((win) => (
+                            <li key={win.label} className="flex items-start gap-2">
+                              <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+                              <span>
+                                <span className="font-medium">{win.label}</span>
+                                {win.detail && (
+                                  <span className="text-muted-foreground"> - {win.detail}</span>
+                                )}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <blockquote className="border-l-2 border-border pl-3 italic text-muted-foreground">
+                        {competitor.verdict}
+                      </blockquote>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </Reveal>
+          <p className="text-sm text-muted-foreground text-center">
+            Spotted something inaccurate?{' '}
+            <Link
+              href="/contact"
+              className="underline underline-offset-4 hover:text-foreground transition-colors"
+            >
+              Let us know
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
+
+      <Separator className="data-[orientation=horizontal]:w-[60vw] mx-auto" />
+
+      <section id="faq" className="container mx-auto py-10 sm:py-20 px-2 sm:px-4">
+        <div className="mx-auto max-w-5xl space-y-8 sm:space-y-12">
+          <Reveal>
+            <div className="text-center space-y-3">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-base sm:text-lg text-muted-foreground">
+                Quick answers to common questions.
+              </p>
+            </div>
+          </Reveal>
+          <Reveal>
+            <FAQSection items={featuredFaqItems} showViewAll />
+          </Reveal>
         </div>
       </section>
 
@@ -189,16 +292,7 @@ export default async function Home() {
               </p>
               <p>
                 Suprascribe is fully open source. You can inspect the code, verify how your data is
-                handled, and contribute on{' '}
-                <Link
-                  href="https://github.com/akomis/suprascribe"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-4 hover:text-foreground transition-colors"
-                >
-                  GitHub
-                </Link>
-                .
+                handled, and contribute.
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4 pt-8">
@@ -229,6 +323,9 @@ export default async function Home() {
             <div className="flex gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
               <Link href="/terms-and-privacy" className="hover:text-foreground transition-colors">
                 Terms & Privacy
+              </Link>
+              <Link href="/faq" className="hover:text-foreground transition-colors">
+                FAQ
               </Link>
               <Link href="/safety" className="hover:text-foreground transition-colors">
                 Safety

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import posthog from 'posthog-js'
 import { useEffect, useState } from 'react'
 
 interface UpgradeButtonProps {
@@ -16,6 +17,7 @@ interface UpgradeButtonProps {
   showIcon?: boolean
   hideIfPro?: boolean
   fullWidth?: boolean
+  location?: string
 }
 
 const STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
@@ -28,6 +30,7 @@ export function UpgradeButton({
   showIcon = true,
   hideIfPro = true,
   fullWidth = false,
+  location,
 }: UpgradeButtonProps) {
   const router = useRouter()
   const { data: tier, isLoading: isTierLoading } = useAccountTier()
@@ -52,12 +55,32 @@ export function UpgradeButton({
     return null
   }
 
-  const handleClick = () => {
+  const handleClick = async () => {
+    posthog.capture('upgrade_button_clicked', {
+      location: location ?? 'unknown',
+      is_logged_in: !!user,
+      user_tier: tier ?? 'BASIC',
+    })
+
     if (!user) {
       router.push(`/login`)
       return
     }
 
+    // Record pending upgrade in database before redirecting to Payment Link
+    // This allows the webhook to reliably identify the user by email
+    try {
+      await fetch('/api/user/pending-upgrade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email }),
+      })
+    } catch (e) {
+      // Non-blocking - webhook will fall back to user lookup
+      console.warn('Failed to record pending upgrade:', e)
+    }
+
+    // Payment Links only support prefilled_email, not client_reference_id
     const paymentUrl = `${STRIPE_PAYMENT_LINK}?prefilled_email=${encodeURIComponent(user.email || '')}`
     window.location.href = paymentUrl
   }

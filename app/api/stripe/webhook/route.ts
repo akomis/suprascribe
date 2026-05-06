@@ -1,8 +1,8 @@
+import { STRIPE_API_VERSION } from '@/lib/config/stripe'
+import { captureEvent } from '@/lib/posthog-server'
 import { createClient } from '@supabase/supabase-js'
-import { getPostHogClient } from '@/lib/posthog-server'
 import { NextResponse, type NextRequest } from 'next/server'
 import Stripe from 'stripe'
-import { STRIPE_API_VERSION } from '@/lib/config/stripe'
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,100 +36,122 @@ export async function POST(request: NextRequest) {
         },
       )
 
-      const { data: existingEvent } = await supabaseAdmin
-        .from('stripe_webhook_events')
-        .select('event_id')
-        .eq('event_id', event.id)
-        .single()
-
-      if (existingEvent) {
-        console.log(`✅ Event ${event.id} already processed, skipping`)
-        return NextResponse.json({ success: true, message: 'Event already processed' })
-      }
-
+      // Prefer client_reference_id (Supabase user ID passed from UpgradeButton) for a direct,
+      // reliable lookup. Then check USER_TIERS.pending_upgrade_email. Fall back to email scan as last resort.
+      let userId: string | undefined
+      const clientRefId = session.client_reference_id
       const customerEmail = session.customer_email || session.customer_details?.email
-      if (!customerEmail) {
-        console.warn('No customer email in session:', session.id)
-        return NextResponse.json({ success: false, error: 'No customer email' }, { status: 400 })
-      }
 
-      let user: { id: string; email?: string } | undefined
-      let page = 1
-      while (!user) {
-        const { data: authData, error: userError } = await supabaseAdmin.auth.admin.listUsers({
-          page,
-          perPage: 100,
-        })
+      console.log(`[Webhook Debug] Session ${session.id}:`, {
+        client_reference_id: clientRefId,
+        customer_email: customerEmail,
+        payment_status: session.payment_status,
+        payment_intent: session.payment_intent,
+      })
 
-        if (userError) {
-          console.error('Failed to list users:', userError)
-          return NextResponse.json(
-            { success: false, error: 'Failed to lookup user' },
-            { status: 500 },
-          )
+      if (clientRefId) {
+        userId = clientRefId
+        console.log(`[Webhook Debug] Using client_reference_id: ${userId}`)
+      } else if (customerEmail) {
+        const normalizedEmail = customerEmail.toLowerCase().trim()
+
+        // First: Check USER_TIERS.pending_upgrade_email (set by UpgradeButton before redirect)
+        console.log(
+          `[Webhook Debug] Checking USER_TIERS.pending_upgrade_email for: ${normalizedEmail}`,
+        )
+        const { data: pendingTier } = await supabaseAdmin
+          .from('USER_TIERS')
+          .select('user_id')
+          .eq('pending_upgrade_email', normalizedEmail)
+          .maybeSingle()
+
+        if (pendingTier?.user_id) {
+          userId = pendingTier.user_id
+          console.log(`[Webhook Debug] Found user ${userId} in USER_TIERS.pending_upgrade_email`)
+        } else {
+          // Second: Fall back to scanning auth users
+          console.log(`[Webhook Debug] Falling back to auth user lookup`)
+          let page = 1
+          let totalUsersChecked = 0
+
+          while (!userId) {
+            const { data: authData, error: userError } = await supabaseAdmin.auth.admin.listUsers({
+              page,
+              perPage: 100,
+            })
+
+            if (userError) {
+              console.error('[Webhook Debug] Failed to list users:', userError)
+              return NextResponse.json(
+                { success: false, error: 'Failed to lookup user' },
+                { status: 500 },
+              )
+            }
+
+            if (authData.users.length === 0) break
+
+            totalUsersChecked += authData.users.length
+            const matchedUser = authData.users.find((u) => {
+              const userEmail = u.email?.toLowerCase().trim()
+              return userEmail === normalizedEmail
+            })
+
+            if (matchedUser) {
+              userId = matchedUser.id
+              console.log(`[Webhook Debug] Found user ${userId} in auth on page ${page}`)
+            }
+
+            page++
+          }
+
+          console.log(`[Webhook Debug] Checked ${totalUsersChecked} auth users`)
         }
-
-        if (authData.users.length === 0) break
-        user = authData.users.find((u) => u.email === customerEmail)
-        page++
       }
 
-      if (!user) {
-        console.warn('No user found for session:', session.id)
+      if (!userId) {
+        console.warn(`[Webhook Debug] No user found for session:`, {
+          session_id: session.id,
+          customer_email: customerEmail,
+        })
         return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
       }
 
-      const { error } = await supabaseAdmin
-        .from('USER_SETTINGS')
-        .update({ tier: 'PRO' })
-        .eq('user_id', user.id)
+      const { error } = await supabaseAdmin.from('USER_TIERS').upsert(
+        {
+          user_id: userId,
+          tier: 'PRO',
+          date_upgraded: new Date().toISOString(),
+          stripe_payment_intent_id: (session.payment_intent as string) ?? null,
+          pending_upgrade_email: null, // Clear after successful upgrade
+        },
+        { onConflict: 'user_id' },
+      )
 
       if (error) {
         console.error('Failed to update tier:', error)
         return NextResponse.json({ success: false, error: error.message }, { status: 500 })
       }
 
-      const { error: eventError } = await supabaseAdmin.from('stripe_webhook_events').insert({
-        event_id: event.id,
-        event_type: event.type,
+      await captureEvent(userId, 'pro_upgrade_completed', {
+        stripe_session_id: session.id,
+        amount_total: session.amount_total,
+        currency: session.currency,
       })
 
-      if (eventError) {
-        console.error('Failed to record webhook event:', eventError)
-      }
-
-      console.log(`✅ User ${user.id} upgraded to PRO via session ${session.id}`)
-
-      const posthog = getPostHogClient()
-      posthog.capture({
-        distinctId: user.id,
-        event: 'pro_upgrade_completed',
-        properties: {
-          stripe_session_id: session.id,
-          customer_email: customerEmail,
-        },
-      })
-      await posthog.shutdown()
-
+      console.log(`✅ User ${userId} upgraded to PRO via session ${session.id}`)
       return NextResponse.json({ success: true })
     }
 
     if (event.type === 'charge.failed') {
       const charge = event.data.object
       console.warn('Payment failed for charge:', charge.id)
-      const posthogCharge = getPostHogClient()
-      posthogCharge.capture({
-        distinctId: charge.customer?.toString() || charge.id,
-        event: 'charge_failed',
-        properties: {
-          charge_id: charge.id,
-          amount: charge.amount,
-          currency: charge.currency,
-          failure_code: charge.failure_code,
-          failure_message: charge.failure_message,
-        },
+      await captureEvent(charge.customer?.toString() || charge.id, 'charge_failed', {
+        charge_id: charge.id,
+        amount: charge.amount,
+        currency: charge.currency,
+        failure_code: charge.failure_code,
+        failure_message: charge.failure_message,
       })
-      await posthogCharge.shutdown()
       return NextResponse.json({ success: true })
     }
 

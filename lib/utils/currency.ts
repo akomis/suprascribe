@@ -1,4 +1,17 @@
-import { CurrencyCode } from '@/lib/hooks/useCurrency'
+export const CURRENCIES = {
+  USD: { symbol: '$', name: 'US Dollar' },
+  EUR: { symbol: '€', name: 'Euro' },
+  GBP: { symbol: '£', name: 'British Pound' },
+  JPY: { symbol: '¥', name: 'Japanese Yen' },
+  AUD: { symbol: 'A$', name: 'Australian Dollar' },
+  CAD: { symbol: 'C$', name: 'Canadian Dollar' },
+  CHF: { symbol: 'CHF', name: 'Swiss Franc' },
+  CNY: { symbol: '¥', name: 'Chinese Yuan' },
+  INR: { symbol: '₹', name: 'Indian Rupee' },
+  KRW: { symbol: '₩', name: 'South Korean Won' },
+} as const
+
+export type CurrencyCode = keyof typeof CURRENCIES
 
 const EXCHANGE_RATES: Record<CurrencyCode, number> = {
   USD: 1.0,

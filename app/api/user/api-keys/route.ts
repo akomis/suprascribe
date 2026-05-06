@@ -1,24 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
-import { getPostHogClient } from '@/lib/posthog-server'
-import { encryptApiKey, decryptApiKey, getKeyHint } from '@/lib/utils/server-crypto'
-import {
-  validateApiKey,
-  type LLMProvider,
-  DEFAULT_MODELS,
-  type ProviderConfig,
-} from '@/lib/services/ai-provider'
-import { NextRequest, NextResponse } from 'next/server'
+import { withAuth } from '@/lib/api/withAuth'
+import { captureEvent } from '@/lib/posthog-server'
+import { encryptApiKey, getKeyHint } from '@/lib/utils/server-crypto'
+import { validateApiKey, type LLMProvider, DEFAULT_MODELS } from '@/lib/services/ai-provider'
+import { getUserTier } from '@/lib/supabase/tier'
+import { NextResponse } from 'next/server'
 
-export async function GET() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withAuth(async (_req, { user, supabase }) => {
   const { data: keys, error: keysError } = await supabase
     .from('USER_API_KEYS')
     .select('id, provider, key_hint, model, validated_at')
@@ -38,16 +25,12 @@ export async function GET() {
     keys: keys || [],
     activeKeyId: settings?.active_key_id || null,
   })
-}
+})
 
-export async function POST(request: NextRequest) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export const POST = withAuth(async (request, { user, supabase }) => {
+  const tier = await getUserTier(supabase, user.id)
+  if (tier !== 'PRO') {
+    return NextResponse.json({ error: 'BYOK requires a Pro subscription' }, { status: 403 })
   }
 
   const {
@@ -111,25 +94,15 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const posthog = getPostHogClient()
-  posthog.capture({
-    distinctId: user.id,
-    event: 'byok_api_key_added',
-    properties: { provider, model },
-  })
-  await posthog.shutdown()
+  void captureEvent(user.id, 'byok_api_key_added', { provider, model })
 
   return NextResponse.json({ success: true, keyHint, keyId: insertedKey?.id })
-}
+})
 
-export async function PUT(request: NextRequest) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export const PUT = withAuth(async (request, { user, supabase }) => {
+  const tier = await getUserTier(supabase, user.id)
+  if (tier !== 'PRO') {
+    return NextResponse.json({ error: 'BYOK requires a Pro subscription' }, { status: 403 })
   }
 
   const body = await request.json()
@@ -175,27 +148,12 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  const posthog = getPostHogClient()
-  posthog.capture({
-    distinctId: user.id,
-    event: 'byok_api_key_activated',
-    properties: { key_id: keyId },
-  })
-  await posthog.shutdown()
+  void captureEvent(user.id, 'byok_api_key_activated', { key_id: keyId })
 
   return NextResponse.json({ success: true })
-}
+})
 
-export async function DELETE(request: NextRequest) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const DELETE = withAuth(async (request, { user, supabase }) => {
   const { keyId } = await request.json()
 
   if (!keyId) {
@@ -222,43 +180,7 @@ export async function DELETE(request: NextRequest) {
     await supabase.from('USER_SETTINGS').update({ active_key_id: null }).eq('user_id', user.id)
   }
 
-  const posthog = getPostHogClient()
-  posthog.capture({
-    distinctId: user.id,
-    event: 'byok_api_key_removed',
-    properties: { key_id: keyId },
-  })
-  await posthog.shutdown()
+  void captureEvent(user.id, 'byok_api_key_removed', { key_id: keyId })
 
   return NextResponse.json({ success: true })
-}
-
-export async function getBYOKConfig(userId: string): Promise<ProviderConfig | null> {
-  const supabase = await createClient()
-
-  const { data: settings } = await supabase
-    .from('USER_SETTINGS')
-    .select('active_key_id')
-    .eq('user_id', userId)
-    .single()
-
-  if (!settings?.active_key_id) return null
-
-  const { data: key } = await supabase
-    .from('USER_API_KEYS')
-    .select('provider, encrypted_key, model')
-    .eq('id', settings.active_key_id)
-    .single()
-
-  if (!key) return null
-
-  try {
-    return {
-      provider: key.provider as LLMProvider,
-      apiKey: decryptApiKey(key.encrypted_key),
-      model: key.model,
-    }
-  } catch {
-    return null
-  }
-}
+})

@@ -1,5 +1,6 @@
 'use client'
 
+import type { GroupByOption } from '@/lib/types/subscriptions'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -12,6 +13,13 @@ import { Check, Layers } from 'lucide-react'
 import * as React from 'react'
 
 export type GroupByValue = 'service' | 'sourceEmail' | 'category' | 'paymentMethod'
+
+export function toInsightsGroupBy(value: GroupByValue): GroupByOption {
+  if (value === 'category') return 'category'
+  if (value === 'paymentMethod') return 'paymentMethod'
+  if (value === 'sourceEmail') return 'sourceEmail'
+  return 'service'
+}
 
 export const groupByOptions: { value: GroupByValue; label: string }[] = [
   { value: 'service', label: 'Service' },

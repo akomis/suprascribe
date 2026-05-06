@@ -14,6 +14,8 @@ export type UserSubscriptionInsert = Database['public']['Tables']['USER_SUBSCRIP
 
 export type UserSettings = Database['public']['Tables']['USER_SETTINGS']['Row']
 
+export type UserTier = Database['public']['Tables']['USER_TIERS']['Row']
+
 export type DiscoveryRun = Database['public']['Tables']['DISCOVERY_RUNS']['Row']
 
 export enum Tier {
@@ -25,19 +27,4 @@ export type CurrencyCode = Database['public']['Enums']['CURRENCY_CODE']
 
 export type UserSubscriptionWithDetails = UserSubscription & {
   subscription_service: Pick<SubscriptionService, 'name' | 'url' | 'unsubscribe_url'>
-}
-
-export type MergedSubscription = {
-  name: string
-  serviceUrl?: string
-  price: number
-  currency: CurrencyCode
-  startDate: string
-  endDate: string
-  autoRenew: boolean
-  active: boolean
-  subscriptions: UserSubscriptionWithDetails[]
-  spentThisYear: number
-  forecastThisYear: number
-  totalSpent: number
 }

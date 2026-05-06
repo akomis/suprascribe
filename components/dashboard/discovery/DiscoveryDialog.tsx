@@ -2,6 +2,7 @@
 
 import { DiscoveredSubscriptionGroupCard } from '@/components/dashboard/discovery/DiscoveredSubscriptionGroupCard'
 import { DiscoveryEditDialog } from '@/components/dashboard/discovery/DiscoveryEditDialog'
+import { SupportButton } from '@/components/shared/SupportButton'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +41,7 @@ import { toast } from 'sonner'
 interface DiscoveryDialogProps {
   isDiscovering: boolean
   discoveredSubscriptions: DiscoveredSubscription[]
+  emailCount?: number | null
   error: string | null
   warning: string | null
   clearDiscovery: () => void
@@ -54,6 +56,7 @@ interface DiscoveryDialogProps {
 export function DiscoveryDialog({
   isDiscovering,
   discoveredSubscriptions,
+  emailCount,
   error,
   warning,
   clearDiscovery,
@@ -349,6 +352,7 @@ export function DiscoveryDialog({
               </div>
 
               <DialogFooter>
+                <SupportButton />
                 <Button variant="outline" onClick={handleClose}>
                   Close
                 </Button>
@@ -518,6 +522,7 @@ export function DiscoveryDialog({
               </div>
 
               <DialogFooter>
+                <SupportButton />
                 <Button onClick={handleClose}>Close</Button>
               </DialogFooter>
             </>
@@ -527,8 +532,11 @@ export function DiscoveryDialog({
                 <DialogTitle>No Subscriptions Found</DialogTitle>
                 <DialogDescription>
                   We couldn&apos;t find any subscription emails in your {providerName} inbox
-                  {finalElapsedTime.current !== null &&
-                    ` (searched for ${finalElapsedTime.current}s)`}
+                  {emailCount != null
+                    ? ` (scanned ${emailCount} email${emailCount !== 1 ? 's' : ''})`
+                    : finalElapsedTime.current !== null
+                      ? ` (searched for ${finalElapsedTime.current}s)`
+                      : ''}
                   .
                 </DialogDescription>
               </DialogHeader>

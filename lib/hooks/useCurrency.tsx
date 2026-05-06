@@ -1,21 +1,11 @@
 'use client'
 
 import * as React from 'react'
+import { STORAGE_KEYS } from '@/lib/config/storage-keys'
+import { CURRENCIES, CurrencyCode, formatCurrencyAmount } from '@/lib/utils/currency'
 
-export const CURRENCIES = {
-  USD: { symbol: '$', name: 'US Dollar' },
-  EUR: { symbol: '€', name: 'Euro' },
-  GBP: { symbol: '£', name: 'British Pound' },
-  JPY: { symbol: '¥', name: 'Japanese Yen' },
-  AUD: { symbol: 'A$', name: 'Australian Dollar' },
-  CAD: { symbol: 'C$', name: 'Canadian Dollar' },
-  CHF: { symbol: 'CHF', name: 'Swiss Franc' },
-  CNY: { symbol: '¥', name: 'Chinese Yuan' },
-  INR: { symbol: '₹', name: 'Indian Rupee' },
-  KRW: { symbol: '₩', name: 'South Korean Won' },
-} as const
-
-export type CurrencyCode = keyof typeof CURRENCIES
+export type { CurrencyCode }
+export { CURRENCIES }
 
 type CurrencyContextType = {
   currency: CurrencyCode
@@ -26,14 +16,12 @@ type CurrencyContextType = {
 
 const CurrencyContext = React.createContext<CurrencyContextType | undefined>(undefined)
 
-const STORAGE_KEY = 'suprascribe_currency'
-
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const [currency, setCurrencyState] = React.useState<CurrencyCode>('USD')
   const [isHydrated, setIsHydrated] = React.useState(false)
 
   React.useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as CurrencyCode | null
+    const stored = localStorage.getItem(STORAGE_KEYS.currency) as CurrencyCode | null
     if (stored && CURRENCIES[stored]) {
       setCurrencyState(stored)
     }
@@ -42,27 +30,17 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
   const setCurrency = React.useCallback((newCurrency: CurrencyCode) => {
     setCurrencyState(newCurrency)
-    localStorage.setItem(STORAGE_KEY, newCurrency)
+    localStorage.setItem(STORAGE_KEYS.currency, newCurrency)
   }, [])
-
-  const formatCurrencyFn = React.useCallback(
-    (amount: number) => {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: currency,
-      }).format(amount)
-    },
-    [currency],
-  )
 
   const value = React.useMemo(
     () => ({
       currency,
       setCurrency,
       currencySymbol: CURRENCIES[currency].symbol,
-      formatCurrency: formatCurrencyFn,
+      formatCurrency: (amount: number) => formatCurrencyAmount(amount, currency),
     }),
-    [currency, setCurrency, formatCurrencyFn],
+    [currency, setCurrency],
   )
 
   if (!isHydrated) {

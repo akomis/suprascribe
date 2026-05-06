@@ -1,25 +1,16 @@
-import { createClient } from '@/lib/supabase/server'
-import { getPostHogClient } from '@/lib/posthog-server'
+import { withAdminAuth } from '@/lib/api/withAuth'
 import { hasFeatureAccess } from '@/lib/config/features'
-import { NextRequest, NextResponse } from 'next/server'
+import { captureEvent } from '@/lib/posthog-server'
+import { getUserTier } from '@/lib/supabase/tier'
+import { NextResponse } from 'next/server'
 
 export interface ReminderSettings {
   email_reminders_enabled: boolean
   reminder_days_before: number
 }
 
-export async function GET() {
+export const GET = withAdminAuth(async (_req, { user, supabase }) => {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const { data, error } = await supabase
       .from('USER_SETTINGS')
       .select('email_reminders_enabled, reminder_days_before')
@@ -34,30 +25,18 @@ export async function GET() {
       email_reminders_enabled: data?.email_reminders_enabled ?? false,
       reminder_days_before: data?.reminder_days_before ?? 3,
     })
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || 'Unexpected error' }, { status: 500 })
+  } catch (err: unknown) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Unexpected error' },
+      { status: 500 },
+    )
   }
-}
+})
 
-export async function PUT(request: NextRequest) {
+export const PUT = withAdminAuth(async (request, { user, supabase, admin }) => {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { data: settings } = await supabase
-      .from('USER_SETTINGS')
-      .select('tier')
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    const userTier = settings?.tier || 'BASIC'
+    // Use service role client for USER_TIERS lookup
+    const userTier = await getUserTier(admin, user.id)
     if (!hasFeatureAccess(userTier, 'renewal_reminders')) {
       return NextResponse.json(
         { error: 'Renewal reminders require a Pro subscription' },
@@ -88,19 +67,16 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    const posthog = getPostHogClient()
-    posthog.capture({
-      distinctId: user.id,
-      event: 'reminder_settings_updated',
-      properties: {
-        email_reminders_enabled,
-        reminder_days_before,
-      },
+    void captureEvent(user.id, 'reminder_settings_updated', {
+      email_reminders_enabled,
+      reminder_days_before,
     })
-    await posthog.shutdown()
 
     return NextResponse.json({ success: true })
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || 'Unexpected error' }, { status: 500 })
+  } catch (err: unknown) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Unexpected error' },
+      { status: 500 },
+    )
   }
-}
+})

@@ -6,18 +6,19 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { UserSubscriptionWithDetails } from '@/lib/types/database'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
+import { toDateString } from '@/lib/utils/date'
 import { ExternalLink, UserX } from 'lucide-react'
 
 const daysAgo = (days: number) => {
   const date = new Date()
   date.setDate(date.getDate() - days)
-  return date.toISOString().split('T')[0]
+  return toDateString(date)
 }
 
 const daysFromNow = (days: number) => {
   const date = new Date()
   date.setDate(date.getDate() + days)
-  return date.toISOString().split('T')[0]
+  return toDateString(date)
 }
 
 const DEMO_SUBSCRIPTION_HISTORY: UserSubscriptionWithDetails[] = [

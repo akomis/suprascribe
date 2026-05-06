@@ -5,22 +5,37 @@ import InsightsPieChart from '@/components/dashboard/InsightsPieChart'
 import { SubscriptionDetailsDialog } from '@/components/dashboard/SubscriptionDetailsDialog'
 import { Spinner } from '@/components/ui/spinner'
 import { useCurrency } from '@/lib/hooks/useCurrency'
-import { InsightTab, useInsightsSuspense } from '@/lib/hooks/useInsights'
+import type { InsightData, InsightTab } from '@/lib/types/subscriptions'
+import { useInsightsSuspense } from '@/lib/hooks/useInsights'
 import { useSubscriptionsSuspense } from '@/lib/hooks/useSubscriptions'
 import { useInsightsSettings } from '@/providers/InsightsSettingsProvider'
+import type { UserSubscriptionWithDetails } from '@/lib/types/database'
 import * as React from 'react'
 import { Suspense } from 'react'
 
-type InsightsContentProps = {
+type MergedSubLike = { name: string; subscriptions: UserSubscriptionWithDetails[] }
+
+type InsightsContentBaseProps = {
+  insights: InsightData
+  subscriptions: MergedSubLike[]
+  DetailsDialog: React.ComponentType<{
+    subscription: UserSubscriptionWithDetails
+    allSubscriptions?: UserSubscriptionWithDetails[]
+    open: boolean
+    onOpenChange: (open: boolean) => void
+  }>
   tab: InsightTab
   year?: number
 }
 
-function InsightsContent({ tab, year }: InsightsContentProps) {
-  const { currency } = useCurrency()
-  const { groupBy, mode } = useInsightsSettings()
-  const { data: insights } = useInsightsSuspense(currency, groupBy, mode, tab, year)
-  const { data: subscriptions } = useSubscriptionsSuspense()
+export function InsightsContentBase({
+  insights,
+  subscriptions,
+  DetailsDialog,
+  tab,
+  year,
+}: InsightsContentBaseProps) {
+  const { mode } = useInsightsSettings()
   const [selectedSubName, setSelectedSubName] = React.useState<string | null>(null)
 
   const selectedMerged = React.useMemo(
@@ -29,9 +44,11 @@ function InsightsContent({ tab, year }: InsightsContentProps) {
     [selectedSubName, subscriptions],
   )
 
-  if (!insights) {
-    return null
-  }
+  const selectedSub = selectedMerged?.subscriptions[0]
+  const allSubs =
+    selectedMerged && selectedMerged.subscriptions.length > 1
+      ? selectedMerged.subscriptions
+      : undefined
 
   return (
     <div className="flex flex-col gap-2 sm:gap-4 fade-on-mount">
@@ -56,19 +73,41 @@ function InsightsContent({ tab, year }: InsightsContentProps) {
         />
       )}
 
-      {selectedMerged && (
-        <SubscriptionDetailsDialog
-          subscription={selectedMerged.subscriptions[0]}
-          allSubscriptions={
-            selectedMerged.subscriptions.length > 1 ? selectedMerged.subscriptions : undefined
-          }
-          open={Boolean(selectedMerged)}
+      {selectedSub && (
+        <DetailsDialog
+          subscription={selectedSub}
+          allSubscriptions={allSubs}
+          open={Boolean(selectedSub)}
           onOpenChange={(open) => {
             if (!open) setSelectedSubName(null)
           }}
         />
       )}
     </div>
+  )
+}
+
+type InsightsContentProps = {
+  tab: InsightTab
+  year?: number
+}
+
+function InsightsContent({ tab, year }: InsightsContentProps) {
+  const { currency } = useCurrency()
+  const { groupBy, mode } = useInsightsSettings()
+  const { data: insights } = useInsightsSuspense(currency, groupBy, mode, tab, year)
+  const { data: subscriptions } = useSubscriptionsSuspense()
+
+  if (!insights) return null
+
+  return (
+    <InsightsContentBase
+      insights={insights}
+      subscriptions={subscriptions}
+      DetailsDialog={SubscriptionDetailsDialog}
+      tab={tab}
+      year={year}
+    />
   )
 }
 

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { LLMProvider } from '@/lib/services/ai-provider'
+import { byokKeys } from '@/lib/hooks/query-keys'
 
 export interface ApiKeyInfo {
   id: string
@@ -13,11 +14,6 @@ export interface ApiKeyInfo {
 interface ApiKeysResponse {
   keys: ApiKeyInfo[]
   activeKeyId: string | null
-}
-
-const byokKeys = {
-  all: ['byok'] as const,
-  keys: () => [...byokKeys.all, 'keys'] as const,
 }
 
 async function fetchKeys(): Promise<ApiKeysResponse> {

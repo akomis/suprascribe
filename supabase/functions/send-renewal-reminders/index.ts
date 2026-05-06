@@ -41,9 +41,9 @@ Deno.serve(async (req) => {
 
     const { data: usersWithReminders, error: usersError } = await supabase
       .from('USER_SETTINGS')
-      .select('user_id, reminder_days_before')
+      .select('user_id, reminder_days_before, USER_TIERS!inner(tier)')
       .eq('email_reminders_enabled', true)
-      .eq('tier', 'PRO')
+      .eq('USER_TIERS.tier', 'PRO')
 
     if (usersError) {
       throw new Error(`Failed to fetch users: ${usersError.message}`)

@@ -14,7 +14,8 @@ export interface RateLimitCheckResult {
 }
 
 export function calculateRateLimitInfo(runs: DiscoveryRun[]): RateLimitInfo {
-  const totalDiscoveries = runs.length
+  const nonByokRuns = runs.filter((r) => !r.is_byok)
+  const totalDiscoveries = nonByokRuns.length
 
   return {
     canDiscover: totalDiscoveries < MAX_TOTAL_DISCOVERIES,

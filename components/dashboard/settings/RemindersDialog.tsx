@@ -1,13 +1,7 @@
 'use client'
 
 import { ReminderSettings } from '@/components/dashboard/settings/ReminderSettings'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Bell } from 'lucide-react'
 
 type RemindersDialogProps = {
@@ -24,10 +18,6 @@ export function RemindersDialog({ open, onOpenChange }: RemindersDialogProps) {
             <Bell className="h-4 w-4" />
             Renewal Reminders
           </DialogTitle>
-          <DialogDescription>
-            Get email reminders before your subscriptions renew. Only applies to subscriptions with
-            auto-renewal enabled.
-          </DialogDescription>
         </DialogHeader>
         <ReminderSettings />
       </DialogContent>

@@ -3,13 +3,13 @@
 import ICloudDiscoveryDialog from '@/components/dashboard/discovery/ICloudDiscoveryDialog'
 import { ImapDiscoveryHandler } from '@/components/dashboard/discovery/ImapDiscoveryHandler'
 import ProviderDiscoverButton from '@/components/dashboard/discovery/ProviderDiscoverButton'
-import { EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
 import { useDiscoveryRuns } from '@/lib/hooks/discovery/useDiscoveryRuns'
 import { useImapDiscovery } from '@/lib/hooks/discovery/useImapDiscovery'
 import { useBYOKSettings } from '@/lib/hooks/useBYOKSettings'
-import { PROVIDER_NAMES, type LLMProvider } from '@/lib/services/ai-provider'
+import { useDiscoveryAIProvider } from '@/lib/hooks/useDiscoveryAIProvider'
 import { formatRateLimitTooltip } from '@/lib/utils/discovery-rate-limit'
 import { Key, Lock } from 'lucide-react'
+import { ConfigureApiKeyButton } from '@/components/ConfigureApiKeyButton'
 import Link from 'next/link'
 import * as React from 'react'
 import { toast } from 'sonner'
@@ -30,17 +30,15 @@ export function EmailProviderSelection() {
   const { rateLimitInfo, isLoading: isRateLimitLoading } = useDiscoveryRuns()
 
   const { keys, activeKeyId, isLoading: isByokLoading } = useBYOKSettings()
+  const { aiProvider, aiModel, isLoadingAI, isByok: hasByokActive } = useDiscoveryAIProvider()
 
   const isLoadingSettings = isRateLimitLoading || isByokLoading
-  const hasByokActive = activeKeyId !== null
   const activeKey = keys.find((k) => k.id === activeKeyId)
-
-  const aiProvider = activeKey ? PROVIDER_NAMES[activeKey.provider as LLMProvider] : 'OpenRouter'
-  const aiModel = activeKey ? activeKey.model : EMAIL_DISCOVERY_CONFIG.analysisModel.modelName
 
   const {
     isDiscovering,
     discoveredSubscriptions,
+    emailCount,
     error,
     warning,
     clearDiscovery,
@@ -195,6 +193,7 @@ export function EmailProviderSelection() {
                       </span>
                     </Link>
                   )}
+                  <ConfigureApiKeyButton variant="ghost" size="sm" className="h-6 text-xs px-2" />
                 </div>
               )}
             </div>
@@ -229,6 +228,7 @@ export function EmailProviderSelection() {
       <DiscoveryDialog
         isDiscovering={isDiscovering}
         discoveredSubscriptions={discoveredSubscriptions}
+        emailCount={emailCount}
         error={error}
         warning={warning}
         clearDiscovery={clearDiscovery}
@@ -236,6 +236,7 @@ export function EmailProviderSelection() {
         providerName="iCloud"
         aiProvider={aiProvider}
         aiModel={aiModel}
+        isLoadingAI={isLoadingAI}
         isByok={hasByokActive}
       />
     </div>

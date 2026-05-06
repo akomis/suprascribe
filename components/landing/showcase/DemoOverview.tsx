@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { GroupByOption } from '@/lib/hooks/useInsights'
+import type { GroupByOption } from '@/lib/types/subscriptions'
 import { InsightsSettingsProvider, useInsightsSettings } from '@/providers/InsightsSettingsProvider'
 import { ChevronDown } from 'lucide-react'
 

@@ -109,7 +109,7 @@ export function LoginClient({ initialTab, errorParam }: LoginClientProps) {
     if (!forgotEmail) return
     setForgotLoading(true)
     const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/dashboard/settings`,
+      redirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent('/reset-password')}`,
     })
     setForgotLoading(false)
     if (error) {

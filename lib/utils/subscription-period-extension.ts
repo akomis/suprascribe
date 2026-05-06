@@ -1,4 +1,5 @@
 import type { DiscoveredSubscription } from '@/lib/types/forms'
+import { toDateString } from '@/lib/utils/date'
 
 function calculateNextPeriod(subscription: DiscoveredSubscription): DiscoveredSubscription {
   const startDate = new Date(subscription.start_date)
@@ -16,8 +17,8 @@ function calculateNextPeriod(subscription: DiscoveredSubscription): DiscoveredSu
 
   return {
     ...subscription,
-    start_date: nextStartDate.toISOString().split('T')[0],
-    end_date: nextEndDate.toISOString().split('T')[0],
+    start_date: toDateString(nextStartDate),
+    end_date: toDateString(nextEndDate),
   }
 }
 

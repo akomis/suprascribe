@@ -98,97 +98,8 @@ export function SubscriptionHistory({ subscriptions, onEdit }: SubscriptionHisto
       data.push(endDateData)
     }
 
-    const currentMonth = currentMonthPeriod
-    const hasCurrentMonth = data.some((d) => d.period === currentMonth)
-    if (!hasCurrentMonth && currentMonth) {
-      const now = new Date()
-      const currentMonthDate = new Date(now.getFullYear(), now.getMonth(), 1)
-        .toISOString()
-        .split('T')[0]
-      data.push({
-        period: currentMonth,
-        cost: null as any,
-        startDate: currentMonthDate,
-        endDate: null,
-        subscription: null as any,
-        isEndDate: false,
-        isPlaceholder: true,
-      } as any)
-    }
-
-    return data.sort((a, b) => {
-      let dateA: number
-      let dateB: number
-
-      if (a.startDate) {
-        dateA = new Date(a.startDate).getTime()
-      } else if (a.endDate) {
-        dateA = new Date(a.endDate).getTime()
-      } else {
-        const parts = a.period.split(' ')
-        if (parts.length === 2) {
-          const monthNames = [
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-            'Oct',
-            'Nov',
-            'Dec',
-          ]
-          const month = monthNames.indexOf(parts[0])
-          const year = parseInt(parts[1])
-          if (month !== -1 && !isNaN(year)) {
-            dateA = new Date(year, month, 1).getTime()
-          } else {
-            dateA = 0
-          }
-        } else {
-          dateA = 0
-        }
-      }
-
-      if (b.startDate) {
-        dateB = new Date(b.startDate).getTime()
-      } else if (b.endDate) {
-        dateB = new Date(b.endDate).getTime()
-      } else {
-        const parts = b.period.split(' ')
-        if (parts.length === 2) {
-          const monthNames = [
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-            'Oct',
-            'Nov',
-            'Dec',
-          ]
-          const month = monthNames.indexOf(parts[0])
-          const year = parseInt(parts[1])
-          if (month !== -1 && !isNaN(year)) {
-            dateB = new Date(year, month, 1).getTime()
-          } else {
-            dateB = 0
-          }
-        } else {
-          dateB = 0
-        }
-      }
-
-      return dateA - dateB
-    })
-  }, [subscriptions, endDateData, currentMonthPeriod])
+    return data
+  }, [subscriptions, endDateData])
 
   const CustomDot = (props: any) => {
     const { cx, cy, payload } = props
@@ -324,7 +235,7 @@ export function SubscriptionHistory({ subscriptions, onEdit }: SubscriptionHisto
               strokeWidth={2}
               dot={<CustomDot />}
               activeDot={false}
-              connectNulls={true}
+              connectNulls={false}
             />
           </LineChart>
         </ResponsiveContainer>

@@ -8,8 +8,9 @@ export async function GET(request: NextRequest) {
     if (allowedOrigin && requestOrigin) {
       const allowedUrl = new URL(allowedOrigin)
       const requestUrl = new URL(requestOrigin)
+      const isLocalhost = requestUrl.hostname === 'localhost' || requestUrl.hostname === '127.0.0.1'
 
-      if (requestUrl.origin !== allowedUrl.origin) {
+      if (!isLocalhost && requestUrl.origin !== allowedUrl.origin) {
         return NextResponse.json({ error: 'Access denied' }, { status: 403 })
       }
     }

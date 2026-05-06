@@ -26,18 +26,18 @@ const sections: ShowcaseSection[] = [
     component: DemoDiscovery,
   },
   {
+    id: 'history',
+    title: 'History & Quick Unsubscribe',
+    description:
+      'Keep a complete record of your subscription journey. Track when you started, paused, or cancelled services, review past spending patterns in one organized timeline, and quickly cancel any service you no longer need by getting to the unsubscribe pages instantly.',
+    component: DemoHistory,
+  },
+  {
     id: 'overview',
     title: 'Complete Overview',
     description:
-      'Get a comprehensive view of all your (active & past) subscriptions in one place. Track your monthly and annual spending, see upcoming renewals, and understand exactly where your money goes all in a clean and modern interface.',
+      'Get a comprehensive view of all your (active & past) subscriptions in one place. Track your monthly and annual spending (current & forecast), see upcoming renewals, and understand exactly where your money goes all in a clean and modern interface.',
     component: DemoOverview,
-  },
-  {
-    id: 'history',
-    title: 'Subscription History',
-    description:
-      'Keep a complete record of your subscription journey. Track when you started, paused, or cancelled services, review past spending patterns in one organized timeline, and quickly unsubscribe from services you no longer need.',
-    component: DemoHistory,
   },
 ]
 

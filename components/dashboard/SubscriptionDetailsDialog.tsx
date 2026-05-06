@@ -14,28 +14,57 @@ import { useCreateSubscription, useDeleteSubscription } from '@/lib/hooks/useSub
 import { UserSubscriptionWithDetails } from '@/lib/types/database'
 import { CreateSubscriptionFormData } from '@/lib/types/forms'
 import { cn } from '@/lib/utils'
+import { toDateString } from '@/lib/utils/date'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
 import { useQueryClient } from '@tanstack/react-query'
-import { ExternalLink, Info, Mail, Pencil, Plus, Trash2, UserX } from 'lucide-react'
+import { ExternalLink, Info, Pencil, Plus, Trash2, UserX } from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
 
-type SubscriptionDetailsDialogProps = {
+export type SubscriptionDetailsActions = {
+  create: {
+    mutateAsync: (data: CreateSubscriptionFormData) => Promise<unknown>
+    isPending: boolean
+    error: Error | null
+  }
+  delete: {
+    mutateAsync: (id: number) => Promise<unknown>
+    isPending: boolean
+  }
+  markAsCancelled: (subscription: UserSubscriptionWithDetails, today: string) => Promise<void>
+  hasSubscriptionHistory: boolean
+  hasQuickUnsubscribe: boolean
+  EditBillingDialog: React.ComponentType<{
+    subscription: UserSubscriptionWithDetails | null
+    open: boolean
+    onOpenChange: (open: boolean) => void
+    onSuccess?: () => void
+  }>
+}
+
+type BaseProps = {
   subscription: UserSubscriptionWithDetails
   allSubscriptions?: UserSubscriptionWithDetails[]
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function SubscriptionDetailsDialog({
+export function SubscriptionDetailsDialogBase({
   subscription,
   allSubscriptions,
   open,
   onOpenChange,
-}: SubscriptionDetailsDialogProps) {
-  const createSubscriptionMutation = useCreateSubscription()
-  const deleteSubscriptionMutation = useDeleteSubscription()
-  const queryClient = useQueryClient()
+  actions,
+}: BaseProps & { actions: SubscriptionDetailsActions }) {
+  const {
+    create: createMutation,
+    delete: deleteMutation,
+    markAsCancelled: markAsCancelledAction,
+    hasSubscriptionHistory,
+    hasQuickUnsubscribe,
+    EditBillingDialog: EditBillingDialogComponent,
+  } = actions
+
   const [showAddBillingDialog, setShowAddBillingDialog] = React.useState(false)
   const [editingSubscription, setEditingSubscription] =
     React.useState<UserSubscriptionWithDetails | null>(null)
@@ -43,39 +72,36 @@ export function SubscriptionDetailsDialog({
   const [showUnsubscribeConfirm, setShowUnsubscribeConfirm] = React.useState(false)
   const [isMarkingCancelled, setIsMarkingCancelled] = React.useState(false)
 
-  const { hasAccess: hasSubscriptionHistory } = useFeatureAccess('subscription_history')
-  const { hasAccess: hasQuickUnsubscribe } = useFeatureAccess('quick_unsubscribe')
-
   const subscriptionsToShow = allSubscriptions || [subscription]
 
-  const mostRecentSubscription = React.useMemo(() => {
-    return [...subscriptionsToShow].sort(
-      (a, b) => new Date(b.end_date || '').getTime() - new Date(a.end_date || '').getTime(),
-    )[0]
-  }, [subscriptionsToShow])
+  const mostRecentSubscription = React.useMemo(
+    () =>
+      [...subscriptionsToShow].sort(
+        (a, b) => new Date(b.end_date || '').getTime() - new Date(a.end_date || '').getTime(),
+      )[0],
+    [subscriptionsToShow],
+  )
 
   const suggestedStartDate = React.useMemo(() => {
     if (!mostRecentSubscription.end_date) return ''
     const endDate = new Date(mostRecentSubscription.end_date)
     const nextDay = new Date(endDate)
     nextDay.setDate(nextDay.getDate() + 1)
-    return nextDay.toISOString().split('T')[0]
+    return toDateString(nextDay)
   }, [mostRecentSubscription.end_date])
 
   const isPast =
     mostRecentSubscription.end_date && new Date(mostRecentSubscription.end_date) < new Date()
 
-  const handleAddBilling = async (data: CreateSubscriptionFormData) => {
-    await createSubscriptionMutation.mutateAsync(data)
+  const handleAddBilling = async (entries: CreateSubscriptionFormData[]) => {
+    await createMutation.mutateAsync(entries[0])
     setShowAddBillingDialog(false)
     onOpenChange(false)
   }
 
   const handleDeleteAllSubscriptions = async () => {
     try {
-      await Promise.all(
-        subscriptionsToShow.map((sub) => deleteSubscriptionMutation.mutateAsync(sub.id)),
-      )
+      await Promise.all(subscriptionsToShow.map((sub) => deleteMutation.mutateAsync(sub.id)))
       setShowDeleteConfirm(false)
       onOpenChange(false)
     } catch {
@@ -102,26 +128,9 @@ export function SubscriptionDetailsDialog({
 
   const handleMarkAsCancelled = async () => {
     setIsMarkingCancelled(true)
-    const today = new Date().toISOString().split('T')[0]
-
+    const today = toDateString(new Date())
     try {
-      const response = await fetch(`/api/subscriptions/${mostRecentSubscription.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          end_date: today,
-          auto_renew: false,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to mark as cancelled')
-      }
-
-      await queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+      await markAsCancelledAction(mostRecentSubscription, today)
       toast.success('Subscription marked as cancelled')
       setShowUnsubscribeConfirm(false)
       onOpenChange(false)
@@ -166,22 +175,23 @@ export function SubscriptionDetailsDialog({
                   </Button>
                 )}
               </div>
-              <div className="flex gap-2 items-center">
-                <Badge variant="outline" className="text-sm font-medium px-2 py-0.5">
-                  {formatCurrencyAmount(
-                    mostRecentSubscription.price || 0,
-                    mostRecentSubscription.currency as CurrencyCode,
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:w-full">
+                <div className="flex gap-2 items-center">
+                  <Badge variant="outline" className="text-sm font-medium px-2 py-0.5">
+                    {formatCurrencyAmount(
+                      mostRecentSubscription.price || 0,
+                      mostRecentSubscription.currency as CurrencyCode,
+                    )}
+                  </Badge>
+                  {mostRecentSubscription.payment_method && (
+                    <p className="text-sm text-muted-foreground">
+                      Paid with {mostRecentSubscription.payment_method}
+                    </p>
                   )}
-                </Badge>
-                {mostRecentSubscription.payment_method && (
-                  <p className="text-sm text-muted-foreground">
-                    Paid with {mostRecentSubscription.payment_method}
-                  </p>
-                )}
+                </div>
                 {mostRecentSubscription.source_email && (
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <Mail className="size-3" />
-                    {mostRecentSubscription.source_email}
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    - Sourced by {mostRecentSubscription.source_email}
                   </p>
                 )}
               </div>
@@ -210,12 +220,10 @@ export function SubscriptionDetailsDialog({
                   Click on a dot to edit that billing period
                 </p>
               </div>
-
               <Separator />
             </>
           )}
 
-          {/* Footer with Action Buttons */}
           <div className="flex flex-col md:flex-row gap-4 justify-between items-end md:items-center">
             <Button
               variant="outline"
@@ -246,7 +254,6 @@ export function SubscriptionDetailsDialog({
         </div>
       </DialogContent>
 
-      {/* Nested Dialog for Adding New Billing Period */}
       <Dialog open={showAddBillingDialog} onOpenChange={setShowAddBillingDialog}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
@@ -260,28 +267,22 @@ export function SubscriptionDetailsDialog({
             }}
             onSubmit={handleAddBilling}
             onCancel={() => setShowAddBillingDialog(false)}
-            isSubmitting={createSubscriptionMutation.isPending}
-            submitError={createSubscriptionMutation.error}
+            isSubmitting={createMutation.isPending}
+            submitError={createMutation.error}
             isNewBillingPeriod={true}
           />
         </DialogContent>
       </Dialog>
 
-      {/* Edit Billing Dialog */}
-      <EditBillingDialog
+      <EditBillingDialogComponent
         subscription={editingSubscription}
         open={Boolean(editingSubscription)}
         onOpenChange={(open) => {
-          if (!open) {
-            setEditingSubscription(null)
-          }
+          if (!open) setEditingSubscription(null)
         }}
-        onSuccess={() => {
-          onOpenChange(false)
-        }}
+        onSuccess={() => onOpenChange(false)}
       />
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <DialogContent>
           <DialogHeader>
@@ -297,23 +298,22 @@ export function SubscriptionDetailsDialog({
               <Button
                 variant="outline"
                 onClick={() => setShowDeleteConfirm(false)}
-                disabled={deleteSubscriptionMutation.isPending}
+                disabled={deleteMutation.isPending}
               >
                 Cancel
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleDeleteAllSubscriptions}
-                disabled={deleteSubscriptionMutation.isPending}
+                disabled={deleteMutation.isPending}
               >
-                {deleteSubscriptionMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Unsubscribe Confirmation Dialog */}
       <Dialog open={showUnsubscribeConfirm} onOpenChange={setShowUnsubscribeConfirm}>
         <DialogContent>
           <DialogHeader>
@@ -341,5 +341,48 @@ export function SubscriptionDetailsDialog({
         </DialogContent>
       </Dialog>
     </Dialog>
+  )
+}
+
+export function SubscriptionDetailsDialog({
+  subscription,
+  allSubscriptions,
+  open,
+  onOpenChange,
+}: BaseProps) {
+  const createMutation = useCreateSubscription()
+  const deleteMutation = useDeleteSubscription()
+  const queryClient = useQueryClient()
+  const { hasAccess: hasSubscriptionHistory } = useFeatureAccess('subscription_history')
+  const { hasAccess: hasQuickUnsubscribe } = useFeatureAccess('quick_unsubscribe')
+
+  const actions: SubscriptionDetailsActions = {
+    create: createMutation,
+    delete: deleteMutation,
+    markAsCancelled: async (sub, today) => {
+      const response = await fetch(`/api/subscriptions/${sub.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ end_date: today, auto_renew: false }),
+      })
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to mark as cancelled')
+      }
+      await queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+    },
+    hasSubscriptionHistory,
+    hasQuickUnsubscribe,
+    EditBillingDialog,
+  }
+
+  return (
+    <SubscriptionDetailsDialogBase
+      subscription={subscription}
+      allSubscriptions={allSubscriptions}
+      open={open}
+      onOpenChange={onOpenChange}
+      actions={actions}
+    />
   )
 }

@@ -4,7 +4,7 @@ import * as React from 'react'
 import { CalendarDays } from 'lucide-react'
 import { CalendarView } from '@/components/dashboard/CalendarView'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { type MergedSubscriptionResponse } from '@/app/api/subscriptions/route'
+import { type MergedSubscriptionResponse } from '@/lib/types/subscriptions'
 
 interface DemoCalendarViewButtonProps {
   subscriptions: MergedSubscriptionResponse[]

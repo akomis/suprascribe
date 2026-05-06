@@ -93,7 +93,7 @@ export function AccountSettings({
     const supabase = createClient()
     const next = encodeURIComponent('/dashboard?settings=password')
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=${next}`,
+      redirectTo: `${window.location.origin}/auth/confirm?next=${next}`,
     })
     setResetLoading(false)
     if (error) {

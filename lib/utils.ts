@@ -1,10 +1,8 @@
 import type { SubscriptionServiceInsert, UserSubscriptionInsert } from '@/lib/types/database'
 import type { CreateSubscriptionFormData } from '@/lib/types/forms'
+import { toDateString } from '@/lib/utils/date'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-
-import { getServiceNameKey } from '@/lib/utils/subscription-comparison'
-export { isDuplicateSubscription } from '@/lib/utils/subscription-comparison'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -88,6 +86,10 @@ export function normalizeToMonthlyPrice(price: number, startDate: string, endDat
   return price
 }
 
+/**
+ * Format a date string for display using the browser's locale (e.g. "Jan 15, 2024").
+ * Use formatDisplayDate (lib/utils/date.ts) for fixed English ordinal format ("January 15th, 2024").
+ */
 export function formatLocalizedDate(dateString: string): string {
   const date = new Date(dateString)
   return date.toLocaleDateString(undefined, {
@@ -137,82 +139,43 @@ export function handleNumericInputKeyDown(e: React.KeyboardEvent<HTMLInputElemen
   }
 }
 
+function normalizeDateForComparison(dateStr: string | null | undefined): string | null {
+  if (!dateStr || dateStr.trim() === '') return null
+  const dateOnlyMatch = dateStr.trim().match(/^(\d{4}-\d{2}-\d{2})/)
+  if (dateOnlyMatch) return dateOnlyMatch[1]
+  try {
+    const date = new Date(dateStr.trim())
+    return isNaN(date.getTime()) ? null : toDateString(date)
+  } catch {
+    return null
+  }
+}
+
+export function isDuplicateSubscription(
+  discovered: { service_name: string; start_date: string; end_date: string },
+  existing: {
+    subscription_service?: { name: string | null } | null
+    start_date: string | null
+    end_date: string | null
+  },
+): boolean {
+  const existingName = existing.subscription_service?.name || ''
+  if (discovered.service_name.toLowerCase().trim() !== existingName.toLowerCase().trim())
+    return false
+  const ds = normalizeDateForComparison(discovered.start_date)
+  const es = normalizeDateForComparison(existing.start_date)
+  const de = normalizeDateForComparison(discovered.end_date)
+  const ee = normalizeDateForComparison(existing.end_date)
+  if (!ds || !es || !de || !ee) return false
+  return ds === es && de === ee
+}
+
 export function isSubscriptionActive(startDate: string, endDate: string): boolean {
   const now = new Date()
   const start = new Date(startDate)
   const end = new Date(endDate)
 
   return now >= start && now <= end
-}
-
-export function mergeSubscriptionsByService<
-  T extends {
-    subscription_service?: { name: string | null } | null
-    start_date: string | null
-    end_date: string | null
-    price: number | null
-  },
->(
-  subscriptions: T[],
-  aggregateByService: boolean = true,
-): Map<
-  string,
-  {
-    subscriptions: T[]
-    merged: { startDate: string; endDate: string; price: number; active: boolean }
-  }
-> {
-  const grouped = new Map<string, T[]>()
-
-  subscriptions.forEach((sub) => {
-    const serviceName = getServiceNameKey(sub.subscription_service?.name || 'Unknown Service')
-    if (!grouped.has(serviceName)) {
-      grouped.set(serviceName, [])
-    }
-    grouped.get(serviceName)!.push(sub)
-  })
-
-  const result = new Map<
-    string,
-    {
-      subscriptions: T[]
-      merged: { startDate: string; endDate: string; price: number; active: boolean }
-    }
-  >()
-
-  grouped.forEach((subs, serviceName) => {
-    const oldestStartDate = subs.reduce((oldest, sub) => {
-      const subDate = new Date(sub.start_date || '')
-      const oldestDate = new Date(oldest)
-      return subDate < oldestDate ? sub.start_date || oldest : oldest
-    }, subs[0].start_date || '')
-
-    const mostRecentEndDate = subs.reduce((mostRecent, sub) => {
-      const subDate = new Date(sub.end_date || '')
-      const mostRecentDate = new Date(mostRecent)
-      return subDate > mostRecentDate ? sub.end_date || mostRecent : mostRecent
-    }, subs[0].end_date || '')
-
-    const price = aggregateByService
-      ? subs.reduce((sum, sub) => sum + (sub.price || 0), 0)
-      : subs.reduce((sum, sub) => sum + (sub.price || 0), 0) / subs.length
-
-    const isActive = subs.some(
-      (sub) => sub.start_date && sub.end_date && isSubscriptionActive(sub.start_date, sub.end_date),
-    )
-
-    result.set(serviceName, {
-      subscriptions: subs,
-      merged: {
-        startDate: oldestStartDate,
-        endDate: mostRecentEndDate,
-        price,
-        active: isActive,
-      },
-    })
-  })
-
-  return result
 }
 
 const VALID_CURRENCY_CODES = [

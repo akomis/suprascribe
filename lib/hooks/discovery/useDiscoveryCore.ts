@@ -1,98 +1,72 @@
 'use client'
 
 import type { DiscoveredSubscription } from '@/lib/types/forms'
-import { useRouter, useSearchParams } from 'next/navigation'
+import type { DiscoveryResponse } from '@/lib/types/discovery'
 import posthog from 'posthog-js'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useInvalidateDiscoveryRuns } from './useDiscoveryRuns'
 
-export type { DiscoveredSubscription }
-
-interface UseGoogleDiscoveryReturn {
+export interface DiscoveryCoreReturn {
   isDiscovering: boolean
   discoveredSubscriptions: DiscoveredSubscription[]
+  emailCount: number | null
+  scannedEmail: string | null
   error: string | null
   warning: string | null
-  clearDiscovery: () => void
+  runDiscovery: (fetchFn: () => Promise<DiscoveryResponse>) => Promise<void>
   retry: () => void
+  clearDiscovery: () => void
 }
 
-export function useGoogleDiscovery(): UseGoogleDiscoveryReturn {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+export function useDiscoveryCore(provider: string): DiscoveryCoreReturn {
   const invalidateDiscoveryRuns = useInvalidateDiscoveryRuns()
   const [isDiscovering, setIsDiscovering] = useState(false)
   const [discoveredSubscriptions, setDiscoveredSubscriptions] = useState<DiscoveredSubscription[]>(
     [],
   )
+  const [emailCount, setEmailCount] = useState<number | null>(null)
+  const [scannedEmail, setScannedEmail] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
-  const hasCalledWebhook = useRef(false)
-  const lastTokenRef = useRef<string | null>(null)
+  const lastFetchFnRef = useRef<(() => Promise<DiscoveryResponse>) | null>(null)
 
-  useEffect(() => {
-    const shouldDiscover = searchParams.get('discover') === 'true'
-
-    if (shouldDiscover && !hasCalledWebhook.current) {
-      fetch('/api/discovery/token?provider=google')
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data?.token) {
-            hasCalledWebhook.current = true
-
-            const newUrl = new URL(window.location.href)
-            newUrl.searchParams.delete('discover')
-            router.replace(newUrl.pathname + newUrl.search)
-
-            lastTokenRef.current = data.token
-            callDiscoveryApi(data.token)
-          }
-        })
-        .catch(() => {})
-    }
-  }, [searchParams, router])
-
-  const callDiscoveryApi = async (token: string) => {
+  const runDiscovery = async (fetchFn: () => Promise<DiscoveryResponse>) => {
+    lastFetchFnRef.current = fetchFn
     setIsDiscovering(true)
     setError(null)
     setWarning(null)
 
     try {
-      const response = await fetch('/api/discovery/discover/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      })
-
-      const data = await response.json()
+      const data = await fetchFn()
 
       if (!data.success) {
-        if (data.warning) {
-          setWarning(data.warning)
+        if (data.kind === 'rate_limited') {
+          setWarning(data.error)
         } else {
-          throw new Error(data.error || 'Discovery failed')
+          const msg = data.error || 'Discovery failed'
+          if (data.kind === 'auth_failed') throw new Error(`Authentication failed: ${msg}`)
+          if (data.kind === 'quota_exceeded') throw new Error(`Quota exceeded: ${msg}`)
+          throw new Error(msg)
         }
         return
       }
 
       setDiscoveredSubscriptions(
-        data.subscriptions.map((sub: DiscoveredSubscription) => ({
-          ...sub,
-          source_email: data.email,
-        })),
+        data.subscriptions.map((sub) => ({ ...sub, source_email: data.email })),
       )
+      setEmailCount(data.emailCount)
+      setScannedEmail(data.email)
       invalidateDiscoveryRuns()
 
-      const serviceCount = new Set(
-        data.subscriptions.map((s: DiscoveredSubscription) => s.service_name),
-      ).size
+      const serviceCount = new Set(data.subscriptions.map((s) => s.service_name)).size
       posthog.capture('subscription_discovery_completed', {
-        provider: 'google',
+        provider,
         subscriptions_found: data.subscriptions.length,
         services_found: serviceCount,
         emails_scanned: data.emailCount,
       })
+
       if (data.subscriptions.length > 0) {
         toast.success('Discovery Completed', {
           description: `Found ${serviceCount} service${serviceCount !== 1 ? 's' : ''} from ${data.emailCount} emails.`,
@@ -111,26 +85,29 @@ export function useGoogleDiscovery(): UseGoogleDiscoveryReturn {
     }
   }
 
+  const retry = () => {
+    if (lastFetchFnRef.current) runDiscovery(lastFetchFnRef.current)
+  }
+
   const clearDiscovery = () => {
     setIsDiscovering(false)
     setDiscoveredSubscriptions([])
+    setEmailCount(null)
+    setScannedEmail(null)
     setError(null)
     setWarning(null)
-    hasCalledWebhook.current = false
-  }
-
-  const retry = () => {
-    if (lastTokenRef.current) {
-      callDiscoveryApi(lastTokenRef.current)
-    }
+    lastFetchFnRef.current = null
   }
 
   return {
     isDiscovering,
     discoveredSubscriptions,
+    emailCount,
+    scannedEmail,
     error,
     warning,
-    clearDiscovery,
+    runDiscovery,
     retry,
+    clearDiscovery,
   }
 }

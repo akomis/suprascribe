@@ -2,26 +2,26 @@
 
 import { Button } from '@/components/ui/button'
 import { ServiceLogo } from '@/components/shared/ServiceLogo'
+import type { DaySubscription } from '@/lib/types/calendar'
 import { cn } from '@/lib/utils'
 import * as React from 'react'
 import { DayButton } from 'react-day-picker'
 
-interface DaySubscription {
-  name: string
-  serviceUrl?: string
-  price: number
-  autoRenew: boolean
-}
-
 export function createCustomDayButton(
   subscriptionsByDate: Map<string, DaySubscription[]>,
   formatCurrency: (amount: number) => string,
+  onSubscriptionClick?: (subscriptionId: string) => void,
 ) {
   return function CustomDayButton(props: React.ComponentProps<typeof DayButton>) {
     const { day, modifiers, ...restProps } = props
     const dateKey = `${day.date.getFullYear()}-${day.date.getMonth() + 1}-${day.date.getDate()}`
     const daySubs = subscriptionsByDate.get(dateKey) || []
     const totalCost = daySubs.filter((s) => s.autoRenew).reduce((sum, s) => sum + s.price, 0)
+
+    const handleLogoClick = (subscriptionId: string) => (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onSubscriptionClick?.(subscriptionId)
+    }
 
     return (
       <Button
@@ -41,8 +41,22 @@ export function createCustomDayButton(
             {/* Service logos */}
             <div className="flex flex-wrap gap-0.5 sm:gap-1 justify-center items-center min-h-[16px] sm:min-h-[20px]">
               <div className="flex gap-0.5 sm:gap-1 flex-wrap justify-center">
-                {daySubs.slice(0, 6).map((sub, idx) => (
-                  <ServiceLogo key={idx} name={sub.name} serviceUrl={sub.serviceUrl} size={16} />
+                {daySubs.slice(0, 6).map((sub) => (
+                  <div
+                    key={sub.id}
+                    onClick={handleLogoClick(sub.id)}
+                    className="hover:scale-110 transition-transform cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        onSubscriptionClick?.(sub.id)
+                      }
+                    }}
+                  >
+                    <ServiceLogo name={sub.name} serviceUrl={sub.serviceUrl} size={16} />
+                  </div>
                 ))}
               </div>
 

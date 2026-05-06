@@ -4,7 +4,7 @@ import { ServiceLogo } from '@/components/shared/ServiceLogo'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { CurrencyCode } from '@/lib/hooks/useCurrency'
-import { InsightMode } from '@/lib/hooks/useInsights'
+import type { InsightMode } from '@/lib/types/subscriptions'
 import { formatDateDisplay } from '@/lib/utils'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
 

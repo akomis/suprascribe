@@ -19,6 +19,8 @@ interface TierCardProps {
   name: string
   description: string
   price: string
+  originalPrice?: string
+  earlyBirdLabel?: string
   period: string
   features: FeatureDefinition[]
   buttonText: string
@@ -29,13 +31,14 @@ interface TierCardProps {
   highlighted?: boolean
   checkmarkColor?: string
   additionalNote?: string
-  hideCta?: boolean
 }
 
 export function TierCard({
   name,
   description,
   price,
+  originalPrice,
+  earlyBirdLabel,
   period,
   features,
   buttonText,
@@ -46,7 +49,6 @@ export function TierCard({
   highlighted = false,
   checkmarkColor = 'text-muted-foreground',
   additionalNote,
-  hideCta = false,
 }: TierCardProps) {
   return (
     <Card className={cn('relative h-full', highlighted && 'border-primary')}>
@@ -61,9 +63,17 @@ export function TierCard({
         <CardTitle className="text-2xl">{name}</CardTitle>
         <CardDescription>{description}</CardDescription>
         <div className="mt-4 flex items-baseline gap-2">
+          {originalPrice && (
+            <span className="text-xl text-muted-foreground line-through">{originalPrice}</span>
+          )}
           <span className="text-4xl font-bold">{price}</span>
           <span className="text-muted-foreground">{period}</span>
         </div>
+        {earlyBirdLabel && (
+          <Badge className="ml-1 text-xs bg-amber-500 text-white hover:bg-amber-500">
+            {earlyBirdLabel}
+          </Badge>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {additionalNote && <p className="text-sm font-medium">{additionalNote}</p>}
@@ -86,24 +96,23 @@ export function TierCard({
           ))}
         </ul>
       </CardContent>
-      {!hideCta && (
-        <CardFooter className="mt-auto">
-          {isUpgradeButton ? (
-            <UpgradeButton
-              text={buttonText}
-              variant={buttonVariant as any}
-              fullWidth={true}
-              hideIfPro={false}
-            />
-          ) : (
-            <Link href={href!} className="w-full">
-              <Button variant={buttonVariant} className="w-full">
-                {buttonText}
-              </Button>
-            </Link>
-          )}
-        </CardFooter>
-      )}
+      <CardFooter className="mt-auto">
+        {isUpgradeButton ? (
+          <UpgradeButton
+            text={buttonText}
+            variant={buttonVariant as any}
+            fullWidth={true}
+            hideIfPro={true}
+            location="landing_pricing"
+          />
+        ) : (
+          <Link href={href!} className="w-full">
+            <Button variant={buttonVariant} className="w-full">
+              {buttonText}
+            </Button>
+          </Link>
+        )}
+      </CardFooter>
     </Card>
   )
 }

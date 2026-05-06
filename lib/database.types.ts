@@ -106,21 +106,18 @@ export type Database = {
           active_key_id: string | null
           email_reminders_enabled: boolean | null
           reminder_days_before: number | null
-          tier: Database['public']['Enums']['TIER_TYPE']
           user_id: string
         }
         Insert: {
           active_key_id?: string | null
           email_reminders_enabled?: boolean | null
           reminder_days_before?: number | null
-          tier?: Database['public']['Enums']['TIER_TYPE']
           user_id: string
         }
         Update: {
           active_key_id?: string | null
           email_reminders_enabled?: boolean | null
           reminder_days_before?: number | null
-          tier?: Database['public']['Enums']['TIER_TYPE']
           user_id?: string
         }
         Relationships: [
@@ -132,6 +129,33 @@ export type Database = {
             referencedColumns: ['id']
           },
         ]
+      }
+      USER_TIERS: {
+        Row: {
+          created_at: string
+          date_upgraded: string | null
+          pending_upgrade_email: string | null
+          stripe_payment_intent_id: string | null
+          tier: Database['public']['Enums']['TIER_TYPE']
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_upgraded?: string | null
+          pending_upgrade_email?: string | null
+          stripe_payment_intent_id?: string | null
+          tier?: Database['public']['Enums']['TIER_TYPE']
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_upgraded?: string | null
+          pending_upgrade_email?: string | null
+          stripe_payment_intent_id?: string | null
+          tier?: Database['public']['Enums']['TIER_TYPE']
+          user_id?: string
+        }
+        Relationships: []
       }
       USER_SUBSCRIPTIONS: {
         Row: {
@@ -185,7 +209,14 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_email_tier: {
+        Row: {
+          email: string | null
+          tier: Database['public']['Enums']['TIER_TYPE'] | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       process_subscription_renewals: {
