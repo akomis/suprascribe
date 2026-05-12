@@ -7,6 +7,7 @@ import QueryProvider from '@/providers/QueryProvider'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import './globals.css'
 
 const siteDescription =
@@ -99,6 +100,18 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=AW-18090800719"
+        strategy="afterInteractive"
+      />
+      <Script id="google-ads-tag" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'AW-18090800719');
+        `}
+      </Script>
       <body className={cn(GeistSans.variable, GeistMono.variable, 'antialiased')}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <TooltipProvider>
