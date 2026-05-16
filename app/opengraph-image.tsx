@@ -50,7 +50,7 @@ export default function Image() {
           lineHeight: 1.4,
         }}
       >
-        Automatically discover and manage your subscriptions. Free forever - Pro with a one-time €5
+        Automatically discover and manage your subscriptions. Free forever - Pro is a one-time
         purchase.
       </p>
       <div

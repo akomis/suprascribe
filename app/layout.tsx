@@ -23,6 +23,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: 'Suprascribe',
+    locale: 'en_US',
     title: 'Suprascribe - Free Subscription Tracker & Manager',
     description: siteDescription,
     url: 'https://www.suprascribe.com',
@@ -95,9 +96,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '<') }}
         />
       </head>
       <Script

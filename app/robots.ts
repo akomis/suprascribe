@@ -6,11 +6,12 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/dashboard', '/api/', '/confirmation'],
+        disallow: ['/dashboard', '/api/', '/confirmation', '/login', '/reset-password'],
       },
       {
         userAgent: ['GPTBot', 'Claude-Web', 'anthropic-ai', 'CCBot', 'Googlebot-Extended'],
         allow: '/',
+        disallow: ['/dashboard', '/api/', '/confirmation'],
       },
     ],
     sitemap: 'https://www.suprascribe.com/sitemap.xml',
