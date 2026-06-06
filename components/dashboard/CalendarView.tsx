@@ -1,6 +1,7 @@
 'use client'
 
-import { type MergedSubscriptionResponse } from '@/app/api/subscriptions/route'
+import { type MergedSubscriptionResponse } from '@/lib/types/subscriptions'
+import { buildSubscriptionDateMap } from '@/lib/utils/calendar-calculations'
 import { Calendar } from '@/components/ui/calendar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useCurrency } from '@/lib/hooks/useCurrency'
@@ -11,64 +12,26 @@ interface CalendarViewProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   subscriptions: MergedSubscriptionResponse[]
+  onSubscriptionClick?: (subscriptionId: string) => void
 }
 
-interface DaySubscription {
-  name: string
-  serviceUrl?: string
-  price: number
-  autoRenew: boolean
-}
-
-export function CalendarView({ open, onOpenChange, subscriptions }: CalendarViewProps) {
+export function CalendarView({
+  open,
+  onOpenChange,
+  subscriptions,
+  onSubscriptionClick,
+}: CalendarViewProps) {
   const { formatCurrency } = useCurrency()
   const [month, setMonth] = React.useState<Date>(new Date())
 
-  const subscriptionsByDate = React.useMemo(() => {
-    const map = new Map<string, DaySubscription[]>()
-
-    subscriptions.forEach((sub) => {
-      const endDate = new Date(sub.endDate)
-      const day = endDate.getDate()
-
-      if (sub.autoRenew) {
-        for (let year = 2020; year <= 2030; year++) {
-          for (let monthIdx = 0; monthIdx < 12; monthIdx++) {
-            const daysInMonth = new Date(year, monthIdx + 1, 0).getDate()
-            if (day <= daysInMonth) {
-              const dateKey = `${year}-${monthIdx + 1}-${day}`
-              if (!map.has(dateKey)) {
-                map.set(dateKey, [])
-              }
-              map.get(dateKey)!.push({
-                name: sub.name,
-                serviceUrl: sub.serviceUrl,
-                price: sub.price,
-                autoRenew: sub.autoRenew,
-              })
-            }
-          }
-        }
-      } else {
-        const dateKey = `${endDate.getFullYear()}-${endDate.getMonth() + 1}-${endDate.getDate()}`
-        if (!map.has(dateKey)) {
-          map.set(dateKey, [])
-        }
-        map.get(dateKey)!.push({
-          name: sub.name,
-          serviceUrl: sub.serviceUrl,
-          price: sub.price,
-          autoRenew: sub.autoRenew,
-        })
-      }
-    })
-
-    return map
-  }, [subscriptions])
+  const subscriptionsByDate = React.useMemo(
+    () => buildSubscriptionDateMap(subscriptions),
+    [subscriptions],
+  )
 
   const CustomDayButton = React.useMemo(
-    () => createCustomDayButton(subscriptionsByDate, formatCurrency),
-    [subscriptionsByDate, formatCurrency],
+    () => createCustomDayButton(subscriptionsByDate, formatCurrency, onSubscriptionClick),
+    [subscriptionsByDate, formatCurrency, onSubscriptionClick],
   )
 
   return (

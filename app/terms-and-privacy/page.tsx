@@ -25,9 +25,7 @@ export default function TermsAndPrivacyPage() {
             </Button>
           </Link>
           <h1 className="text-4xl font-bold tracking-tight">Terms of Service & Privacy Policy</h1>
-          <p className="mt-2 text-muted-foreground">
-            Last updated: {new Date().toLocaleDateString()}
-          </p>
+          <p className="mt-2 text-muted-foreground">Last updated: June 2, 2026</p>
         </div>
 
         <div className="space-y-8">
@@ -67,9 +65,9 @@ export default function TermsAndPrivacyPage() {
               <section>
                 <h3 className="text-lg font-semibold">4. Pricing and Payment</h3>
                 <p className="text-muted-foreground">
-                  The Basic plan is free forever. The Pro plan is available as a one-time purchase
-                  of €10. All payments are processed securely through our payment processor. The
-                  one-time payment grants you lifetime access to Pro features.
+                  The Basic plan is free forever. The Pro plan is available as a one-time purchase.
+                  All payments are processed securely through our payment processor. The one-time
+                  payment grants you lifetime access to Pro features.
                 </p>
               </section>
 

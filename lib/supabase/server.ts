@@ -25,7 +25,14 @@ export async function createClient() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options),
             )
-          } catch {}
+          } catch (error) {
+            // Log cookie errors in development
+            if (process.env.NODE_ENV === 'development') {
+              console.error('Error setting cookies:', error)
+            }
+            // The `setAll` method may fail in certain contexts (e.g., during SSR)
+            // This is expected behavior and we shouldn't throw
+          }
         },
       },
     },

@@ -21,7 +21,11 @@ export function ThemePicker({ triggerClassName }: ThemePickerProps) {
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
-    setMounted(true)
+    // Use setTimeout to avoid synchronous setState during effect
+    const timer = setTimeout(() => {
+      setMounted(true)
+    }, 0)
+    return () => clearTimeout(timer)
   }, [])
 
   if (!mounted) {
@@ -32,9 +36,12 @@ export function ThemePicker({ triggerClassName }: ThemePickerProps) {
 
   return (
     <Select value={theme} onValueChange={setTheme}>
-      <SelectTrigger className={cn('hover:cursor-pointer ', triggerClassName)}>
+      <SelectTrigger
+        aria-label="Select theme"
+        className={cn('hover:cursor-pointer ', triggerClassName)}
+      >
         <Icon className="h-4 w-4" />
-        <span className="text-muted-foreground">{capitalize(theme ?? 'System')}</span>
+        <span className="text-muted-foreground">{capitalize(theme ?? 'System') + ' Theme'}</span>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="light" className="hover:cursor-pointer">

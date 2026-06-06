@@ -1,14 +1,10 @@
 import { buildSearchQuery, EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
+import type { EmailData } from '@/lib/types/email'
 import Imap from 'imap'
 import type { Readable } from 'stream'
 import { simpleParser } from 'mailparser'
 
-export interface EmailData {
-  subject: string
-  body: string
-  from: string
-  date: string
-}
+export type { EmailData }
 
 interface GmailHeader {
   name: string
@@ -275,6 +271,24 @@ function fetchAndParseEmails(imap: Imap, messageIds: number[]): Promise<EmailDat
       resolve(emails)
     })
   })
+}
+
+export async function fetchGmailProfileEmail(token: string): Promise<string> {
+  const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!response.ok) throw new Error('Failed to get Google email address')
+  const data = await response.json()
+  return data.emailAddress
+}
+
+export async function fetchOutlookProfileEmail(token: string): Promise<string> {
+  const response = await fetch('https://graph.microsoft.com/v1.0/me', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!response.ok) throw new Error('Failed to get Microsoft email address')
+  const data = await response.json()
+  return data.mail || data.userPrincipalName
 }
 
 export async function fetchImapEmails(

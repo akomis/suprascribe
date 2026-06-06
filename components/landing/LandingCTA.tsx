@@ -11,7 +11,7 @@ export function LandingCTA() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null))
   }, [])
 
   if (user) {
@@ -26,14 +26,14 @@ export function LandingCTA() {
 
   return (
     <>
-      <Link href="/demo">
-        <Button size="lg" variant="secondary" className="text-sm sm:text-base">
-          Try Demo
+      <Link href="/login?tab=signup">
+        <Button size="lg" className="text-sm sm:text-base">
+          Get Started Free
         </Button>
       </Link>
-      <Link href="/login?tab=signin">
+      <Link href="/demo">
         <Button size="lg" variant="outline" className="text-sm sm:text-base">
-          Sign In
+          Try Demo
         </Button>
       </Link>
     </>

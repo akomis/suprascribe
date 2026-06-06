@@ -3,11 +3,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { DiscoveryRun } from '@/lib/types/database'
 import { calculateRateLimitInfo, type RateLimitInfo } from '@/lib/utils/discovery-rate-limit'
+import { discoveryRunKeys, STALE_TIME } from '@/lib/hooks/query-keys'
 
-export const discoveryRunKeys = {
-  all: ['discoveryRuns'] as const,
-  list: () => [...discoveryRunKeys.all, 'list'] as const,
-}
+export { discoveryRunKeys }
 
 const discoveryRunApi = {
   async getDiscoveryRuns(): Promise<DiscoveryRun[]> {
@@ -40,7 +38,7 @@ export function useDiscoveryRuns(): UseDiscoveryRunsReturn {
   const query = useQuery({
     queryKey: discoveryRunKeys.list(),
     queryFn: discoveryRunApi.getDiscoveryRuns,
-    staleTime: 60 * 1000,
+    staleTime: STALE_TIME.short,
     gcTime: 5 * 60 * 1000,
   })
 

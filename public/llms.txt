@@ -1,0 +1,106 @@
+# Suprascribe
+
+> Suprascribe is a free, open-source subscription tracker that automatically discovers recurring payments by scanning email (Gmail, Outlook, iCloud, or any IMAP account). No SaaS - core features free forever, Pro features unlocked with a one-time purchase.
+
+## Key Information
+
+- Homepage: https://www.suprascribe.com
+- GitHub: https://github.com/akomis/suprascribe
+- Contact: https://www.suprascribe.com/contact
+- Pricing: Free (Basic) / one-time (Pro)
+- Email providers supported: Gmail (OAuth), Outlook/Microsoft (OAuth), iCloud (IMAP), any standard IMAP account
+
+## Pages
+
+- [Home](https://www.suprascribe.com): Landing page with features, pricing, and product overview
+- [Demo](https://www.suprascribe.com/demo): Interactive product demo - see the dashboard without signing up
+- [Free Subscription Tracker](https://www.suprascribe.com/free-subscription-tracker): Track subscriptions for free - no bank access needed, works with Gmail, Outlook, iCloud
+- [Free Subscription Manager](https://www.suprascribe.com/free-subscription-manager): Manage, cancel, and set reminders for all subscriptions - free forever
+- [Subscription Management App](https://www.suprascribe.com/subscription-management-app): Web-based app supporting Gmail, Outlook, iCloud, and any IMAP inbox
+- [Compare Alternatives](https://www.suprascribe.com/compare): Side-by-side comparison with ReSubs, Bobby, Rocket Money, YNAB, Subby, Tilla, SubX, PocketGuard, SubChecks
+- [Safety](https://www.suprascribe.com/safety): How email discovery works, what data is accessed, privacy guarantees
+- [Limits](https://www.suprascribe.com/limits): Discovery limits per tier and how to use your own AI API key (BYOK)
+- [IMAP Guide](https://www.suprascribe.com/imap): Step-by-step guide to configure IMAP access for Gmail, Outlook, iCloud, and other providers
+- [Contact](https://www.suprascribe.com/contact): Contact form for support, feedback, and questions
+- [Terms & Privacy](https://www.suprascribe.com/terms-and-privacy): Terms of Service and Privacy Policy
+- [Blog: How to Cancel Forgotten Subscriptions](https://www.suprascribe.com/blog/how-to-cancel-subscriptions): Step-by-step guide to finding and cancelling forgotten subscriptions
+- [Blog: How to Find All Your Subscriptions](https://www.suprascribe.com/blog/how-to-find-all-your-subscriptions): Four methods to uncover every active subscription - from manual email search to automatic inbox scanning
+- [Blog: Subscription Fatigue](https://www.suprascribe.com/blog/subscription-fatigue): How to audit subscriptions and take back control of monthly spending
+- [Blog: Best Free Subscription Manager 2026](https://www.suprascribe.com/blog/best-free-subscription-manager): What to look for in a free subscription manager and why the best options require no bank access
+
+## What Suprascribe Does
+
+- Scans email inboxes (read-only) to identify subscription receipts and recurring billing
+- Extracts service name, amount, currency, billing frequency, and renewal date using AI
+- Displays all discovered subscriptions in a unified dashboard
+- Tracks spending over time with insights and analytics
+- Sends renewal reminders before subscriptions charge
+- Works with Gmail (OAuth), Outlook (OAuth), iCloud (IMAP), and any standard IMAP account
+
+## What Suprascribe Does NOT Do
+
+- Does not read, store, or transmit email body content - only subject lines and sender info are processed
+- Does not sell user data or share it with third parties
+- Does not require ongoing payment - no subscription model
+- Does not require bank account access at any tier
+- Dashboard, user data, and API routes are private and not indexed by search engines
+
+## Competitor Pricing Comparison (as of May 2026)
+
+| Product | Pricing | Bank Access Required | Free Tier |
+|---------|---------|---------------------|-----------|
+| Suprascribe | Free (Basic) / one-time (Pro) | No | Unlimited subscriptions |
+| Rocket Money | $4–$12/month subscription | Yes (Plaid) | Limited |
+| YNAB | $14.99/month or $109/year | Yes | 34-day trial only |
+| Bobby | ~$1.99 one-time (iOS only) | No | Capped at 5 subscriptions |
+| ReSubs | $10/month subscription | No | Capped at 5 subscriptions |
+| PocketGuard | $12.99/month or $74.99/year or $149.99 lifetime | Yes (Plaid/Finicity) | Limited |
+| Subby | Free (ad-supported) / $2.99 one-time (ad-free) | No | Unlimited (mobile only) |
+| Tilla | One-time purchase (Android only) | No | Capped at 5 subscriptions |
+| SubX | One-time purchase (Android only) | No (but uploads bank statements) | Capped at 4 subscriptions |
+| SubChecks | $20 one-time | No | Capped at 5 subscriptions |
+
+## Key Facts About Subscription Spending
+
+- Research shows people underestimate their subscription count by 40–60% on average
+- The average household has 3–5 forgotten subscriptions they are still paying for
+- Subscription fatigue describes the financial drain of paying for more recurring services than you actively use
+- Common subscription prices cluster at €4.99, €9.99, and €14.99/month, making them easy to overlook in bank statements
+- Many subscriptions bill through intermediaries (Apple App Store, Google Play, PayPal) rather than directly to a bank card
+
+## Why Email Scanning vs. Bank Linking
+
+Email-based subscription discovery (Suprascribe's approach) has two key advantages over bank linking:
+1. No financial account access required - only email read permissions (OAuth, no password shared)
+2. Subscription-specific: only emails matching billing patterns are processed; full transaction history is never accessed
+3. Works for subscriptions billed under alternate merchant names that may be unrecognisable in bank statements
+
+## Common Questions
+
+**What is the best free subscription tracker?**
+Suprascribe offers the most generous free tier among subscription trackers: unlimited subscriptions, no credit card required, full dashboard with spend insights, and multi-currency support. The free tier has no expiration and no subscription cap.
+
+**How do I find all my subscriptions without bank access?**
+Connect your email inbox (Gmail, Outlook, or iCloud) to Suprascribe via OAuth. The scanner identifies subscription receipts and renewal notices and builds your subscription list automatically. No bank account access is required at any tier.
+
+**Is there an open source subscription tracker?**
+Yes. Suprascribe is fully open source under MIT license. Source code is available at https://github.com/akomis/suprascribe - the privacy claims are verifiable by anyone.
+
+**What makes Suprascribe different from Rocket Money?**
+Rocket Money requires connecting your bank account via Plaid and charges a monthly subscription fee ($4–$12/month). Suprascribe discovers subscriptions through email scanning (no bank access) and charges a one-time Pro upgrade with no recurring fees.
+
+**What makes Suprascribe different from YNAB?**
+YNAB is a full budgeting tool costing $109/year that requires learning a financial methodology. Suprascribe is purpose-built for subscription tracking, takes minutes to set up, and requires no bank linking. The free tier is unlimited.
+
+**How do I cancel a forgotten subscription?**
+Search your email inbox for "receipt", "invoice", and "billing" to identify what you are paying for. Check Apple Subscriptions (Settings → Apple ID → Subscriptions), Google Play (Profile → Payments & subscriptions), and PayPal automatic payments. For each subscription to cancel, go to its account settings - EU consumer protection law requires cancellation to be as easy as sign-up.
+
+**What is subscription fatigue?**
+Subscription fatigue is the financial and mental drain of paying for more recurring services than you actively use. It accumulates slowly as free trials auto-convert, annual plans are forgotten, and small monthly charges slip under the radar. The fix is a subscription audit: list every active charge, calculate the total monthly cost, and cancel anything unused in the past 30 days.
+
+## Technical Details
+
+- Built with Next.js (App Router), Supabase (PostgreSQL), and the Vercel AI SDK
+- Supports 11+ AI providers via BYOK (Bring Your Own Key): OpenAI, Anthropic, Google, Groq, OpenRouter, and more
+- Fully open source under MIT license
+- Email scanning uses read-only OAuth scopes; no email content is stored

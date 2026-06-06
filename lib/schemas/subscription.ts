@@ -16,7 +16,7 @@ export const SUBSCRIPTION_CATEGORIES = [
 
 export const BILLING_PERIODS = ['monthly', 'yearly', 'quarterly', 'weekly'] as const
 
-export const EmailAnalysisResultSchema = z.object({
+const _EmailAnalysisResultSchema = z.object({
   is_subscription: z
     .boolean()
     .describe('true if this email is a subscription/billing receipt, false otherwise'),
@@ -64,9 +64,9 @@ export const EmailAnalysisResultSchema = z.object({
     .describe('Why this email is not a subscription receipt'),
 })
 
-export type EmailAnalysisResult = z.infer<typeof EmailAnalysisResultSchema>
+type _EmailAnalysisResult = z.infer<typeof _EmailAnalysisResultSchema>
 
-export const DiscoveredSubscriptionSchema = z.object({
+const DiscoveredSubscriptionSchema = z.object({
   service_name: z
     .string()
     .describe('Service name with plan tier (e.g., "Netflix Premium", "Claude Pro")'),
@@ -107,4 +107,4 @@ export const BatchEmailAnalysisResultSchema = z.object({
     ),
 })
 
-export type BatchEmailAnalysisResult = z.infer<typeof BatchEmailAnalysisResultSchema>
+type _BatchEmailAnalysisResult = z.infer<typeof BatchEmailAnalysisResultSchema>

@@ -15,8 +15,12 @@ export function ReminderSettings() {
 
   React.useEffect(() => {
     if (settings) {
-      setEnabled(settings.email_reminders_enabled)
-      setDaysBefore(settings.reminder_days_before)
+      // Use setTimeout to avoid synchronous setState during effect
+      const timer = setTimeout(() => {
+        setEnabled(settings.email_reminders_enabled)
+        setDaysBefore(settings.reminder_days_before)
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [settings])
 

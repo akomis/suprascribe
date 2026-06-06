@@ -8,6 +8,67 @@ import { useFeatureAccess } from '@/lib/hooks/useFeatureAccess'
 import { Lock, Mail, PenLine } from 'lucide-react'
 import { useEffect } from 'react'
 
+function AutoDiscoverButton({
+  isEnabled,
+  isDisabled,
+  requiresUpgrade,
+  forceDisabled,
+  disabledTooltipMessage,
+  onClick,
+}: {
+  isEnabled: boolean
+  isDisabled: boolean
+  requiresUpgrade: boolean
+  forceDisabled: boolean
+  disabledTooltipMessage: string
+  onClick: () => void
+}) {
+  if (!isEnabled) return null
+
+  const button = (
+    <Button
+      variant="outline"
+      onClick={isDisabled ? undefined : onClick}
+      disabled={isDisabled}
+      className="flex-1 h-auto py-6 px-4 flex flex-col items-center gap-3 hover:bg-accent hover:border-primary/50 relative disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {requiresUpgrade && !forceDisabled && (
+        <div className="absolute top-2 right-2 flex items-center gap-1">
+          <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
+            PRO
+          </Badge>
+          <Lock className="size-3 text-muted-foreground" />
+        </div>
+      )}
+      {forceDisabled && (
+        <div className="absolute top-2 right-2 flex items-center gap-1 text-muted-foreground">
+          <Lock className="size-3" />
+        </div>
+      )}
+      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
+        <Mail className="h-6 w-6 text-primary" />
+      </div>
+      <div className="flex flex-col items-center text-center gap-1">
+        <span className="font-medium">Auto-discover</span>
+        <span className="text-xs text-muted-foreground">
+          {forceDisabled ? 'Sign in required' : 'Scan your email inbox'}
+        </span>
+      </div>
+    </Button>
+  )
+
+  if (!isDisabled) return button
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent>
+        <p>{forceDisabled ? disabledTooltipMessage : 'Upgrade to PRO to unlock'}</p>
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
 interface AddSubscriptionOptionsProps {
   onSelectAutoDiscover: () => void
   onSelectManual: () => void
@@ -61,38 +122,6 @@ export function AddSubscriptionOptions({
     )
   }
 
-  const autoDiscoverButton = (
-    <Button
-      variant="outline"
-      onClick={isAutoDiscoveryDisabled ? undefined : onSelectAutoDiscover}
-      disabled={isAutoDiscoveryDisabled}
-      className="flex-1 h-auto py-6 px-4 flex flex-col items-center gap-3 hover:bg-accent hover:border-primary/50 relative disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {autoDiscoveryRequiresUpgrade && !forceDisableAutoDiscovery && (
-        <div className="absolute top-2 right-2 flex items-center gap-1">
-          <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
-            PRO
-          </Badge>
-          <Lock className="size-3 text-muted-foreground" />
-        </div>
-      )}
-      {forceDisableAutoDiscovery && (
-        <div className="absolute top-2 right-2 flex items-center gap-1 text-muted-foreground">
-          <Lock className="size-3" />
-        </div>
-      )}
-      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
-        <Mail className="h-6 w-6 text-primary" />
-      </div>
-      <div className="flex flex-col items-center text-center gap-1">
-        <span className="font-medium">Auto-discover</span>
-        <span className="text-xs text-muted-foreground">
-          {forceDisableAutoDiscovery ? 'Sign in required' : 'Scan your email inbox'}
-        </span>
-      </div>
-    </Button>
-  )
-
   return (
     <div className="flex flex-col gap-4 p-4">
       <p className="text-sm text-muted-foreground text-center">
@@ -100,20 +129,14 @@ export function AddSubscriptionOptions({
       </p>
 
       <div className="flex gap-3">
-        {/* Always show auto-discovery if enabled, but disable it if requires upgrade or force-disabled */}
-        {isAutoDiscoveryEnabled &&
-          (isAutoDiscoveryDisabled ? (
-            <Tooltip>
-              <TooltipTrigger asChild>{autoDiscoverButton}</TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  {forceDisableAutoDiscovery ? disabledTooltipMessage : 'Upgrade to PRO to unlock'}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            autoDiscoverButton
-          ))}
+        <AutoDiscoverButton
+          isEnabled={isAutoDiscoveryEnabled}
+          isDisabled={isAutoDiscoveryDisabled}
+          requiresUpgrade={autoDiscoveryRequiresUpgrade}
+          forceDisabled={forceDisableAutoDiscovery}
+          disabledTooltipMessage={disabledTooltipMessage}
+          onClick={onSelectAutoDiscover}
+        />
 
         {hasManualAdd && (
           <Button

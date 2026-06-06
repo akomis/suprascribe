@@ -39,18 +39,6 @@ function createSubscriptionDetails(
   }
 }
 
-export function useDemoSubscriptions() {
-  const { subscriptions } = useDemoContext()
-
-  return {
-    data: subscriptions,
-    error: null,
-    isLoading: false,
-    isError: false,
-    isSuccess: true,
-  }
-}
-
 export function useDemoCreateSubscription() {
   const { subscriptions, setSubscriptions } = useDemoContext()
 

@@ -12,7 +12,7 @@ export function DemoBanner() {
         </div>
         <Link href="/login?tab=signup">
           <Button variant="secondary" size="sm" className="text-xs sm:text-sm">
-            Sign Up Free
+            Sign Up for Free
           </Button>
         </Link>
       </div>

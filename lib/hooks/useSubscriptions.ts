@@ -1,13 +1,10 @@
 import { useQuery, useSuspenseQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { UserSubscriptionWithDetails } from '@/lib/types/database'
 import { CreateSubscriptionFormData } from '@/lib/types/forms'
-import { insightKeys } from './useInsights'
-import { type MergedSubscriptionResponse } from '@/app/api/subscriptions/route'
-
-export const subscriptionKeys = {
-  all: ['subscriptions'] as const,
-  lists: () => [...subscriptionKeys.all, 'list'] as const,
-}
+import { subscriptionKeys, invalidateSubscriptionDependents, STALE_TIME } from './query-keys'
+import type { MergedSubscriptionResponse } from '@/lib/types/subscriptions'
+import type { ApiResponse } from '@/lib/types/api'
+import { isApiError } from '@/lib/types/api'
 
 async function parseErrorResponse(response: Response, fallback: string): Promise<never> {
   try {
@@ -23,17 +20,16 @@ const subscriptionApi = {
   async getUserSubscriptions(): Promise<MergedSubscriptionResponse[]> {
     const response = await fetch('/api/subscriptions', {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
     })
 
     if (!response.ok) {
       await parseErrorResponse(response, 'Failed to fetch subscriptions')
     }
 
-    const result = await response.json()
-    return result.data || []
+    const result: ApiResponse<MergedSubscriptionResponse[]> = await response.json()
+    if (isApiError(result)) throw new Error(result.error)
+    return result.data
   },
 
   async createSubscription(
@@ -41,9 +37,7 @@ const subscriptionApi = {
   ): Promise<UserSubscriptionWithDetails> {
     const response = await fetch('/api/subscriptions', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
     })
 
@@ -51,7 +45,8 @@ const subscriptionApi = {
       await parseErrorResponse(response, 'Failed to create subscription')
     }
 
-    const result = await response.json()
+    const result: ApiResponse<UserSubscriptionWithDetails> = await response.json()
+    if (isApiError(result)) throw new Error(result.error)
     return result.data
   },
 
@@ -61,9 +56,7 @@ const subscriptionApi = {
   ): Promise<UserSubscriptionWithDetails> {
     const response = await fetch(`/api/subscriptions/${subscriptionId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
     })
 
@@ -71,7 +64,8 @@ const subscriptionApi = {
       await parseErrorResponse(response, 'Failed to update subscription')
     }
 
-    const result = await response.json()
+    const result: ApiResponse<UserSubscriptionWithDetails> = await response.json()
+    if (isApiError(result)) throw new Error(result.error)
     return result.data
   },
 
@@ -93,7 +87,7 @@ export function useSubscriptions(options?: { skipStale?: boolean }) {
   return useQuery({
     queryKey: subscriptionKeys.lists(),
     queryFn: subscriptionApi.getUserSubscriptions,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.default,
     gcTime: 10 * 60 * 1000,
     ...(options?.skipStale && { staleTime: 0 }),
   })
@@ -103,7 +97,7 @@ export function useSubscriptionsSuspense(options?: { skipStale?: boolean }) {
   return useSuspenseQuery({
     queryKey: subscriptionKeys.lists(),
     queryFn: subscriptionApi.getUserSubscriptions,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.default,
     gcTime: 10 * 60 * 1000,
     ...(options?.skipStale && { staleTime: 0 }),
   })
@@ -114,10 +108,7 @@ export function useCreateSubscription() {
 
   return useMutation({
     mutationFn: subscriptionApi.createSubscription,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: subscriptionKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: insightKeys.lists() })
-    },
+    onSuccess: () => invalidateSubscriptionDependents(queryClient),
   })
 }
 
@@ -127,10 +118,7 @@ export function useUpdateSubscription() {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: CreateSubscriptionFormData }) =>
       subscriptionApi.updateSubscription(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: subscriptionKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: insightKeys.lists() })
-    },
+    onSuccess: () => invalidateSubscriptionDependents(queryClient),
   })
 }
 
@@ -139,9 +127,6 @@ export function useDeleteSubscription() {
 
   return useMutation({
     mutationFn: subscriptionApi.deleteSubscription,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: subscriptionKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: insightKeys.lists() })
-    },
+    onSuccess: () => invalidateSubscriptionDependents(queryClient),
   })
 }

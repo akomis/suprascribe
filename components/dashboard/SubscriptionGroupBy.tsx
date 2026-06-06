@@ -1,5 +1,7 @@
 'use client'
 
+import type { GroupByOption } from '@/lib/types/subscriptions'
+import { ClientOnly } from '@/components/shared/ClientOnly'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,7 +15,14 @@ import * as React from 'react'
 
 export type GroupByValue = 'service' | 'sourceEmail' | 'category' | 'paymentMethod'
 
-export const groupByOptions: { value: GroupByValue; label: string }[] = [
+export function toInsightsGroupBy(value: GroupByValue): GroupByOption {
+  if (value === 'category') return 'category'
+  if (value === 'paymentMethod') return 'paymentMethod'
+  if (value === 'sourceEmail') return 'sourceEmail'
+  return 'service'
+}
+
+const groupByOptions: { value: GroupByValue; label: string }[] = [
   { value: 'service', label: 'Service' },
   { value: 'sourceEmail', label: 'Source Email' },
   { value: 'category', label: 'Category' },
@@ -34,31 +43,33 @@ export function SubscriptionGroupBy({
   const isActive = groupBy !== 'service'
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant={isActive ? 'default' : 'outline'}
-          size="icon"
-          disabled={disabled}
-          className="h-8 w-8 shrink-0"
-          aria-label="Group by"
-        >
-          <Layers className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" sideOffset={5}>
-        <DropdownMenuLabel>Group By</DropdownMenuLabel>
-        {groupByOptions.map((opt) => (
-          <DropdownMenuItem
-            key={opt.value}
-            onClick={() => !disabled && onGroupByChange(opt.value)}
-            className="flex items-center justify-between gap-4"
+    <ClientOnly>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant={isActive ? 'default' : 'outline'}
+            size="icon"
+            disabled={disabled}
+            className="h-8 w-8 shrink-0"
+            aria-label="Group by"
           >
-            {opt.label}
-            {groupBy === opt.value && <Check className="h-3 w-3" />}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+            <Layers className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" sideOffset={5}>
+          <DropdownMenuLabel>Group By</DropdownMenuLabel>
+          {groupByOptions.map((opt) => (
+            <DropdownMenuItem
+              key={opt.value}
+              onClick={() => !disabled && onGroupByChange(opt.value)}
+              className="flex items-center justify-between gap-4"
+            >
+              {opt.label}
+              {groupBy === opt.value && <Check className="h-3 w-3" />}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </ClientOnly>
   )
 }

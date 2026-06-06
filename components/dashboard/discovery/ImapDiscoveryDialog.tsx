@@ -27,7 +27,7 @@ type ImapDiscoveryDialogProps = {
   isLoading?: boolean
 }
 
-export function ImapDiscoveryDialog({
+function ImapDiscoveryDialog({
   open,
   onOpenChange,
   onSubmit,

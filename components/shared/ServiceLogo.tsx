@@ -12,6 +12,8 @@ interface ServiceLogoProps {
   /** Pre-resolved logo URL. When provided, skips the useLogo fetch. */
   resolvedLogoUrl?: string | null
   size?: number
+  /** Render at natural image dimensions, capped at size. For hero/decorative use. */
+  naturalSize?: boolean
   className?: string
   fallbackClassName?: string
 }
@@ -21,6 +23,7 @@ export function ServiceLogo({
   serviceUrl,
   resolvedLogoUrl,
   size = 24,
+  naturalSize = false,
   className,
   fallbackClassName,
 }: ServiceLogoProps) {
@@ -30,8 +33,20 @@ export function ServiceLogo({
   )
   const logoUrl = resolvedLogoUrl !== undefined ? resolvedLogoUrl : fetchedLogoUrl
   const [logoError, setLogoError] = React.useState(false)
-
   if (logoUrl && !logoError) {
+    if (naturalSize) {
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={logoUrl}
+          alt={`${name} logo`}
+          loading="lazy"
+          style={{ maxWidth: size, maxHeight: size, width: 'auto', height: 'auto' }}
+          className={cn('object-contain', className)}
+          onError={() => setLogoError(true)}
+        />
+      )
+    }
     return (
       <Image
         src={logoUrl}

@@ -1,4 +1,4 @@
-import { getPostHogClient } from '@/lib/posthog-server'
+import { captureEvent } from '@/lib/posthog-server'
 import { rateLimit } from '@/lib/utils/rate-limit'
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
@@ -45,13 +45,7 @@ ${message}
       return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })
     }
 
-    const posthog = getPostHogClient()
-    posthog.capture({
-      distinctId: email,
-      event: 'contact_form_submitted',
-      properties: { subject },
-    })
-    await posthog.shutdown()
+    void captureEvent(email, 'contact_form_submitted', { subject })
 
     return NextResponse.json({ success: true, messageId: data?.id })
   } catch (error) {

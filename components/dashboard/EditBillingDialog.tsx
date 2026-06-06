@@ -19,37 +19,43 @@ import { useDeleteSubscription, useUpdateSubscription } from '@/lib/hooks/useSub
 import { UserSubscriptionWithDetails } from '@/lib/types/database'
 import { CreateSubscriptionFormData } from '@/lib/types/forms'
 
-type EditBillingDialogProps = {
+export type EditBillingActions = {
+  update: {
+    mutateAsync: (args: { id: number; data: CreateSubscriptionFormData }) => Promise<unknown>
+    isPending: boolean
+    error: Error | null
+  }
+  delete: {
+    mutateAsync: (id: number) => Promise<unknown>
+    isPending: boolean
+  }
+}
+
+type EditBillingDialogBaseProps = {
   subscription: UserSubscriptionWithDetails | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess?: () => void
+  actions: EditBillingActions
 }
 
-export function EditBillingDialog({
+export function EditBillingDialogBase({
   subscription,
   open,
   onOpenChange,
   onSuccess,
-}: EditBillingDialogProps) {
-  const updateSubscriptionMutation = useUpdateSubscription()
-  const deleteSubscriptionMutation = useDeleteSubscription()
-
-  const handleSubmit = async (data: CreateSubscriptionFormData) => {
+  actions,
+}: EditBillingDialogBaseProps) {
+  const handleSubmit = async (entries: CreateSubscriptionFormData[]) => {
     if (!subscription) return
-
-    await updateSubscriptionMutation.mutateAsync({
-      id: subscription.id,
-      data,
-    })
+    await actions.update.mutateAsync({ id: subscription.id, data: entries[0] })
     onOpenChange(false)
     onSuccess?.()
   }
 
   const handleDelete = async () => {
     if (!subscription) return
-
-    await deleteSubscriptionMutation.mutateAsync(subscription.id)
+    await actions.delete.mutateAsync(subscription.id)
     onOpenChange(false)
     onSuccess?.()
   }
@@ -66,8 +72,8 @@ export function EditBillingDialog({
           subscription={subscription}
           onSubmit={handleSubmit}
           onCancel={() => onOpenChange(false)}
-          isSubmitting={updateSubscriptionMutation.isPending}
-          submitError={updateSubscriptionMutation.error}
+          isSubmitting={actions.update.isPending}
+          submitError={actions.update.error}
           deleteButton={
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center gap-2">
@@ -75,15 +81,9 @@ export function EditBillingDialog({
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="destructive"
-                      disabled={
-                        deleteSubscriptionMutation.isPending || updateSubscriptionMutation.isPending
-                      }
+                      disabled={actions.delete.isPending || actions.update.isPending}
                     >
-                      {deleteSubscriptionMutation.isPending ? (
-                        <Spinner className="size-4" />
-                      ) : (
-                        'Delete'
-                      )}
+                      {actions.delete.isPending ? <Spinner className="size-4" /> : 'Delete'}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -95,13 +95,10 @@ export function EditBillingDialog({
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel disabled={deleteSubscriptionMutation.isPending}>
+                      <AlertDialogCancel disabled={actions.delete.isPending}>
                         Cancel
                       </AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDelete}
-                        disabled={deleteSubscriptionMutation.isPending}
-                      >
+                      <AlertDialogAction onClick={handleDelete} disabled={actions.delete.isPending}>
                         DELETE
                       </AlertDialogAction>
                     </AlertDialogFooter>
@@ -113,5 +110,25 @@ export function EditBillingDialog({
         />
       </DialogContent>
     </Dialog>
+  )
+}
+
+export function EditBillingDialog({
+  subscription,
+  open,
+  onOpenChange,
+  onSuccess,
+}: Omit<EditBillingDialogBaseProps, 'actions'>) {
+  const updateMutation = useUpdateSubscription()
+  const deleteMutation = useDeleteSubscription()
+
+  return (
+    <EditBillingDialogBase
+      subscription={subscription}
+      open={open}
+      onOpenChange={onOpenChange}
+      onSuccess={onSuccess}
+      actions={{ update: updateMutation, delete: deleteMutation }}
+    />
   )
 }

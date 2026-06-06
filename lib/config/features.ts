@@ -1,4 +1,5 @@
 import type { Database } from '@/lib/database.types'
+import { MAX_TOTAL_DISCOVERIES } from '../utils/discovery-rate-limit'
 
 export type TierType = Database['public']['Enums']['TIER_TYPE']
 export type FeatureTier = 'basic' | 'pro'
@@ -32,6 +33,13 @@ export const Features = {
     tier: TIER.BASIC,
     enabled: true,
   },
+  subscription_history: {
+    key: 'subscription_history',
+    name: 'Complete History',
+    description: 'Complete subscription history & management',
+    tier: TIER.BASIC,
+    enabled: true,
+  },
   multiple_currency: {
     key: 'multiple_currency',
     name: 'Multiple Currency',
@@ -39,41 +47,21 @@ export const Features = {
     tier: TIER.BASIC,
     enabled: true,
   },
-  byok: {
-    key: 'byok',
-    name: 'Bring Your Own Key',
-    description: 'Use your own API keys for unlimited discovery with a variety of AI providers',
-    tier: TIER.BASIC,
-    enabled: true,
-    moreInfoLink: { label: 'Learn about BYOK', href: '/limits#byok' },
-  },
   auto_discovery: {
     key: 'auto_discovery',
     name: 'Auto Discovery',
-    description:
-      'Discover active & past subscriptions automatically through Gmail, Outlook and iCloud (or any other provider with IMAP)',
+    description: `Discover active & past subscriptions automatically through Gmail, Outlook and iCloud or any other provider through IMAP`,
     tier: TIER.PRO,
     enabled: true,
-    moreInfoLink: { label: 'Learn about discovery limits', href: '/limits' },
-  },
-  subscription_history: {
-    key: 'subscription_history',
-    name: 'Complete History',
-    description: 'Complete subscription history & management',
-    tier: TIER.PRO,
-    enabled: true,
-  },
-  search_sort_group: {
-    key: 'search_sort_group',
-    name: 'Search, Sort & Group',
-    description: 'Search, sort and group subscriptions',
-    tier: TIER.PRO,
-    enabled: true,
+    moreInfoLink: {
+      label: `${MAX_TOTAL_DISCOVERIES} discoveries included - Learn about discovery limits`,
+      href: '/limits',
+    },
   },
   quick_unsubscribe: {
     key: 'quick_unsubscribe',
     name: 'Quick Unsubscribe',
-    description: 'Two-click service unsubscribe',
+    description: 'Quick unsubscribe',
     tier: TIER.PRO,
     enabled: true,
   },
@@ -81,6 +69,13 @@ export const Features = {
     key: 'renewal_reminders',
     name: 'Renewal Reminders',
     description: 'Renewal email reminders',
+    tier: TIER.PRO,
+    enabled: true,
+  },
+  search_sort_group: {
+    key: 'search_sort_group',
+    name: 'Search, Sort & Group',
+    description: 'Search, sort and group subscriptions',
     tier: TIER.PRO,
     enabled: true,
   },
@@ -125,14 +120,6 @@ export const TierFeatures: Record<TierType, FeatureKey[]> = {
   PRO: [...BASIC_FEATURES, ...PRO_FEATURES],
 }
 
-export const FeatureNames: Record<FeatureKey, string> = Object.entries(Features).reduce(
-  (acc, [key, feature]) => {
-    acc[key as FeatureKey] = feature.name
-    return acc
-  },
-  {} as Record<FeatureKey, string>,
-)
-
 export const TierNames: Record<TierType, string> = {
   BASIC: 'Basic',
   PRO: 'Pro',
@@ -165,7 +152,7 @@ export function getRequiredTier(feature: FeatureKey): TierType | null {
   return null
 }
 
-export function getFeaturesByTier(tier: FeatureTier): FeatureDefinition[] {
+function getFeaturesByTier(tier: FeatureTier): FeatureDefinition[] {
   return Object.values(Features).filter((feature) => feature.tier === tier)
 }
 

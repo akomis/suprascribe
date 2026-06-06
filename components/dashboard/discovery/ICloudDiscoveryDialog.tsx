@@ -20,7 +20,7 @@ type ICloudDiscoveryDialogProps = {
   isLoading?: boolean
 }
 
-export function ICloudDiscoveryDialog({
+function ICloudDiscoveryDialog({
   open,
   onOpenChange,
   onSubmit,

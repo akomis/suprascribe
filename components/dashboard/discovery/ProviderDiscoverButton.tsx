@@ -16,7 +16,7 @@ type ProviderDiscoverButtonProps = {
   tooltipContent?: string | null
 }
 
-export function ProviderDiscoverButton({
+function ProviderDiscoverButton({
   displayName,
   logoQuery,
   onClick,

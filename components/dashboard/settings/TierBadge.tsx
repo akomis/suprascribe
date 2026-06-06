@@ -42,6 +42,7 @@ export function TierBadge({ forceTier }: TierBadgeProps = {}) {
       className="h-7 text-xs"
       showIcon={true}
       hideIfPro={false}
+      location="dashboard_tier_badge"
     />
   )
 }

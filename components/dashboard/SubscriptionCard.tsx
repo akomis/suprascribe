@@ -4,7 +4,7 @@ import { ServiceLogo } from '@/components/shared/ServiceLogo'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { CurrencyCode } from '@/lib/hooks/useCurrency'
-import { InsightMode } from '@/lib/hooks/useInsights'
+import type { InsightMode } from '@/lib/types/subscriptions'
 import { formatDateDisplay } from '@/lib/utils'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
 
@@ -35,10 +35,7 @@ function CalendarBadge({ date, autoRenew: _autoRenew }: { date: string; autoRene
 
   if (daysUntil > 0 && daysUntil <= 7) {
     return (
-      <div
-        className="flex flex-col items-center justify-center rounded-lg overflow-hidden border-2 border-gray-200 dark:border-border"
-        style={{ width: '50px', height: '50px' }}
-      >
+      <div className="flex flex-col items-center justify-center rounded-lg overflow-hidden border-2 border-gray-200 dark:border-border w-[50px] h-[50px]">
         <div className="w-full text-center text-[10px] font-semibold py-1 bg-gray-200 dark:bg-border text-gray-700 dark:text-gray-200">
           in
         </div>
@@ -53,10 +50,7 @@ function CalendarBadge({ date, autoRenew: _autoRenew }: { date: string; autoRene
   const day = dateObj.getDate()
 
   return (
-    <div
-      className="flex flex-col items-center justify-center rounded-lg overflow-hidden border-2 border-gray-200 dark:border-border"
-      style={{ width: '54px', height: '54px' }}
-    >
+    <div className="flex flex-col items-center justify-center rounded-lg overflow-hidden border-2 border-gray-200 dark:border-border w-[54px] h-[54px]">
       <div className="w-full text-center text-[10px] font-semibold py-1 bg-gray-200 dark:bg-border text-gray-700 dark:text-gray-200">
         {month}
       </div>

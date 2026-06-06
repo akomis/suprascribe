@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import posthog from 'posthog-js'
 import { useEffect } from 'react'
 import { ReturnHomeButton } from '@/components/shared/return-home-button'
 
@@ -15,7 +14,7 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error(error)
-    posthog.captureException(error)
+    import('posthog-js').then(({ default: posthog }) => posthog.captureException(error))
   }, [error])
 
   return (

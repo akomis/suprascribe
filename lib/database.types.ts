@@ -8,6 +8,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      AFFILIATES: {
+        Row: {
+          id: string
+          user_id: string
+          code: string
+          commission_rate: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          code: string
+          commission_rate?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          code?: string
+          commission_rate?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      AFFILIATE_CONVERSIONS: {
+        Row: {
+          id: string
+          affiliate_code: string
+          converted_user_id: string
+          stripe_payment_intent_id: string | null
+          amount_cents: number
+          currency: string
+          commission_amount: number
+          status: 'pending' | 'paid'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          affiliate_code: string
+          converted_user_id: string
+          stripe_payment_intent_id?: string | null
+          amount_cents: number
+          currency: string
+          commission_amount: number
+          status?: 'pending' | 'paid'
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          affiliate_code?: string
+          converted_user_id?: string
+          stripe_payment_intent_id?: string | null
+          amount_cents?: number
+          currency?: string
+          commission_amount?: number
+          status?: 'pending' | 'paid'
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'AFFILIATE_CONVERSIONS_affiliate_code_fkey'
+            columns: ['affiliate_code']
+            isOneToOne: false
+            referencedRelation: 'AFFILIATES'
+            referencedColumns: ['code']
+          },
+        ]
+      }
       DISCOVERY_RUNS: {
         Row: {
           discovered_at: string
@@ -106,21 +174,18 @@ export type Database = {
           active_key_id: string | null
           email_reminders_enabled: boolean | null
           reminder_days_before: number | null
-          tier: Database['public']['Enums']['TIER_TYPE']
           user_id: string
         }
         Insert: {
           active_key_id?: string | null
           email_reminders_enabled?: boolean | null
           reminder_days_before?: number | null
-          tier?: Database['public']['Enums']['TIER_TYPE']
           user_id: string
         }
         Update: {
           active_key_id?: string | null
           email_reminders_enabled?: boolean | null
           reminder_days_before?: number | null
-          tier?: Database['public']['Enums']['TIER_TYPE']
           user_id?: string
         }
         Relationships: [
@@ -132,6 +197,33 @@ export type Database = {
             referencedColumns: ['id']
           },
         ]
+      }
+      USER_TIERS: {
+        Row: {
+          created_at: string
+          date_upgraded: string | null
+          pending_upgrade_email: string | null
+          stripe_payment_intent_id: string | null
+          tier: Database['public']['Enums']['TIER_TYPE']
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_upgraded?: string | null
+          pending_upgrade_email?: string | null
+          stripe_payment_intent_id?: string | null
+          tier?: Database['public']['Enums']['TIER_TYPE']
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_upgraded?: string | null
+          pending_upgrade_email?: string | null
+          stripe_payment_intent_id?: string | null
+          tier?: Database['public']['Enums']['TIER_TYPE']
+          user_id?: string
+        }
+        Relationships: []
       }
       USER_SUBSCRIPTIONS: {
         Row: {
@@ -185,7 +277,14 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_email_tier: {
+        Row: {
+          email: string | null
+          tier: Database['public']['Enums']['TIER_TYPE'] | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       process_subscription_renewals: {
@@ -333,7 +432,7 @@ export type CompositeTypes<
     ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never
 
-export const Constants = {
+const _Constants = {
   public: {
     Enums: {
       CURRENCY_CODE: ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR', 'KRW'],

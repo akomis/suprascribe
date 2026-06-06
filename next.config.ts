@@ -1,3 +1,4 @@
+import withBundleAnalyzer from '@next/bundle-analyzer'
 import type { NextConfig } from 'next'
 import path from 'path'
 
@@ -5,7 +6,7 @@ const securityHeaders = [
   { key: 'X-Frame-Options', value: 'DENY' },
   {
     key: 'Content-Security-Policy',
-    value: `frame-ancestors 'none'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'${process.env.NODE_ENV !== 'production' ? " 'unsafe-eval'" : ''}`,
+    value: `frame-ancestors 'none'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com${process.env.NODE_ENV !== 'production' ? " 'unsafe-eval'" : ''}`,
   },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
@@ -14,7 +15,7 @@ const securityHeaders = [
   { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
   { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
   ...(process.env.NODE_ENV === 'production'
-    ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }]
+    ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' }]
     : []),
 ]
 
@@ -25,8 +26,18 @@ const nextConfig = {
   },
   images: {
     remotePatterns: [],
+    formats: ['image/avif', 'image/webp'],
   },
-  skipTrailingSlashRedirect: true,
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'suprascribe.com' }],
+        destination: 'https://www.suprascribe.com/:path*',
+        permanent: true,
+      },
+    ]
+  },
   async rewrites() {
     return [
       {
@@ -34,11 +45,11 @@ const nextConfig = {
         destination: '/.well-known/microsoft-identity-association.json',
       },
       {
-        source: '/ingest/static/:path*',
+        source: '/supraph/static/:path*',
         destination: 'https://eu-assets.i.posthog.com/static/:path*',
       },
       {
-        source: '/ingest/:path*',
+        source: '/supraph/:path*',
         destination: 'https://eu.i.posthog.com/:path*',
       },
     ]
@@ -72,6 +83,12 @@ const nextConfig = {
         ],
       },
       {
+        source: '/:file(.*\\.(?:jpg|jpeg|png|svg|webp|ico))',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
+        ],
+      },
+      {
         source: '/dashboard(.*)',
         headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
       },
@@ -91,4 +108,4 @@ const nextConfig = {
   },
 } satisfies NextConfig
 
-export default nextConfig
+export default withBundleAnalyzer({ enabled: process.env.ANALYZE === 'true' })(nextConfig)

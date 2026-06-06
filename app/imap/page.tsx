@@ -2,7 +2,101 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ExternalLink } from 'lucide-react'
+import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'IMAP Setup Guide - Connect Any Email Provider',
+  description:
+    'Step-by-step guide to configure IMAP access for Gmail, Outlook, iCloud, and other email providers. Learn how to generate app-specific passwords for secure email discovery.',
+  alternates: {
+    canonical: 'https://www.suprascribe.com/imap',
+  },
+}
+
+interface ImapProviderTabProps {
+  value: string
+  server: string
+  passwordTitle: string
+  steps: ReactNode[]
+  note?: ReactNode
+  docUrl: string
+  docLabel: string
+}
+
+function ImapProviderTab({
+  value,
+  server,
+  passwordTitle,
+  steps,
+  note,
+  docUrl,
+  docLabel,
+}: ImapProviderTabProps) {
+  return (
+    <TabsContent value={value} className="mt-6">
+      <Card>
+        <CardContent className="space-y-4">
+          <div className="space-y-3 text-sm">
+            <p className="font-semibold">IMAP Settings:</p>
+            <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+              <li>
+                <strong>Server:</strong> {server}
+              </li>
+              <li>
+                <strong>Port:</strong> 993
+              </li>
+            </ul>
+
+            <p className="font-semibold mt-4">How to Generate {passwordTitle}:</p>
+            <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
+              {steps.map((step, i) => (
+                <li key={i}>{step}</li>
+              ))}
+            </ol>
+            {note}
+          </div>
+
+          <Button variant="outline" className="w-full sm:w-auto" asChild>
+            <Link href={docUrl} target="_blank" rel="noopener noreferrer">
+              {docLabel}
+              <ExternalLink className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </TabsContent>
+  )
+}
+
+function ImapProviderRow({
+  name,
+  docUrl,
+  server,
+}: {
+  name: string
+  docUrl: string
+  server: string
+}) {
+  return (
+    <tr className="hover:bg-muted/30">
+      <td className="p-3">
+        <Link
+          href={docUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-primary inline-flex items-center gap-1"
+        >
+          {name}
+          <ExternalLink className="h-3 w-3" />
+        </Link>
+      </td>
+      <td className="p-3 font-mono text-xs">{server}</td>
+      <td className="p-3">993</td>
+    </tr>
+  )
+}
 
 export default function ImapGuidePage() {
   return (
@@ -49,193 +143,122 @@ export default function ImapGuidePage() {
             <TabsTrigger value="other">Other</TabsTrigger>
           </TabsList>
 
-          {/* iCloud Tab */}
-          <TabsContent value="icloud" className="mt-6">
-            <Card>
-              <CardContent className="space-y-4">
-                <div className="space-y-3 text-sm">
-                  <p className="font-semibold">IMAP Settings:</p>
-                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                    <li>
-                      <strong>Server:</strong> imap.mail.me.com
-                    </li>
-                    <li>
-                      <strong>Port:</strong> 993
-                    </li>
-                  </ul>
+          <ImapProviderTab
+            value="icloud"
+            server="imap.mail.me.com"
+            passwordTitle="App-Specific Password"
+            steps={[
+              <>
+                Make sure you have{' '}
+                <Link
+                  href="https://support.apple.com/en-us/HT204915"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-foreground underline hover:text-primary"
+                >
+                  two-factor authentication enabled
+                </Link>{' '}
+                for your Apple ID (required)
+              </>,
+              <>
+                Go to{' '}
+                <Link
+                  href="https://appleid.apple.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-foreground underline hover:text-primary"
+                >
+                  appleid.apple.com
+                </Link>
+              </>,
+              'Sign in with your Apple ID',
+              <>
+                In the &quot;Sign-In and Security&quot; section, select &quot;App-Specific
+                Passwords&quot;
+              </>,
+              'Click the + button to create a new password',
+              <>Enter a label (e.g., &quot;Suprascribe&quot;)</>,
+              <>Click &quot;Create&quot;</>,
+              'Copy the password shown (format: xxxx-xxxx-xxxx-xxxx)',
+              'Use this password in the IMAP form (hyphens are optional)',
+            ]}
+            docUrl="https://support.apple.com/en-us/102654"
+            docLabel="Official Apple Documentation"
+          />
 
-                  <p className="font-semibold mt-4">How to Generate App-Specific Password:</p>
-                  <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                    <li>
-                      Make sure you have{' '}
-                      <Link
-                        href="https://support.apple.com/en-us/HT204915"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-foreground underline hover:text-primary"
-                      >
-                        two-factor authentication enabled
-                      </Link>{' '}
-                      for your Apple ID (required)
-                    </li>
-                    <li>
-                      Go to{' '}
-                      <Link
-                        href="https://appleid.apple.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-foreground underline hover:text-primary"
-                      >
-                        appleid.apple.com
-                      </Link>
-                    </li>
-                    <li>Sign in with your Apple ID</li>
-                    <li>
-                      In the &quot;Sign-In and Security&quot; section, select &quot;App-Specific
-                      Passwords&quot;
-                    </li>
-                    <li>Click the + button to create a new password</li>
-                    <li>Enter a label (e.g., &quot;Suprascribe&quot;)</li>
-                    <li>Click &quot;Create&quot;</li>
-                    <li>Copy the password shown (format: xxxx-xxxx-xxxx-xxxx)</li>
-                    <li>Use this password in the IMAP form (hyphens are optional)</li>
-                  </ol>
-                </div>
+          <ImapProviderTab
+            value="gmail"
+            server="imap.gmail.com"
+            passwordTitle="App Password"
+            steps={[
+              <>
+                Make sure you have{' '}
+                <Link
+                  href="https://myaccount.google.com/signinoptions/two-step-verification"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-foreground underline hover:text-primary"
+                >
+                  2-Step Verification enabled
+                </Link>{' '}
+                on your Google account (required)
+              </>,
+              <>
+                Go to your{' '}
+                <Link
+                  href="https://myaccount.google.com/apppasswords"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-foreground underline hover:text-primary"
+                >
+                  Google App Passwords page
+                </Link>
+              </>,
+              'Sign in if prompted',
+              <>Enter a name for the app (e.g., &quot;Suprascribe&quot;)</>,
+              <>Click &quot;Create&quot;</>,
+              'Copy the 16-character password (it will look like: xxxx xxxx xxxx xxxx)',
+              'Use this password in the IMAP form (remove spaces)',
+            ]}
+            docUrl="https://support.google.com/accounts/answer/185833"
+            docLabel="Official Google Documentation"
+          />
 
-                <Button variant="outline" className="w-full sm:w-auto" asChild>
-                  <Link
-                    href="https://support.apple.com/en-us/102654"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Official Apple Documentation
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Gmail Tab */}
-          <TabsContent value="gmail" className="mt-6">
-            <Card>
-              <CardContent className="space-y-4">
-                <div className="space-y-3 text-sm">
-                  <p className="font-semibold">IMAP Settings:</p>
-                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                    <li>
-                      <strong>Server:</strong> imap.gmail.com
-                    </li>
-                    <li>
-                      <strong>Port:</strong> 993
-                    </li>
-                  </ul>
-
-                  <p className="font-semibold mt-4">How to Generate App Password:</p>
-                  <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                    <li>
-                      Make sure you have{' '}
-                      <Link
-                        href="https://myaccount.google.com/signinoptions/two-step-verification"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-foreground underline hover:text-primary"
-                      >
-                        2-Step Verification enabled
-                      </Link>{' '}
-                      on your Google account (required)
-                    </li>
-                    <li>
-                      Go to your{' '}
-                      <Link
-                        href="https://myaccount.google.com/apppasswords"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-foreground underline hover:text-primary"
-                      >
-                        Google App Passwords page
-                      </Link>
-                    </li>
-                    <li>Sign in if prompted</li>
-                    <li>Enter a name for the app (e.g., &quot;Suprascribe&quot;)</li>
-                    <li>Click &quot;Create&quot;</li>
-                    <li>Copy the 16-character password (it will look like: xxxx xxxx xxxx xxxx)</li>
-                    <li>Use this password in the IMAP form (remove spaces)</li>
-                  </ol>
-                </div>
-
-                <Button variant="outline" className="w-full sm:w-auto" asChild>
-                  <Link
-                    href="https://support.google.com/accounts/answer/185833"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Official Google Documentation
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Outlook Tab */}
-          <TabsContent value="outlook" className="mt-6">
-            <Card>
-              <CardContent className="space-y-4">
-                <div className="space-y-3 text-sm">
-                  <p className="font-semibold">IMAP Settings:</p>
-                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                    <li>
-                      <strong>Server:</strong> outlook.office365.com
-                    </li>
-                    <li>
-                      <strong>Port:</strong> 993
-                    </li>
-                  </ul>
-
-                  <p className="font-semibold mt-4">How to Generate App Password:</p>
-                  <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                    <li>
-                      Go to your{' '}
-                      <Link
-                        href="https://account.microsoft.com/security"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-foreground underline hover:text-primary"
-                      >
-                        Microsoft Security page
-                      </Link>
-                    </li>
-                    <li>Sign in if prompted</li>
-                    <li>
-                      Scroll to &quot;Advanced security options&quot; and click &quot;Add a new way
-                      to sign in or verify&quot;
-                    </li>
-                    <li>Select &quot;Use an app password&quot;</li>
-                    <li>Click &quot;Generate&quot;</li>
-                    <li>Copy the generated password</li>
-                    <li>Use this password in the IMAP form</li>
-                  </ol>
-
-                  <p className="text-xs text-muted-foreground mt-4">
-                    <strong>Note:</strong> If you don&apos;t see the app password option, you may
-                    need to enable it first or your organization might have restrictions.
-                  </p>
-                </div>
-
-                <Button variant="outline" className="w-full sm:w-auto" asChild>
-                  <Link
-                    href="https://support.microsoft.com/en-us/account-billing/manage-app-passwords-for-two-step-verification-d6dc8c6d-4bf7-4851-ad95-6d07799387e9"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Official Microsoft Documentation
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          <ImapProviderTab
+            value="outlook"
+            server="outlook.office365.com"
+            passwordTitle="App Password"
+            steps={[
+              <>
+                Go to your{' '}
+                <Link
+                  href="https://account.microsoft.com/security"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-foreground underline hover:text-primary"
+                >
+                  Microsoft Security page
+                </Link>
+              </>,
+              'Sign in if prompted',
+              <>
+                Scroll to &quot;Advanced security options&quot; and click &quot;Add a new way to
+                sign in or verify&quot;
+              </>,
+              <>Select &quot;Use an app password&quot;</>,
+              <>Click &quot;Generate&quot;</>,
+              'Copy the generated password',
+              'Use this password in the IMAP form',
+            ]}
+            note={
+              <p className="text-xs text-muted-foreground mt-4">
+                <strong>Note:</strong> If you don&apos;t see the app password option, you may need
+                to enable it first or your organization might have restrictions.
+              </p>
+            }
+            docUrl="https://support.microsoft.com/en-us/account-billing/manage-app-passwords-for-two-step-verification-d6dc8c6d-4bf7-4851-ad95-6d07799387e9"
+            docLabel="Official Microsoft Documentation"
+          />
 
           {/* Other Providers Tab */}
           <TabsContent value="other" className="mt-6">
@@ -274,81 +297,31 @@ export default function ImapGuidePage() {
                           </tr>
                         </thead>
                         <tbody className="divide-y">
-                          <tr className="hover:bg-muted/30">
-                            <td className="p-3">
-                              <Link
-                                href="https://help.yahoo.com/kb/SLN4075.html"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="underline hover:text-primary inline-flex items-center gap-1"
-                              >
-                                Yahoo Mail
-                                <ExternalLink className="h-3 w-3" />
-                              </Link>
-                            </td>
-                            <td className="p-3 font-mono text-xs">imap.mail.yahoo.com</td>
-                            <td className="p-3">993</td>
-                          </tr>
-                          <tr className="hover:bg-muted/30">
-                            <td className="p-3">
-                              <Link
-                                href="https://help.aol.com/articles/how-do-i-use-other-email-applications-to-send-and-receive-my-aol-mail"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="underline hover:text-primary inline-flex items-center gap-1"
-                              >
-                                AOL Mail
-                                <ExternalLink className="h-3 w-3" />
-                              </Link>
-                            </td>
-                            <td className="p-3 font-mono text-xs">imap.aol.com</td>
-                            <td className="p-3">993</td>
-                          </tr>
-                          <tr className="hover:bg-muted/30">
-                            <td className="p-3">
-                              <Link
-                                href="https://www.zoho.com/mail/help/imap-access.html"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="underline hover:text-primary inline-flex items-center gap-1"
-                              >
-                                Zoho Mail
-                                <ExternalLink className="h-3 w-3" />
-                              </Link>
-                            </td>
-                            <td className="p-3 font-mono text-xs">imap.zoho.com</td>
-                            <td className="p-3">993</td>
-                          </tr>
-                          <tr className="hover:bg-muted/30">
-                            <td className="p-3">
-                              <Link
-                                href="https://www.fastmail.help/hc/en-us/articles/1500000278382-Server-names-and-ports"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="underline hover:text-primary inline-flex items-center gap-1"
-                              >
-                                FastMail
-                                <ExternalLink className="h-3 w-3" />
-                              </Link>
-                            </td>
-                            <td className="p-3 font-mono text-xs">imap.fastmail.com</td>
-                            <td className="p-3">993</td>
-                          </tr>
-                          <tr className="hover:bg-muted/30">
-                            <td className="p-3">
-                              <Link
-                                href="https://support.gmx.com/pop-imap/toggle.html"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="underline hover:text-primary inline-flex items-center gap-1"
-                              >
-                                GMX Mail
-                                <ExternalLink className="h-3 w-3" />
-                              </Link>
-                            </td>
-                            <td className="p-3 font-mono text-xs">imap.gmx.com</td>
-                            <td className="p-3">993</td>
-                          </tr>
+                          <ImapProviderRow
+                            name="Yahoo Mail"
+                            docUrl="https://help.yahoo.com/kb/SLN4075.html"
+                            server="imap.mail.yahoo.com"
+                          />
+                          <ImapProviderRow
+                            name="AOL Mail"
+                            docUrl="https://help.aol.com/articles/how-do-i-use-other-email-applications-to-send-and-receive-my-aol-mail"
+                            server="imap.aol.com"
+                          />
+                          <ImapProviderRow
+                            name="Zoho Mail"
+                            docUrl="https://www.zoho.com/mail/help/imap-access.html"
+                            server="imap.zoho.com"
+                          />
+                          <ImapProviderRow
+                            name="FastMail"
+                            docUrl="https://www.fastmail.help/hc/en-us/articles/1500000278382-Server-names-and-ports"
+                            server="imap.fastmail.com"
+                          />
+                          <ImapProviderRow
+                            name="GMX Mail"
+                            docUrl="https://support.gmx.com/pop-imap/toggle.html"
+                            server="imap.gmx.com"
+                          />
                         </tbody>
                       </table>
                     </div>

@@ -1,5 +1,6 @@
-import type { MergedSubscriptionResponse } from '@/app/api/subscriptions/route'
+import type { MergedSubscriptionResponse } from '@/lib/types/subscriptions'
 import type { UserSubscriptionWithDetails, CurrencyCode } from '@/lib/types/database'
+import { toDateString } from '@/lib/utils/date'
 
 export type DemoSubscriptionWithDetails = UserSubscriptionWithDetails & {
   category?: string
@@ -14,14 +15,14 @@ const today = new Date()
 const daysFromNow = (days: number) => {
   const date = new Date(today)
   date.setDate(date.getDate() + days)
-  return date.toISOString().split('T')[0]
+  return toDateString(date)
 }
 const daysAgo = (days: number) => daysFromNow(-days)
 const yearsAgo = (years: number, monthOffset = 0) => {
   const date = new Date(today)
   date.setFullYear(date.getFullYear() - years)
   date.setMonth(date.getMonth() + monthOffset)
-  return date.toISOString().split('T')[0]
+  return toDateString(date)
 }
 
 function createSubscription(

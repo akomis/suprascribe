@@ -6,6 +6,7 @@ import { CurrencySelector } from '@/components/dashboard/settings/CurrencySelect
 import LogoutButton from '@/components/dashboard/settings/LogoutButton'
 import { RemindersDialog } from '@/components/dashboard/settings/RemindersDialog'
 import { ThemePicker } from '@/components/dashboard/settings/ThemePicker'
+import { ClientOnly } from '@/components/shared/ClientOnly'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -15,12 +16,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useFeatureAccess } from '@/lib/hooks/useFeatureAccess'
 import { createClient } from '@/lib/supabase/client'
-import { Bell, Key, Settings, User } from 'lucide-react'
+import { SupportButton } from '@/components/shared/SupportButton'
+import { Bell, Key, Link2, Settings, User } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import * as React from 'react'
 
-export function ControlPanel() {
+function ControlPanelInner() {
   const supabase = createClient()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -30,24 +32,28 @@ export function ControlPanel() {
   const [remindersOpen, setRemindersOpen] = React.useState(false)
   const [passwordChangeMode, setPasswordChangeMode] = React.useState(false)
   const { hasAccess: hasEmailSupport } = useFeatureAccess('email_support')
-  const { hasAccess: hasByokAccess } = useFeatureAccess('byok')
+  const { hasAccess: hasByokAccess } = useFeatureAccess('auto_discovery')
   const { hasAccess: hasReminderAccess } = useFeatureAccess('renewal_reminders')
 
   React.useEffect(() => {
-    if (searchParams.get('settings') === 'byok') {
-      setByokOpen(true)
-      router.replace('/dashboard', { scroll: false })
-    } else if (searchParams.get('settings') === 'reminders') {
-      setRemindersOpen(true)
-      router.replace('/dashboard', { scroll: false })
-    } else if (searchParams.get('settings') === 'password') {
-      setPasswordChangeMode(true)
-      setSettingsOpen(true)
-      router.replace('/dashboard', { scroll: false })
-    } else if (searchParams.get('settings') === 'account') {
-      setSettingsOpen(true)
-      router.replace('/dashboard', { scroll: false })
-    }
+    // Use setTimeout to avoid synchronous setState during effect
+    const timer = setTimeout(() => {
+      if (searchParams.get('settings') === 'byok') {
+        setByokOpen(true)
+        router.replace('/dashboard', { scroll: false })
+      } else if (searchParams.get('settings') === 'reminders') {
+        setRemindersOpen(true)
+        router.replace('/dashboard', { scroll: false })
+      } else if (searchParams.get('settings') === 'password') {
+        setPasswordChangeMode(true)
+        setSettingsOpen(true)
+        router.replace('/dashboard', { scroll: false })
+      } else if (searchParams.get('settings') === 'account') {
+        setSettingsOpen(true)
+        router.replace('/dashboard', { scroll: false })
+      }
+    }, 0)
+    return () => clearTimeout(timer)
   }, [searchParams, router])
 
   React.useEffect(() => {
@@ -65,133 +71,143 @@ export function ControlPanel() {
   }, [supabase])
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Open control panel"
-          className="h-8 w-8 shrink-0"
-        >
-          <Settings className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        alignOffset={-5}
-        sideOffset={5}
-        className="min-w-[150px] max-w-[calc(100vw-2rem)] w-fit px-2 py-4 flex flex-col gap-2"
-      >
-        <div className="flex items-center gap-1 sm:gap-2">
-          <div className="">
-            <CurrencySelector triggerClassName="w-24 text-xs sm:text-sm" />
-          </div>
-          <div className="flex-1">
-            <ThemePicker triggerClassName="w-full" />
-          </div>
-        </div>
-        {hasByokAccess && (
+    <ClientOnly>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            type="button"
-            aria-label="Open API key settings"
-            onClick={() => setByokOpen(true)}
-            className="w-full justify-start gap-2 text-muted-foreground font-normal"
+            size="icon"
+            aria-label="Open control panel"
+            className="h-8 w-8 shrink-0"
           >
-            <Key className="h-4 w-4" />
-            AI API Keys (BYOK)
+            <Settings className="h-4 w-4" />
           </Button>
-        )}
-        {hasReminderAccess && (
-          <Button
-            variant="outline"
-            type="button"
-            aria-label="Open reminder settings"
-            onClick={() => setRemindersOpen(true)}
-            className="w-full justify-start gap-2 text-muted-foreground font-normal"
-          >
-            <Bell className="h-4 w-4" />
-            Renewal Reminders
-          </Button>
-        )}
-        <Button
-          variant="outline"
-          type="button"
-          aria-label="Open account settings"
-          onClick={() => setSettingsOpen(true)}
-          className="w-full justify-start gap-2 text-muted-foreground font-normal"
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          alignOffset={-5}
+          sideOffset={5}
+          className="min-w-[150px] max-w-[calc(100vw-2rem)] w-fit px-2 py-4 flex flex-col gap-2"
         >
-          <User className="h-4 w-4" />
-          Account Settings
-        </Button>
-
-        {hasEmailSupport && (
-          <>
-            <DropdownMenuSeparator />
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="">
+              <CurrencySelector triggerClassName="w-24 text-xs sm:text-sm" />
+            </div>
+            <div className="flex-1">
+              <ThemePicker triggerClassName="w-full" />
+            </div>
+          </div>
+          {hasByokAccess && (
             <Button
-              variant={'outline'}
+              variant="outline"
               type="button"
-              aria-label="Open support page"
-              className="w-full text-muted-foreground"
-              onClick={() => window.open('/dashboard/support', '_blank')}
+              aria-label="Open API key settings"
+              onClick={() => setByokOpen(true)}
+              className="w-full justify-start gap-2 text-muted-foreground font-normal"
             >
-              Support
+              <Key className="h-4 w-4" />
+              AI API Keys (BYOK)
             </Button>
-          </>
-        )}
-
-        <DropdownMenuSeparator />
-
-        <LogoutButton
-          variant="secondary"
-          className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive text-xs sm:text-sm"
-        >
-          Sign Out
-        </LogoutButton>
-
-        <DropdownMenuSeparator />
-
-        <div className="text-xs text-muted-foreground text-center">
-          <Link
-            href="/safety"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground"
+          )}
+          {hasReminderAccess && (
+            <Button
+              variant="outline"
+              type="button"
+              aria-label="Open reminder settings"
+              onClick={() => setRemindersOpen(true)}
+              className="w-full justify-start gap-2 text-muted-foreground font-normal"
+            >
+              <Bell className="h-4 w-4" />
+              Renewal Reminders
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            type="button"
+            aria-label="Open account settings"
+            onClick={() => setSettingsOpen(true)}
+            className="w-full justify-start gap-2 text-muted-foreground font-normal"
           >
-            Privacy & Safety
+            <User className="h-4 w-4" />
+            Account Settings
+          </Button>
+          <Link href="/dashboard/affiliate" className="w-full">
+            <Button
+              variant="outline"
+              type="button"
+              className="w-full justify-start gap-2 text-muted-foreground font-normal"
+            >
+              <Link2 className="h-4 w-4" />
+              Affiliate Program
+            </Button>
           </Link>
-          {' · '}
-          <Link
-            href="/limits"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground"
-          >
-            Discovery Limits
-          </Link>
-          {' · '}
-          <Link
-            href="/terms-and-privacy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground"
-          >
-            Terms
-          </Link>
-        </div>
-      </DropdownMenuContent>
-      <AccountSettings
-        open={settingsOpen}
-        onOpenChange={(isOpen) => {
-          setSettingsOpen(isOpen)
-          if (!isOpen) setPasswordChangeMode(false)
-        }}
-        email={email ?? null}
-        showPasswordChange={passwordChangeMode}
-      />
-      <BYOKDialog open={byokOpen} onOpenChange={setByokOpen} />
-      <RemindersDialog open={remindersOpen} onOpenChange={setRemindersOpen} />
-    </DropdownMenu>
+
+          <DropdownMenuSeparator />
+
+          <div className="flex gap-2">
+            {hasEmailSupport && (
+              <SupportButton className="flex-1 justify-center gap-2 text-muted-foreground font-normal" />
+            )}
+            <LogoutButton
+              variant="secondary"
+              className="flex-1 text-destructive hover:bg-destructive/10 hover:text-destructive text-xs sm:text-sm"
+            >
+              Sign Out
+            </LogoutButton>
+          </div>
+
+          <DropdownMenuSeparator />
+
+          <div className="text-xs text-muted-foreground text-center">
+            <Link
+              href="/safety"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              Privacy & Safety
+            </Link>
+            {' · '}
+            <Link
+              href="/limits"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              Discovery Limits
+            </Link>
+            {' · '}
+            <Link
+              href="/terms-and-privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              Terms
+            </Link>
+          </div>
+        </DropdownMenuContent>
+        <AccountSettings
+          open={settingsOpen}
+          onOpenChange={(isOpen) => {
+            setSettingsOpen(isOpen)
+            if (!isOpen) setPasswordChangeMode(false)
+          }}
+          email={email ?? null}
+          showPasswordChange={passwordChangeMode}
+        />
+        <BYOKDialog open={byokOpen} onOpenChange={setByokOpen} />
+        <RemindersDialog open={remindersOpen} onOpenChange={setRemindersOpen} />
+      </DropdownMenu>
+    </ClientOnly>
+  )
+}
+
+function ControlPanel() {
+  return (
+    <React.Suspense fallback={null}>
+      <ControlPanelInner />
+    </React.Suspense>
   )
 }
 

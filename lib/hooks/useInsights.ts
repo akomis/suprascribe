@@ -1,48 +1,9 @@
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
-import { CurrencyCode } from './useCurrency'
-
-export type GroupByOption = 'service' | 'category' | 'paymentMethod'
-export type InsightMode = 'spent' | 'forecast'
-export type InsightTab = 'active' | 'past'
-
-export type PieDataItem = {
-  name: string
-  value: number
-  fill: string
-}
-
-export type InsightData = {
-  totalMonthly: number
-  yearly: number
-  mostExpensive: {
-    name: string
-    url?: string
-    monthlyCost: number
-  } | null
-  leastExpensive: {
-    name: string
-    url?: string
-    monthlyCost: number
-  } | null
-  nextExpiring: Array<{
-    name: string
-    url?: string
-    endDate: string
-  }>
-  pieData: PieDataItem[]
-}
-
-export const insightKeys = {
-  all: ['insights'] as const,
-  lists: () => [...insightKeys.all, 'list'] as const,
-  byCurrency: (
-    currency: CurrencyCode,
-    groupBy: GroupByOption,
-    mode: InsightMode,
-    tab: InsightTab,
-    year?: number,
-  ) => [...insightKeys.all, 'list', currency, groupBy, mode, tab, year] as const,
-}
+import { useSuspenseQuery } from '@tanstack/react-query'
+import type { CurrencyCode } from './useCurrency'
+import type { ApiResponse } from '@/lib/types/api'
+import { isApiError } from '@/lib/types/api'
+import type { GroupByOption, InsightData, InsightMode, InsightTab } from '@/lib/types/subscriptions'
+import { insightKeys, STALE_TIME } from './query-keys'
 
 const insightApi = {
   async getInsights(
@@ -73,23 +34,10 @@ const insightApi = {
       throw new Error(error.error || 'Failed to fetch insights')
     }
 
-    const result = await response.json()
+    const result: ApiResponse<InsightData> = await response.json()
+    if (isApiError(result)) throw new Error(result.error)
     return result.data
   },
-}
-
-export function useInsights(
-  currency: CurrencyCode,
-  groupBy: GroupByOption = 'service',
-  mode: InsightMode = 'forecast',
-  tab: InsightTab = 'active',
-  year?: number,
-) {
-  return useQuery({
-    queryKey: insightKeys.byCurrency(currency, groupBy, mode, tab, year),
-    queryFn: () => insightApi.getInsights(currency, groupBy, mode, tab, year),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  })
 }
 
 export function useInsightsSuspense(
@@ -102,6 +50,6 @@ export function useInsightsSuspense(
   return useSuspenseQuery({
     queryKey: insightKeys.byCurrency(currency, groupBy, mode, tab, year),
     queryFn: () => insightApi.getInsights(currency, groupBy, mode, tab, year),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: STALE_TIME.default,
   })
 }

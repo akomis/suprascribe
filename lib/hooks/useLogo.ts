@@ -1,14 +1,26 @@
 import { useEffect, useState } from 'react'
+import { STORE_URL_HOSTNAMES } from '@/lib/config/urls'
+
+const STATIC_LOGOS: Record<string, string> = {
+  'netflix.com': '/logos/netflix.svg',
+  'spotify.com': '/logos/spotify.svg',
+  'disneyplus.com': '/logos/disneyplus.svg',
+  'tv.apple.com': '/logos/apple-tv.svg',
+  'youtube.com': '/logos/youtube.svg',
+  'amazon.com': '/logos/amazon.svg',
+  'adobe.com': '/logos/adobe.svg',
+  'microsoft.com': '/logos/microsoft.svg',
+  'dropbox.com': '/logos/dropbox.svg',
+  'github.com': '/logos/github.svg',
+  'slack.com': '/logos/slack.svg',
+  'figma.com': '/logos/figma.svg',
+  'notion.so': '/logos/notion.svg',
+  'linear.app': '/logos/linear.svg',
+  'namecheap.com': '/logos/namecheap.svg',
+}
 
 const logoCache = new Map<string, string | null>()
 const inflight = new Map<string, Promise<string | null>>()
-
-const STORE_URL_HOSTNAMES = new Set([
-  'apps.apple.com',
-  'itunes.apple.com',
-  'play.google.com',
-  'market.android.com',
-])
 
 async function fetchLogoByQuery(query: string): Promise<string | null> {
   if (logoCache.has(query)) return logoCache.get(query)!
@@ -54,10 +66,26 @@ function buildQueries(serviceName?: string, serviceUrl?: string): string[] {
   return queriesToTry
 }
 
-export async function resolveLogoUrl(
-  serviceName?: string,
-  serviceUrl?: string,
-): Promise<string | null> {
+function getStaticLogo(serviceName?: string, serviceUrl?: string): string | null {
+  if (serviceUrl) {
+    try {
+      const hostname = new URL(
+        serviceUrl.startsWith('http') ? serviceUrl : `https://${serviceUrl}`,
+      ).hostname.replace('www.', '')
+      if (STATIC_LOGOS[hostname]) return STATIC_LOGOS[hostname]
+    } catch {}
+  }
+  if (serviceName) {
+    const guess = `${serviceName.trim().split(' ')[0].toLowerCase()}.com`
+    if (STATIC_LOGOS[guess]) return STATIC_LOGOS[guess]
+  }
+  return null
+}
+
+async function resolveLogoUrl(serviceName?: string, serviceUrl?: string): Promise<string | null> {
+  const staticPath = getStaticLogo(serviceName, serviceUrl)
+  if (staticPath) return staticPath
+
   const queriesToTry = buildQueries(serviceName, serviceUrl)
   if (queriesToTry.length === 0) return null
 
@@ -70,7 +98,9 @@ export async function resolveLogoUrl(
 }
 
 export function useLogo(serviceName?: string, serviceUrl?: string): string | null {
-  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(() =>
+    getStaticLogo(serviceName, serviceUrl),
+  )
 
   useEffect(() => {
     let isMounted = true

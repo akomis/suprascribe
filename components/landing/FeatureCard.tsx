@@ -27,7 +27,11 @@ export function FeatureCard({
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
-    setMounted(true)
+    // Use setTimeout to avoid synchronous setState during effect
+    const timer = setTimeout(() => {
+      setMounted(true)
+    }, 0)
+    return () => clearTimeout(timer)
   }, [])
 
   const currentTheme = mounted ? resolvedTheme : 'dark'

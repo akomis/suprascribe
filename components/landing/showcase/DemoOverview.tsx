@@ -1,5 +1,6 @@
 'use client'
 
+import { ClientOnly } from '@/components/shared/ClientOnly'
 import DemoInsights from '@/components/demo/DemoInsights'
 import { DemoProvider } from '@/components/demo/DemoProvider'
 import { CurrencySelector } from '@/components/dashboard/settings/CurrencySelector'
@@ -10,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { GroupByOption } from '@/lib/hooks/useInsights'
+import type { GroupByOption } from '@/lib/types/subscriptions'
 import { InsightsSettingsProvider, useInsightsSettings } from '@/providers/InsightsSettingsProvider'
 import { ChevronDown } from 'lucide-react'
 
@@ -28,44 +29,50 @@ function DemoControls() {
     <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
       <div className="flex flex-col gap-1">
         <span className="text-xs text-muted-foreground">Calculate</span>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="text-xs h-7 sm:h-8 px-2 sm:px-3">
-              {mode === 'spent' ? 'Current' : 'Forecast'}
-              <ChevronDown className="h-3 w-3" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem onClick={() => setMode('spent')}>Current</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setMode('forecast')}>Forecast</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ClientOnly>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="text-xs h-7 sm:h-8 px-2 sm:px-3">
+                {mode === 'spent' ? 'Current' : 'Forecast'}
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => setMode('spent')}>Current</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setMode('forecast')}>Forecast</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </ClientOnly>
       </div>
 
       <div className="flex flex-col gap-1">
         <span className="text-xs text-muted-foreground">Group by</span>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="text-xs h-7 sm:h-8 px-2 sm:px-3">
-              {currentGroupByLabel}
-              <ChevronDown className="h-3 w-3" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            {groupByOptions
-              .filter((option) => option.value !== groupBy)
-              .map((option) => (
-                <DropdownMenuItem key={option.value} onClick={() => setGroupBy(option.value)}>
-                  {option.label}
-                </DropdownMenuItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ClientOnly>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="text-xs h-7 sm:h-8 px-2 sm:px-3">
+                {currentGroupByLabel}
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {groupByOptions
+                .filter((option) => option.value !== groupBy)
+                .map((option) => (
+                  <DropdownMenuItem key={option.value} onClick={() => setGroupBy(option.value)}>
+                    {option.label}
+                  </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </ClientOnly>
       </div>
 
       <div className="flex flex-col gap-1">
         <span className="text-xs text-muted-foreground">Currency</span>
-        <CurrencySelector triggerClassName="text-xs !h-7 sm:!h-8 px-2 sm:px-3" />
+        <ClientOnly>
+          <CurrencySelector triggerClassName="text-xs !h-7 sm:!h-8 px-2 sm:px-3" />
+        </ClientOnly>
       </div>
     </div>
   )
@@ -75,9 +82,11 @@ export default function DemoOverview() {
   return (
     <DemoProvider>
       <InsightsSettingsProvider>
-        <div className="p-3 sm:p-4 rounded-2xl border bg-background">
+        <div className="p-3 sm:p-4 rounded-2xl border bg-background overflow-hidden">
           <DemoControls />
-          <DemoInsights />
+          <div className="-mx-3 sm:-mx-4 -mb-3 sm:-mb-4">
+            <DemoInsights />
+          </div>
         </div>
       </InsightsSettingsProvider>
     </DemoProvider>

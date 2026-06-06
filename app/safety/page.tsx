@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
+import { GITHUB_URL } from '@/lib/config/urls'
 import { capitalize } from '@/lib/utils'
 import type { Metadata } from 'next'
 
@@ -51,10 +52,10 @@ export default function SafetyPage() {
             </CardHeader>
             <CardContent className="prose prose-gray max-w-none space-y-6">
               <section>
-                <h3 className="text-lg font-semibold flex items-center gap-2">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
                   <Mail className="h-5 w-5" />
                   Secure Email Access
-                </h3>
+                </h2>
                 <p className="text-muted-foreground">
                   When you choose to connect your email provider, we use industry-standard OAuth 2.0
                   authentication. This means:
@@ -72,10 +73,10 @@ export default function SafetyPage() {
               </section>
 
               <section>
-                <h3 className="text-lg font-semibold flex items-center gap-2">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
                   <Eye className="h-5 w-5" />
                   What We Look At
-                </h3>
+                </h2>
                 <p className="text-muted-foreground">
                   Our system is specifically designed to identify and analyze only
                   subscription-related emails. We scan for:
@@ -95,10 +96,10 @@ export default function SafetyPage() {
               </section>
 
               <section>
-                <h3 className="text-lg font-semibold flex items-center gap-2">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
                   <Database className="h-5 w-5" />
                   What We Store
-                </h3>
+                </h2>
                 <p className="text-muted-foreground">
                   We extract and store only the essential information needed to help you manage your
                   subscriptions:
@@ -130,7 +131,7 @@ export default function SafetyPage() {
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <div>
-                    <h4 className="font-semibold text-foreground">No Email Storage</h4>
+                    <h3 className="font-semibold text-foreground">No Email Storage</h3>
                     <p className="text-muted-foreground text-sm">
                       We never store your actual emails. We only extract subscription data and
                       immediately discard the email content.
@@ -140,7 +141,7 @@ export default function SafetyPage() {
 
                 <div className="flex items-start gap-3">
                   <div>
-                    <h4 className="font-semibold text-foreground">Encrypted Communication</h4>
+                    <h3 className="font-semibold text-foreground">Encrypted Communication</h3>
                     <p className="text-muted-foreground text-sm">
                       All data transmission between your device, our servers, and your email
                       provider is encrypted using industry-standard protocols.
@@ -150,7 +151,7 @@ export default function SafetyPage() {
 
                 <div className="flex items-start gap-3">
                   <div>
-                    <h4 className="font-semibold text-foreground">Your Data, Your Control</h4>
+                    <h3 className="font-semibold text-foreground">Your Data, Your Control</h3>
                     <p className="text-muted-foreground text-sm">
                       You own your data. You can export it, delete it, or revoke our access at any
                       time-no questions asked.
@@ -160,7 +161,7 @@ export default function SafetyPage() {
 
                 <div className="flex items-start gap-3">
                   <div>
-                    <h4 className="font-semibold text-foreground">No Third-Party Sharing</h4>
+                    <h3 className="font-semibold text-foreground">No Third-Party Sharing</h3>
                     <p className="text-muted-foreground text-sm">
                       We never sell, share, or provide your subscription data to third parties for
                       marketing, advertising, or any other purposes.
@@ -170,7 +171,7 @@ export default function SafetyPage() {
 
                 <div className="flex items-start gap-3">
                   <div>
-                    <h4 className="font-semibold text-foreground">Transparent Processing</h4>
+                    <h3 className="font-semibold text-foreground">Transparent Processing</h3>
                     <p className="text-muted-foreground text-sm">
                       Our subscription detection runs entirely on secure servers. We process data in
                       real-time and don&apos;t retain any information except the time of the run and
@@ -185,12 +186,12 @@ export default function SafetyPage() {
 
                 <div className="flex items-start gap-3">
                   <div>
-                    <h4 className="font-semibold text-foreground">Open Source</h4>
+                    <h3 className="font-semibold text-foreground">Open Source</h3>
                     <p className="text-muted-foreground text-sm">
                       Suprascribe is fully open source. You can inspect the code, verify our privacy
                       claims, and contribute at{' '}
                       <Link
-                        href="https://github.com/akomis/suprascribe"
+                        href={GITHUB_URL}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="underline underline-offset-4 hover:text-foreground transition-colors"
@@ -204,7 +205,7 @@ export default function SafetyPage() {
 
                 <div className="flex items-start gap-3">
                   <div>
-                    <h4 className="font-semibold text-foreground">Manual Alternative</h4>
+                    <h3 className="font-semibold text-foreground">Manual Alternative</h3>
                     <p className="text-muted-foreground text-sm">
                       Not comfortable with email access? You can always add subscriptions manually
                       without connecting your email at all.

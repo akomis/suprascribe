@@ -16,7 +16,7 @@ export function ConfigureApiKeyButton({
 }: ConfigureApiKeyButtonProps) {
   return (
     <Button asChild variant={variant} size={size} className={className}>
-      <Link href="/dashboard?settings=byok">Configure AI API Key</Link>
+      <Link href="/dashboard?settings=byok">Configure BYOK</Link>
     </Button>
   )
 }

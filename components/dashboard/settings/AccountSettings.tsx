@@ -22,6 +22,147 @@ import { Loader2, User } from 'lucide-react'
 import { toast } from 'sonner'
 import * as React from 'react'
 
+function PasswordChangeView({
+  newPassword,
+  confirmPassword,
+  onNewPasswordChange,
+  onConfirmPasswordChange,
+  onSave,
+  onCancel,
+  isLoading,
+}: {
+  newPassword: string
+  confirmPassword: string
+  onNewPasswordChange: (v: string) => void
+  onConfirmPasswordChange: (v: string) => void
+  onSave: () => void
+  onCancel: () => void
+  isLoading: boolean
+}) {
+  return (
+    <div className="mt-4 space-y-4">
+      <p className="text-sm text-muted-foreground">Enter your new password below.</p>
+      <div className="space-y-2">
+        <Input
+          type="password"
+          placeholder="New password"
+          value={newPassword}
+          onChange={(e) => onNewPasswordChange(e.target.value)}
+        />
+        <Input
+          type="password"
+          placeholder="Confirm new password"
+          value={confirmPassword}
+          onChange={(e) => onConfirmPasswordChange(e.target.value)}
+        />
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button variant="ghost" onClick={onCancel} disabled={isLoading}>
+          Cancel
+        </Button>
+        <Button onClick={onSave} disabled={isLoading || !newPassword || !confirmPassword}>
+          {isLoading ? 'Updating...' : 'Update password'}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function ResetDataDialog({
+  onConfirm,
+  isPending,
+  confirmText,
+  onConfirmTextChange,
+}: {
+  onConfirm: () => void
+  isPending: boolean
+  confirmText: string
+  onConfirmTextChange: (v: string) => void
+}) {
+  return (
+    <AlertDialog
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onConfirmTextChange('')
+      }}
+    >
+      <AlertDialogTrigger asChild>
+        <Button variant="outline" className="text-destructive" disabled={isPending}>
+          Reset data
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Reset account data?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action is permanent and cannot be undone. All current and past subscriptions, as
+            well as your discovery history, will be permanently deleted. Type <strong>RESET</strong>{' '}
+            to confirm.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <Input
+          value={confirmText}
+          onChange={(e) => onConfirmTextChange(e.target.value)}
+          placeholder="Type RESET to confirm"
+          className="mt-2"
+        />
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} disabled={isPending || confirmText !== 'RESET'}>
+            RESET
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
+function DeleteAccountDialog({
+  onConfirm,
+  isPending,
+  confirmText,
+  onConfirmTextChange,
+}: {
+  onConfirm: () => void
+  isPending: boolean
+  confirmText: string
+  onConfirmTextChange: (v: string) => void
+}) {
+  return (
+    <AlertDialog
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onConfirmTextChange('')
+      }}
+    >
+      <AlertDialogTrigger asChild>
+        <Button variant="outline" className="text-destructive" disabled={isPending}>
+          Delete account
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete account?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action is permanent and will remove your account and all associated data. Type{' '}
+            <strong>DELETE</strong> to confirm.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <Input
+          value={confirmText}
+          onChange={(e) => onConfirmTextChange(e.target.value)}
+          placeholder="Type DELETE to confirm"
+          className="mt-2"
+        />
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} disabled={isPending || confirmText !== 'DELETE'}>
+            DELETE
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
 type AccountSettingsProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -29,12 +170,7 @@ type AccountSettingsProps = {
   showPasswordChange?: boolean
 }
 
-export function AccountSettings({
-  open,
-  onOpenChange,
-  email,
-  showPasswordChange,
-}: AccountSettingsProps) {
+function AccountSettings({ open, onOpenChange, email, showPasswordChange }: AccountSettingsProps) {
   const [currentEmail, setCurrentEmail] = React.useState(email ?? '')
   const [isEditingEmail, setIsEditingEmail] = React.useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = React.useState('')
@@ -51,12 +187,20 @@ export function AccountSettings({
   const { data: runs, isLoading: isLoadingRuns } = useDiscoveryRuns()
 
   React.useEffect(() => {
-    setCurrentEmail(email ?? '')
+    // Use setTimeout to avoid synchronous setState during effect
+    const timer = setTimeout(() => {
+      setCurrentEmail(email ?? '')
+    }, 0)
+    return () => clearTimeout(timer)
   }, [email])
 
   React.useEffect(() => {
     if (showPasswordChange) {
-      setView('passwordChange')
+      // Use setTimeout to avoid synchronous setState during effect
+      const timer = setTimeout(() => {
+        setView('passwordChange')
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [showPasswordChange])
 
@@ -93,7 +237,7 @@ export function AccountSettings({
     const supabase = createClient()
     const next = encodeURIComponent('/dashboard?settings=password')
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=${next}`,
+      redirectTo: `${window.location.origin}/auth/confirm?next=${next}`,
     })
     setResetLoading(false)
     if (error) {
@@ -134,34 +278,15 @@ export function AccountSettings({
         </DialogHeader>
 
         {view === 'passwordChange' ? (
-          <div className="mt-4 space-y-4">
-            <p className="text-sm text-muted-foreground">Enter your new password below.</p>
-            <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder="New password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-              <Input
-                type="password"
-                placeholder="Confirm new password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="ghost" onClick={() => setView('default')} disabled={passwordLoading}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleChangePassword}
-                disabled={passwordLoading || !newPassword || !confirmPassword}
-              >
-                {passwordLoading ? 'Updating...' : 'Update password'}
-              </Button>
-            </div>
-          </div>
+          <PasswordChangeView
+            newPassword={newPassword}
+            confirmPassword={confirmPassword}
+            onNewPasswordChange={setNewPassword}
+            onConfirmPasswordChange={setConfirmPassword}
+            onSave={handleChangePassword}
+            onCancel={() => setView('default')}
+            isLoading={passwordLoading}
+          />
         ) : (
           <div className="mt-4 space-y-6">
             <div className="space-y-2">
@@ -230,90 +355,18 @@ export function AccountSettings({
               </Button>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <AlertDialog
-                  onOpenChange={(isOpen) => {
-                    if (!isOpen) setResetConfirmText('')
-                  }}
-                >
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="text-destructive"
-                      disabled={resetAccountData.isPending}
-                    >
-                      Reset data
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Reset account data?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action is permanent and cannot be undone. All current and past
-                        subscriptions, as well as your discovery history, will be permanently
-                        deleted. Type <strong>RESET</strong> to confirm.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <Input
-                      value={resetConfirmText}
-                      onChange={(e) => setResetConfirmText(e.target.value)}
-                      placeholder="Type RESET to confirm"
-                      className="mt-2"
-                    />
-                    <AlertDialogFooter>
-                      <AlertDialogCancel disabled={resetAccountData.isPending}>
-                        Cancel
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleResetAccountData}
-                        disabled={resetAccountData.isPending || resetConfirmText !== 'RESET'}
-                      >
-                        RESET
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-
-                <AlertDialog
-                  onOpenChange={(isOpen) => {
-                    if (!isOpen) setDeleteConfirmText('')
-                  }}
-                >
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="text-destructive"
-                      disabled={deleteAccount.isPending}
-                    >
-                      Delete account
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete account?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action is permanent and will remove your account and all associated
-                        data. Type <strong>DELETE</strong> to confirm.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <Input
-                      value={deleteConfirmText}
-                      onChange={(e) => setDeleteConfirmText(e.target.value)}
-                      placeholder="Type DELETE to confirm"
-                      className="mt-2"
-                    />
-                    <AlertDialogFooter>
-                      <AlertDialogCancel disabled={deleteAccount.isPending}>
-                        Cancel
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDeleteAccount}
-                        disabled={deleteAccount.isPending || deleteConfirmText !== 'DELETE'}
-                      >
-                        DELETE
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <ResetDataDialog
+                  onConfirm={handleResetAccountData}
+                  isPending={resetAccountData.isPending}
+                  confirmText={resetConfirmText}
+                  onConfirmTextChange={setResetConfirmText}
+                />
+                <DeleteAccountDialog
+                  onConfirm={handleDeleteAccount}
+                  isPending={deleteAccount.isPending}
+                  confirmText={deleteConfirmText}
+                  onConfirmTextChange={setDeleteConfirmText}
+                />
               </div>
             </div>
           </div>

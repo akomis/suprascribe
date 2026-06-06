@@ -1,7 +1,7 @@
 import { ContactForm } from '@/components/dashboard/ContactForm'
 import { SuprascribeLogo } from '@/components/landing/SuprascribeLogo'
 
-export default function ContactPage() {
+export default function ContactPage({ searchParams }: { searchParams: { category?: string } }) {
   return (
     <div className="flex min-h-screen flex-col bg-neutral-100 dark:bg-neutral-900/80">
       <div className="flex gap-2 min-h-screen min-w-[350px] max-w-[700px] w-[90vw] sm:w-[600px] md:w-[900px] lg:w-[1000px] flex-col items-center justify-start mx-auto py-4 md:py-10 px-2 md:px-4 fade-on-mount">
@@ -13,6 +13,7 @@ export default function ContactPage() {
           <ContactForm
             title="Contact Support"
             description="Have a question or need help? Send us a message and we'll get back to you soon."
+            initialCategory={searchParams.category}
           />
         </div>
       </div>

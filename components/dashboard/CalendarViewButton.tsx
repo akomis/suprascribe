@@ -7,14 +7,19 @@ import { useFeatureAccess } from '@/lib/hooks/useFeatureAccess'
 import { Feature } from '@/lib/config/features'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
-import { type MergedSubscriptionResponse } from '@/app/api/subscriptions/route'
+import { type MergedSubscriptionResponse } from '@/lib/types/subscriptions'
 
 interface CalendarViewButtonProps {
   subscriptions: MergedSubscriptionResponse[]
   isLoading?: boolean
+  onSubscriptionClick?: (subscriptionId: string) => void
 }
 
-export function CalendarViewButton({ subscriptions, isLoading = false }: CalendarViewButtonProps) {
+export function CalendarViewButton({
+  subscriptions,
+  isLoading = false,
+  onSubscriptionClick,
+}: CalendarViewButtonProps) {
   const [isOpen, setIsOpen] = React.useState(false)
   const { hasAccess, isLoading: isCheckingAccess } = useFeatureAccess(Feature.CALENDAR_VIEW)
 
@@ -27,6 +32,14 @@ export function CalendarViewButton({ subscriptions, isLoading = false }: Calenda
     }
     setIsOpen(true)
   }
+
+  const handleSubscriptionClick = React.useCallback(
+    (subscriptionId: string) => {
+      setIsOpen(false)
+      onSubscriptionClick?.(subscriptionId)
+    },
+    [onSubscriptionClick],
+  )
 
   if (isCheckingAccess) {
     return null
@@ -48,7 +61,12 @@ export function CalendarViewButton({ subscriptions, isLoading = false }: Calenda
       </button>
 
       {hasAccess && !isLoading && subscriptions && (
-        <CalendarView open={isOpen} onOpenChange={setIsOpen} subscriptions={subscriptions} />
+        <CalendarView
+          open={isOpen}
+          onOpenChange={setIsOpen}
+          subscriptions={subscriptions}
+          onSubscriptionClick={handleSubscriptionClick}
+        />
       )}
     </>
   )

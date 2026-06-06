@@ -15,25 +15,31 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-type CategoryType = 'feature_request' | 'bug_report' | 'question' | 'other'
+type CategoryType = 'feature_request' | 'bug_report' | 'question' | 'partnership' | 'other'
 
 const CATEGORIES: Record<CategoryType, string> = {
   feature_request: 'Feature Request',
   bug_report: 'Bug Report',
   question: 'Question',
+  partnership: 'Partnership',
   other: 'Other',
 }
 
 interface ContactFormProps {
   title: string
   description: string
+  initialCategory?: string
 }
 
-export function ContactForm({ title, description }: ContactFormProps) {
+export function ContactForm({ title, description, initialCategory }: ContactFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const validCategories = Object.keys(CATEGORIES) as CategoryType[]
+  const safeInitial = validCategories.includes(initialCategory as CategoryType)
+    ? (initialCategory as CategoryType)
+    : 'question'
   const [formData, setFormData] = useState({
-    category: 'question' as CategoryType,
+    category: safeInitial,
     subject: '',
     message: '',
   })

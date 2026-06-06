@@ -2,25 +2,17 @@
 
 import { DiscoveryDialog } from '@/components/dashboard/discovery/DiscoveryDialog'
 import ImapDiscoveryDialog from '@/components/dashboard/discovery/ImapDiscoveryDialog'
-import { EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
 import { useImapDiscovery } from '@/lib/hooks/discovery/useImapDiscovery'
-import { useBYOKSettings } from '@/lib/hooks/useBYOKSettings'
-import { PROVIDER_NAMES, type LLMProvider } from '@/lib/services/ai-provider'
-import { useRef, useState } from 'react'
+import { useDiscoveryAIProvider } from '@/lib/hooks/useDiscoveryAIProvider'
+import { useState } from 'react'
 
 export function ImapDiscoveryHandler() {
   const [showCredentialsDialog, setShowCredentialsDialog] = useState(false)
-  const lastSubmittedCredentials = useRef<{
-    server: string
-    port: string
-    email: string
-    password: string
-    useTls: boolean
-  } | null>(null)
 
   const {
     isDiscovering,
     discoveredSubscriptions,
+    emailCount,
     error,
     warning,
     clearDiscovery,
@@ -28,11 +20,7 @@ export function ImapDiscoveryHandler() {
     startDiscovery,
   } = useImapDiscovery()
 
-  const { keys, activeKeyId, isLoading: isLoadingAI } = useBYOKSettings()
-  const activeKey = keys.find((k) => k.id === activeKeyId)
-
-  const aiProvider = activeKey ? PROVIDER_NAMES[activeKey.provider as LLMProvider] : 'OpenRouter'
-  const aiModel = activeKey ? activeKey.model : EMAIL_DISCOVERY_CONFIG.analysisModel.modelName
+  const { aiProvider, aiModel, isLoadingAI, isByok } = useDiscoveryAIProvider()
 
   const handleImapSubmit = async (data: {
     server: string
@@ -41,7 +29,6 @@ export function ImapDiscoveryHandler() {
     password: string
     useTls: boolean
   }) => {
-    lastSubmittedCredentials.current = data
     setShowCredentialsDialog(false)
     await startDiscovery({
       email: data.email,
@@ -52,21 +39,15 @@ export function ImapDiscoveryHandler() {
     })
   }
 
-  const openCredentialsDialog = () => {
-    setShowCredentialsDialog(true)
-  }
-
   return (
     <>
-      {/* Trigger component - can be called from parent */}
       <span
-        onClick={openCredentialsDialog}
+        onClick={() => setShowCredentialsDialog(true)}
         className="text-xs sm:text-sm text-muted-foreground hover:text-foreground hover:cursor-pointer underline"
       >
-        Using a different provider? Try fetching emails with IMAP
+        Using a different provider? Try IMAP
       </span>
 
-      {/* IMAP Credentials Dialog */}
       <ImapDiscoveryDialog
         open={showCredentialsDialog}
         onOpenChange={setShowCredentialsDialog}
@@ -74,10 +55,10 @@ export function ImapDiscoveryHandler() {
         isLoading={isDiscovering}
       />
 
-      {/* Shared Discovery Dialog */}
       <DiscoveryDialog
         isDiscovering={isDiscovering}
         discoveredSubscriptions={discoveredSubscriptions}
+        emailCount={emailCount}
         error={error}
         warning={warning}
         clearDiscovery={clearDiscovery}
@@ -86,7 +67,7 @@ export function ImapDiscoveryHandler() {
         aiProvider={aiProvider}
         aiModel={aiModel}
         isLoadingAI={isLoadingAI}
-        isByok={activeKeyId !== null}
+        isByok={isByok}
       />
     </>
   )

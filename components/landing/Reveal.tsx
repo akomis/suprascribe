@@ -44,7 +44,7 @@ export function Reveal({
     return () => observer.disconnect()
   }, [delayMs])
 
-  const base = 'transition-all duration-700 ease-out'
+  const base = 'transition-[opacity,transform] duration-700 ease-out'
 
   const initialByAnimation: Record<RevealAnimation, string> = preserveInteractivity
     ? {

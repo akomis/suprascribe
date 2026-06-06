@@ -16,129 +16,99 @@ interface SubscriptionWithService {
   } | null
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+}
+
+async function sendReminderForUser(
+  supabase: ReturnType<typeof createClient>,
+  resend: InstanceType<typeof Resend>,
+  userSettings: { user_id: string; reminder_days_before: number },
+  today: Date,
+): Promise<{ sent: boolean; error?: string }> {
+  const { user_id, reminder_days_before } = userSettings
+  const targetDate = new Date(today)
+  targetDate.setDate(targetDate.getDate() + reminder_days_before)
+  const targetDateStr = targetDate.toISOString().split('T')[0]
+
+  const { data: subscriptions, error: subsError } = await supabase
+    .from('USER_SUBSCRIPTIONS')
+    .select('id, price, currency, end_date, subscription_service:SUBSCRIPTION_SERVICES(name)')
+    .eq('user_id', user_id)
+    .eq('auto_renew', true)
+    .eq('end_date', targetDateStr)
+
+  if (subsError) return { sent: false, error: `User ${user_id}: ${subsError.message}` }
+  if (!subscriptions?.length) return { sent: false }
+
+  const { data: userData, error: userError } = await supabase.auth.admin.getUserById(user_id)
+  if (userError || !userData?.user?.email)
+    return { sent: false, error: `User ${user_id}: Could not get email` }
+
+  const subs = subscriptions as SubscriptionWithService[]
+  const plural = (n: number, w: string) => `${n} ${w}${n > 1 ? 's' : ''}`
+  const subject = `Renewal Reminder: ${plural(subs.length, 'subscription')} renewing in ${plural(reminder_days_before, 'day')}`
+
+  try {
+    await resend.emails.send({
+      from: 'Suprascribe <reminders@suprascribe.com>',
+      to: [userData.user.email],
+      subject,
+      html: buildReminderEmail(subs, reminder_days_before, targetDateStr),
+      text: buildReminderEmailText(subs, reminder_days_before, targetDateStr),
+    })
+    return { sent: true }
+  } catch (e: unknown) {
+    return {
+      sent: false,
+      error: `User ${user_id}: Failed to send email - ${e instanceof Error ? e.message : 'Unknown error'}`,
+    }
   }
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
+    if (!authHeader?.startsWith('Bearer ')) return jsonResponse({ error: 'Unauthorized' }, 401)
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const resendApiKey = Deno.env.get('RESEND_API_KEY')!
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
-    const resend = new Resend(resendApiKey)
-
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    )
+    const resend = new Resend(Deno.env.get('RESEND_API_KEY')!)
     const today = new Date()
 
     const { data: usersWithReminders, error: usersError } = await supabase
       .from('USER_SETTINGS')
-      .select('user_id, reminder_days_before')
+      .select('user_id, reminder_days_before, USER_TIERS!inner(tier)')
       .eq('email_reminders_enabled', true)
-      .eq('tier', 'PRO')
+      .eq('USER_TIERS.tier', 'PRO')
 
-    if (usersError) {
-      throw new Error(`Failed to fetch users: ${usersError.message}`)
-    }
-
-    if (!usersWithReminders || usersWithReminders.length === 0) {
-      return new Response(JSON.stringify({ message: 'No users with reminders enabled', sent: 0 }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
+    if (usersError) throw new Error(`Failed to fetch users: ${usersError.message}`)
+    if (!usersWithReminders?.length)
+      return jsonResponse({ message: 'No users with reminders enabled', sent: 0 })
 
     let emailsSent = 0
     const errors: string[] = []
 
     for (const userSettings of usersWithReminders) {
-      const { user_id, reminder_days_before } = userSettings
-
-      const targetDate = new Date(today)
-      targetDate.setDate(targetDate.getDate() + reminder_days_before)
-      const targetDateStr = targetDate.toISOString().split('T')[0]
-
-      const { data: subscriptions, error: subsError } = await supabase
-        .from('USER_SUBSCRIPTIONS')
-        .select(
-          `
-          id,
-          price,
-          currency,
-          end_date,
-          subscription_service:SUBSCRIPTION_SERVICES(name)
-        `,
-        )
-        .eq('user_id', user_id)
-        .eq('auto_renew', true)
-        .eq('end_date', targetDateStr)
-
-      if (subsError) {
-        errors.push(`User ${user_id}: ${subsError.message}`)
-        continue
-      }
-
-      if (!subscriptions || subscriptions.length === 0) {
-        continue
-      }
-
-      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(user_id)
-
-      if (userError || !userData?.user?.email) {
-        errors.push(`User ${user_id}: Could not get email`)
-        continue
-      }
-
-      const userEmail = userData.user.email
-
-      try {
-        const emailHtml = buildReminderEmail(
-          subscriptions as SubscriptionWithService[],
-          reminder_days_before,
-          targetDateStr,
-        )
-        const emailText = buildReminderEmailText(
-          subscriptions as SubscriptionWithService[],
-          reminder_days_before,
-          targetDateStr,
-        )
-
-        await resend.emails.send({
-          from: 'Suprascribe <reminders@suprascribe.com>',
-          to: [userEmail],
-          subject: `Renewal Reminder: ${subscriptions.length} subscription${subscriptions.length > 1 ? 's' : ''} renewing in ${reminder_days_before} day${reminder_days_before > 1 ? 's' : ''}`,
-          html: emailHtml,
-          text: emailText,
-        })
-
-        emailsSent++
-      } catch (emailError: unknown) {
-        const errMsg = emailError instanceof Error ? emailError.message : 'Unknown error'
-        errors.push(`User ${user_id}: Failed to send email - ${errMsg}`)
-      }
+      const result = await sendReminderForUser(supabase, resend, userSettings, today)
+      if (result.sent) emailsSent++
+      if (result.error) errors.push(result.error)
     }
 
-    return new Response(
-      JSON.stringify({
-        message: 'Renewal reminders processed',
-        sent: emailsSent,
-        errors: errors.length > 0 ? errors : undefined,
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    )
-  } catch (error: unknown) {
-    const errMsg = error instanceof Error ? error.message : 'Unknown error'
-    return new Response(JSON.stringify({ error: errMsg }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    return jsonResponse({
+      message: 'Renewal reminders processed',
+      sent: emailsSent,
+      errors: errors.length > 0 ? errors : undefined,
     })
+  } catch (error: unknown) {
+    return jsonResponse({ error: error instanceof Error ? error.message : 'Unknown error' }, 500)
   }
 })
 

@@ -6,11 +6,19 @@ export async function GET(request: NextRequest) {
     const requestOrigin = request.headers.get('origin') || request.headers.get('referer')
 
     if (allowedOrigin && requestOrigin) {
-      const allowedUrl = new URL(allowedOrigin)
-      const requestUrl = new URL(requestOrigin)
+      try {
+        const allowedUrl = new URL(allowedOrigin)
+        const requestUrl = new URL(requestOrigin)
+        const isLocalhost =
+          requestUrl.hostname === 'localhost' || requestUrl.hostname === '127.0.0.1'
+        const allowedHostname = allowedUrl.hostname.replace(/^www\./, '')
+        const requestHostname = requestUrl.hostname.replace(/^www\./, '')
 
-      if (requestUrl.origin !== allowedUrl.origin) {
-        return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+        if (!isLocalhost && requestHostname !== allowedHostname) {
+          return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+        }
+      } catch {
+        // malformed URL - allow through, downstream auth handles it
       }
     }
     const searchParams = request.nextUrl.searchParams

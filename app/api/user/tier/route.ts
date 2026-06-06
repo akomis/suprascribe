@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
@@ -12,8 +12,11 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data, error } = await supabase
-      .from('USER_SETTINGS')
+    // Use service role for USER_TIERS access - only admin should manage this table
+    const supabaseAdmin = createServiceClient()
+
+    const { data, error } = await supabaseAdmin
+      .from('USER_TIERS')
       .select('tier')
       .eq('user_id', user.id)
       .maybeSingle()
@@ -22,21 +25,9 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    if (data) {
-      return NextResponse.json({ tier: data.tier })
-    }
-
-    const { data: newSettings, error: createError } = await supabase
-      .from('USER_SETTINGS')
-      .insert({ user_id: user.id })
-      .select('tier')
-      .single()
-
-    if (createError) {
-      return NextResponse.json({ error: createError.message }, { status: 500 })
-    }
-
-    return NextResponse.json({ tier: newSettings.tier })
+    // Return tier from database, or BASIC if no record exists
+    // (New users should have a USER_TIERS row created by database trigger on signup)
+    return NextResponse.json({ tier: data?.tier ?? 'BASIC' })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Unexpected error' }, { status: 500 })
   }

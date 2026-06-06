@@ -21,6 +21,13 @@ type InsightCardProps = {
   subscriptions?: SubscriptionItem[]
 }
 
+// Hook to get a stable timestamp that only updates when the component mounts
+function useStableTimestamp() {
+  // Initialize with Date.now() directly - this runs once during component creation
+  const [timestamp] = React.useState(() => Date.now())
+  return timestamp
+}
+
 export default function InsightCard({
   title,
   label,
@@ -29,6 +36,8 @@ export default function InsightCard({
   serviceUrl,
   subscriptions,
 }: InsightCardProps) {
+  const now = useStableTimestamp()
+
   return (
     <Card className="py-2 h-fit gap-0 bg-neutral-50 dark:bg-neutral-950">
       {(label || value || (subscriptions && subscriptions.length > 0)) && (
@@ -41,11 +50,10 @@ export default function InsightCard({
             {subscriptions && subscriptions.length > 0 ? (
               <div className="flex flex-wrap gap-1 sm:gap-2 items-center shrink-0">
                 {subscriptions.map((sub, index) => {
-                  const daysUntilRenewal = sub.endDate
-                    ? Math.ceil(
-                        (new Date(sub.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-                      )
-                    : undefined
+                  const daysUntilRenewal =
+                    sub.endDate && now !== null
+                      ? Math.ceil((new Date(sub.endDate).getTime() - now) / (1000 * 60 * 60 * 24))
+                      : undefined
                   return (
                     <SubscriptionBadge
                       key={`${sub.name}-${index}`}

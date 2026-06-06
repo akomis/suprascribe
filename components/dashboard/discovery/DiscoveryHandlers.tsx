@@ -1,13 +1,12 @@
 'use client'
 
-import { GoogleDiscoveryHandler } from '@/components/dashboard/discovery/GoogleDiscoveryHandler'
-import { MicrosoftDiscoveryHandler } from '@/components/dashboard/discovery/MicrosoftDiscoveryHandler'
+import { OAuthDiscoveryHandler } from '@/components/dashboard/discovery/OAuthDiscoveryHandler'
 
 export function DiscoveryHandlers() {
   return (
     <>
-      <GoogleDiscoveryHandler />
-      <MicrosoftDiscoveryHandler />
+      <OAuthDiscoveryHandler provider="google" />
+      <OAuthDiscoveryHandler provider="microsoft" />
     </>
   )
 }

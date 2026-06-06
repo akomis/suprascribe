@@ -20,7 +20,10 @@ export function CurrencySelector({ triggerClassName }: CurrencySelectorProps) {
 
   return (
     <Select value={currency} onValueChange={(value) => setCurrency(value as CurrencyCode)}>
-      <SelectTrigger className={cn('w-fit hover:cursor-pointer', triggerClassName)}>
+      <SelectTrigger
+        aria-label="Select currency"
+        className={cn('w-fit hover:cursor-pointer', triggerClassName)}
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

@@ -1,6 +1,6 @@
 'use client'
 
-import { GroupByOption, InsightMode } from '@/lib/hooks/useInsights'
+import type { GroupByOption, InsightMode } from '@/lib/types/subscriptions'
 import * as React from 'react'
 
 interface InsightsSettingsContextValue {

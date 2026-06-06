@@ -2,6 +2,7 @@
 
 import { DiscoveredSubscriptionGroupCard } from '@/components/dashboard/discovery/DiscoveredSubscriptionGroupCard'
 import { DiscoveryEditDialog } from '@/components/dashboard/discovery/DiscoveryEditDialog'
+import { SupportButton } from '@/components/shared/SupportButton'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,9 +38,380 @@ import { ChevronDown } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
+type GroupedItem = { sub: DiscoveredSubscription; index: number }
+type SubscriptionGroup = { serviceName: string; serviceUrl?: string; items: GroupedItem[] }
+
+function getGroupedItems(items: GroupedItem[]): SubscriptionGroup[] {
+  const groups = new Map<string, GroupedItem[]>()
+  items.forEach((item) => {
+    if (!groups.has(item.sub.service_name)) groups.set(item.sub.service_name, [])
+    groups.get(item.sub.service_name)!.push(item)
+  })
+  groups.forEach((g) =>
+    g.sort((a, b) => {
+      const diff = new Date(b.sub.end_date).getTime() - new Date(a.sub.end_date).getTime()
+      return diff !== 0
+        ? diff
+        : new Date(b.sub.start_date).getTime() - new Date(a.sub.start_date).getTime()
+    }),
+  )
+  return Array.from(groups.entries())
+    .sort(
+      ([, a], [, b]) =>
+        new Date(b[0].sub.end_date).getTime() - new Date(a[0].sub.end_date).getTime(),
+    )
+    .map(([serviceName, items]) => ({ serviceName, serviceUrl: items[0]?.sub.service_url, items }))
+}
+
+function DiscoveryGroupList({
+  groups,
+  selectedSubscriptions,
+  isDuplicateGroup,
+  isSaving,
+  onToggle,
+  onEdit,
+}: {
+  groups: SubscriptionGroup[]
+  selectedSubscriptions: Set<number>
+  isDuplicateGroup: boolean
+  isSaving: boolean
+  onToggle: (index: number, checked: boolean) => void
+  onEdit: (index: number) => void
+}) {
+  return (
+    <>
+      {groups.map((group) => (
+        <DiscoveredSubscriptionGroupCard
+          key={`${isDuplicateGroup ? 'dup' : 'sub'}-${group.serviceName}`}
+          serviceName={group.serviceName}
+          serviceUrl={group.serviceUrl}
+          items={group.items.map(({ sub, index }) => ({
+            subscription: sub,
+            index,
+            isSelected: isDuplicateGroup ? false : selectedSubscriptions.has(index),
+            isDuplicate: isDuplicateGroup,
+          }))}
+          onToggle={onToggle}
+          onEdit={onEdit}
+          disabled={isSaving}
+        />
+      ))}
+    </>
+  )
+}
+
+function DiscoveringView({
+  providerName,
+  isByok,
+  isLoadingAI,
+  aiProvider,
+  aiModel,
+  elapsedSeconds,
+}: {
+  providerName: string
+  isByok?: boolean
+  isLoadingAI?: boolean
+  aiProvider?: string
+  aiModel?: string
+  elapsedSeconds: number
+}) {
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Discovering Your Subscriptions</DialogTitle>
+        <DialogDescription>
+          Using {providerName} inbox to find subscriptions
+          {isByok &&
+            (isLoadingAI ? (
+              <span className="inline-flex items-center gap-1 ml-1">
+                <Spinner className="size-3" />
+              </span>
+            ) : (
+              aiProvider &&
+              aiModel && (
+                <>
+                  {' '}
+                  with {aiProvider}&apos;s {aiModel}
+                </>
+              )
+            ))}
+        </DialogDescription>
+      </DialogHeader>
+      <div className="flex items-center justify-between py-8 px-4">
+        <div className="flex items-center gap-2">
+          <Spinner className="size-10 text-primary shrink-0" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Analyzing...</p>
+            <p className="text-xs text-muted-foreground">This may take a few moments</p>
+          </div>
+        </div>
+        <div className="text-2xl font-mono text-muted-foreground tabular-nums">
+          {elapsedSeconds}
+          <span className="text-sm">s</span>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function ErrorView({
+  error,
+  onClose,
+  onRetry,
+  isRetrying,
+}: {
+  error: string
+  onClose: () => void
+  onRetry: () => void
+  isRetrying: boolean
+}) {
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Discovery Failed</DialogTitle>
+        <DialogDescription>
+          There was a technical error discovering your subscriptions.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="py-4">
+        <div className="rounded-md bg-destructive/10 p-4 text-sm text-destructive">{error}</div>
+      </div>
+      <DialogFooter>
+        <SupportButton category="bug_report" />
+        <Button variant="outline" onClick={onClose}>
+          Close
+        </Button>
+        <Button onClick={onRetry} disabled={isRetrying}>
+          {isRetrying ? (
+            <>
+              <Spinner />
+              Retrying...
+            </>
+          ) : (
+            'Retry'
+          )}
+        </Button>
+      </DialogFooter>
+    </>
+  )
+}
+
+function WarningView({ warning, onClose }: { warning: string; onClose: () => void }) {
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Discovery Limit Reached</DialogTitle>
+        <DialogDescription>This email address was recently discovered.</DialogDescription>
+      </DialogHeader>
+      <div className="rounded-md bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-400">
+        {warning}
+        <p className="text-sm text-muted-foreground">
+          <a
+            href="/limits"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-foreground"
+          >
+            Learn more about discovery limits
+          </a>
+        </p>
+      </div>
+      <DialogFooter>
+        <SupportButton />
+        <Button onClick={onClose}>Close</Button>
+      </DialogFooter>
+    </>
+  )
+}
+
+function NoResultsView({
+  providerName,
+  emailCount,
+  elapsedTime,
+  onClose,
+}: {
+  providerName: string
+  emailCount?: number | null
+  elapsedTime: number | null
+  onClose: () => void
+}) {
+  const suffix =
+    emailCount != null
+      ? ` (scanned ${emailCount} email${emailCount !== 1 ? 's' : ''})`
+      : elapsedTime !== null
+        ? ` (searched for ${elapsedTime}s)`
+        : ''
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>No Subscriptions Found</DialogTitle>
+        <DialogDescription>
+          We couldn&apos;t find any subscription emails in your {providerName} inbox{suffix}.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="py-4">
+        <p className="text-sm text-muted-foreground text-center">
+          You can continue adding subscriptions manually or try again later.
+        </p>
+      </div>
+      <DialogFooter>
+        <Button onClick={onClose}>Continue</Button>
+      </DialogFooter>
+    </>
+  )
+}
+
+function ReviewSubscriptionsView({
+  discoveredSubscriptions,
+  selectedSubscriptions,
+  isSaving,
+  showDuplicates,
+  onToggleShowDuplicates,
+  checkIfDuplicate,
+  onToggle,
+  onEdit,
+  onCancel,
+  onSave,
+}: {
+  discoveredSubscriptions: DiscoveredSubscription[]
+  selectedSubscriptions: Set<number>
+  isSaving: boolean
+  showDuplicates: boolean
+  onToggleShowDuplicates: () => void
+  checkIfDuplicate: (index: number) => boolean
+  onToggle: (index: number, checked: boolean) => void
+  onEdit: (index: number) => void
+  onCancel: () => void
+  onSave: () => void
+}) {
+  const allSubs = discoveredSubscriptions.map((sub, index) => ({ sub, index }))
+  const nonDuplicates = allSubs.filter(({ index }) => !checkIfDuplicate(index))
+  const duplicates = allSubs.filter(({ index }) => checkIfDuplicate(index))
+
+  const activeGroups = getGroupedItems(
+    nonDuplicates.filter(({ sub }) => isSubscriptionActive(sub.start_date, sub.end_date)),
+  )
+  const pastGroups = getGroupedItems(
+    nonDuplicates.filter(({ sub }) => !isSubscriptionActive(sub.start_date, sub.end_date)),
+  )
+  const duplicateGroups = getGroupedItems(duplicates)
+
+  return (
+    <div className="animate-in fade-in duration-300 flex flex-col flex-1 overflow-hidden">
+      <DialogHeader>
+        <DialogTitle>Review Subscriptions</DialogTitle>
+        <DialogDescription asChild>
+          <div className="space-y-2 my-4">
+            <p className="text-sm text-muted-foreground">
+              These subscriptions were identified by AI and may contain mistakes. Use the edit
+              button to correct any details before importing and the X to mark false positives to
+              not be imported to Suprascribe.
+            </p>
+          </div>
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="flex flex-col gap-2 py-2 overflow-y-auto flex-1 pr-2">
+        <div className="flex flex-col gap-2 mb-4">
+          {activeGroups.length > 0 && (
+            <Badge variant="outline" className="text-xs font-medium">
+              Active
+            </Badge>
+          )}
+          <DiscoveryGroupList
+            groups={activeGroups}
+            selectedSubscriptions={selectedSubscriptions}
+            isDuplicateGroup={false}
+            isSaving={isSaving}
+            onToggle={onToggle}
+            onEdit={onEdit}
+          />
+        </div>
+        {pastGroups.length > 0 && (
+          <Badge variant="outline" className="text-xs font-medium">
+            Past
+          </Badge>
+        )}
+        <DiscoveryGroupList
+          groups={pastGroups}
+          selectedSubscriptions={selectedSubscriptions}
+          isDuplicateGroup={false}
+          isSaving={isSaving}
+          onToggle={onToggle}
+          onEdit={onEdit}
+        />
+
+        {duplicateGroups.length > 0 && (
+          <>
+            <Separator orientation="horizontal" />
+            <button
+              type="button"
+              onClick={onToggleShowDuplicates}
+              className="flex items-center justify-between w-full py-2 px-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span>Duplicate subscriptions ({duplicates.length})</span>
+              <ChevronDown
+                className={cn('size-4 transition-transform', showDuplicates && 'rotate-180')}
+              />
+            </button>
+            {showDuplicates && (
+              <DiscoveryGroupList
+                groups={duplicateGroups}
+                selectedSubscriptions={selectedSubscriptions}
+                isDuplicateGroup={true}
+                isSaving={isSaving}
+                onToggle={onToggle}
+                onEdit={onEdit}
+              />
+            )}
+          </>
+        )}
+      </div>
+
+      <DialogFooter>
+        <Button variant="outline" onClick={onCancel} disabled={isSaving}>
+          Cancel
+        </Button>
+        <Button onClick={onSave} disabled={isSaving}>
+          {isSaving ? <Spinner /> : 'Done'}
+        </Button>
+      </DialogFooter>
+    </div>
+  )
+}
+
+function ExitWarningDialog({
+  open,
+  onKeepGoing,
+  onClose,
+}: {
+  open: boolean
+  onKeepGoing: () => void
+  onClose: () => void
+}) {
+  return (
+    <AlertDialog open={open} onOpenChange={onKeepGoing}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Cancel Discovery?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Closing now will discard your progress. You&apos;ll need to reinitialize the discovery
+            process to try again.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onKeepGoing}>Keep Going</AlertDialogCancel>
+          <AlertDialogAction onClick={onClose}>Close Anyway</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
 interface DiscoveryDialogProps {
   isDiscovering: boolean
   discoveredSubscriptions: DiscoveredSubscription[]
+  emailCount?: number | null
   error: string | null
   warning: string | null
   clearDiscovery: () => void
@@ -54,6 +426,7 @@ interface DiscoveryDialogProps {
 export function DiscoveryDialog({
   isDiscovering,
   discoveredSubscriptions,
+  emailCount,
   error,
   warning,
   clearDiscovery,
@@ -77,7 +450,7 @@ export function DiscoveryDialog({
   const [showDuplicates, setShowDuplicates] = useState(false)
   const [showExitWarning, setShowExitWarning] = useState(false)
   const hasStartedDiscovery = useRef(false)
-  const finalElapsedTime = useRef<number | null>(null)
+  const [finalElapsedTime, setFinalElapsedTime] = useState<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
 
   const checkIfDuplicate = (discoveredIndex: number): boolean => {
@@ -106,9 +479,12 @@ export function DiscoveryDialog({
 
   useEffect(() => {
     if (isDiscovering) {
-      setElapsedSeconds(0)
-      finalElapsedTime.current = null
-      startTimeRef.current = Date.now()
+      // Use setTimeout to avoid synchronous setState during effect
+      const initTimer = setTimeout(() => {
+        setElapsedSeconds(0)
+        setFinalElapsedTime(null)
+        startTimeRef.current = Date.now()
+      }, 0)
 
       const interval = setInterval(() => {
         if (startTimeRef.current) {
@@ -117,13 +493,14 @@ export function DiscoveryDialog({
       }, 1000)
 
       return () => {
+        clearTimeout(initTimer)
         clearInterval(interval)
-        if (startTimeRef.current && finalElapsedTime.current === null) {
-          finalElapsedTime.current = Math.floor((Date.now() - startTimeRef.current) / 1000)
+        if (startTimeRef.current && finalElapsedTime === null) {
+          setFinalElapsedTime(Math.floor((Date.now() - startTimeRef.current) / 1000))
         }
       }
     }
-  }, [isDiscovering])
+  }, [isDiscovering, finalElapsedTime])
 
   useEffect(() => {
     if (isDiscovering) {
@@ -146,7 +523,11 @@ export function DiscoveryDialog({
       const nonDuplicateIndices = discoveredSubscriptions
         .map((_, index) => index)
         .filter((index) => !checkIfDuplicate(index))
-      setSelectedSubscriptions(new Set(nonDuplicateIndices))
+      // Use setTimeout to avoid synchronous setState during effect
+      const timer = setTimeout(() => {
+        setSelectedSubscriptions(new Set(nonDuplicateIndices))
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [discoveredSubscriptions, existingSubscriptions])
 
@@ -156,7 +537,7 @@ export function DiscoveryDialog({
     setSubscriptionOverrides(new Map())
     setEditingIndex(null)
     hasStartedDiscovery.current = false
-    finalElapsedTime.current = null
+    setFinalElapsedTime(null)
     startTimeRef.current = null
     setElapsedSeconds(0)
     clearDiscovery()
@@ -180,39 +561,6 @@ export function DiscoveryDialog({
       }
       return newSet
     })
-  }
-
-  const getGroupedItems = (items: Array<{ sub: DiscoveredSubscription; index: number }>) => {
-    const groups = new Map<string, Array<{ sub: DiscoveredSubscription; index: number }>>()
-
-    items.forEach((item) => {
-      const serviceName = item.sub.service_name
-      if (!groups.has(serviceName)) {
-        groups.set(serviceName, [])
-      }
-      groups.get(serviceName)!.push(item)
-    })
-
-    groups.forEach((groupItems) => {
-      groupItems.sort((a, b) => {
-        const dateA = new Date(a.sub.end_date).getTime()
-        const dateB = new Date(b.sub.end_date).getTime()
-        if (dateB !== dateA) return dateB - dateA
-        return new Date(b.sub.start_date).getTime() - new Date(a.sub.start_date).getTime()
-      })
-    })
-
-    return Array.from(groups.entries())
-      .sort((a, b) => {
-        const mostRecentA = new Date(a[1][0].sub.end_date).getTime()
-        const mostRecentB = new Date(b[1][0].sub.end_date).getTime()
-        return mostRecentB - mostRecentA
-      })
-      .map(([serviceName, items]) => ({
-        serviceName,
-        serviceUrl: items[0]?.sub.service_url,
-        items,
-      }))
   }
 
   const handleSaveSelected = async () => {
@@ -268,9 +616,7 @@ export function DiscoveryDialog({
     }
   }
 
-  if (!showDialog) {
-    return null
-  }
+  if (!showDialog) return null
 
   return (
     <>
@@ -295,282 +641,55 @@ export function DiscoveryDialog({
           }}
         >
           {isDiscovering ? (
-            <>
-              <DialogHeader>
-                <DialogTitle>Discovering Your Subscriptions</DialogTitle>
-                <DialogDescription>
-                  Using {providerName} inbox to find subscriptions
-                  {isByok &&
-                    (isLoadingAI ? (
-                      <span className="inline-flex items-center gap-1 ml-1">
-                        <Spinner className="size-3" />
-                      </span>
-                    ) : (
-                      aiProvider &&
-                      aiModel && (
-                        <>
-                          {' '}
-                          with {aiProvider}&apos;s {aiModel}
-                        </>
-                      )
-                    ))}
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="flex items-center justify-between py-8 px-4">
-                <div className="flex items-center gap-2">
-                  <Spinner className="size-10 text-primary shrink-0" />
-
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">Analyzing...</p>
-                    <p className="text-xs text-muted-foreground">This may take a few moments</p>
-                  </div>
-                </div>
-
-                <div className="text-2xl font-mono text-muted-foreground tabular-nums">
-                  {elapsedSeconds}
-                  <span className="text-sm">s</span>
-                </div>
-              </div>
-            </>
+            <DiscoveringView
+              providerName={providerName}
+              isByok={isByok}
+              isLoadingAI={isLoadingAI}
+              aiProvider={aiProvider}
+              aiModel={aiModel}
+              elapsedSeconds={elapsedSeconds}
+            />
           ) : error ? (
-            <>
-              <DialogHeader>
-                <DialogTitle>Discovery Failed</DialogTitle>
-                <DialogDescription>
-                  There was a technical error discovering your subscriptions.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="py-4">
-                <div className="rounded-md bg-destructive/10 p-4 text-sm text-destructive">
-                  {error}
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button variant="outline" onClick={handleClose}>
-                  Close
-                </Button>
-                <Button onClick={retry} disabled={isDiscovering}>
-                  {isDiscovering ? (
-                    <>
-                      <Spinner />
-                      Retrying...
-                    </>
-                  ) : (
-                    'Retry'
-                  )}
-                </Button>
-              </DialogFooter>
-            </>
+            <ErrorView
+              error={error}
+              onClose={handleClose}
+              onRetry={retry}
+              isRetrying={isDiscovering}
+            />
           ) : discoveredSubscriptions.length > 0 ? (
-            <div className="animate-in fade-in duration-300 flex flex-col flex-1 overflow-hidden">
-              <DialogHeader>
-                <DialogTitle>Review Subscriptions</DialogTitle>
-                <DialogDescription asChild>
-                  <div className="space-y-2 my-4">
-                    <p className="text-sm text-muted-foreground">
-                      These subscriptions were identified by AI and may contain mistakes. Use the
-                      edit button to correct any details before importing and the X to mark false
-                      positives to not be imported to Suprascribe.
-                    </p>
-                  </div>
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="flex flex-col gap-2 py-2 overflow-y-auto flex-1 pr-2">
-                {(() => {
-                  const allSubs = discoveredSubscriptions.map((sub, index) => ({ sub, index }))
-
-                  const nonDuplicateSubs = allSubs.filter(({ index }) => !checkIfDuplicate(index))
-                  const duplicateSubs = allSubs.filter(({ index }) => checkIfDuplicate(index))
-
-                  const activeGroups = getGroupedItems(
-                    nonDuplicateSubs.filter(({ sub }) =>
-                      isSubscriptionActive(sub.start_date, sub.end_date),
-                    ),
-                  )
-
-                  const pastGroups = getGroupedItems(
-                    nonDuplicateSubs.filter(
-                      ({ sub }) => !isSubscriptionActive(sub.start_date, sub.end_date),
-                    ),
-                  )
-
-                  const duplicateGroups = getGroupedItems(duplicateSubs)
-
-                  return (
-                    <>
-                      <div className="flex flex-col gap-2 mb-4">
-                        {activeGroups.length > 0 && (
-                          <Badge variant="outline" className="text-xs font-medium">
-                            Active
-                          </Badge>
-                        )}
-                        {activeGroups.map((group) => (
-                          <DiscoveredSubscriptionGroupCard
-                            key={`active-${group.serviceName}`}
-                            serviceName={group.serviceName}
-                            serviceUrl={group.serviceUrl}
-                            items={group.items.map(({ sub, index }) => ({
-                              subscription: sub,
-                              index,
-                              isSelected: selectedSubscriptions.has(index),
-                              isDuplicate: false,
-                            }))}
-                            onToggle={handleToggleSubscription}
-                            onEdit={setEditingIndex}
-                            disabled={isSaving}
-                          />
-                        ))}
-                      </div>
-                      {pastGroups.length > 0 && (
-                        <Badge variant="outline" className="text-xs font-medium">
-                          Past
-                        </Badge>
-                      )}
-                      {pastGroups.map((group) => (
-                        <DiscoveredSubscriptionGroupCard
-                          key={`past-${group.serviceName}`}
-                          serviceName={group.serviceName}
-                          serviceUrl={group.serviceUrl}
-                          items={group.items.map(({ sub, index }) => ({
-                            subscription: sub,
-                            index,
-                            isSelected: selectedSubscriptions.has(index),
-                            isDuplicate: false,
-                          }))}
-                          onToggle={handleToggleSubscription}
-                          onEdit={setEditingIndex}
-                          disabled={isSaving}
-                        />
-                      ))}
-
-                      {duplicateGroups.length > 0 && (
-                        <>
-                          <Separator orientation="horizontal" />
-                          <button
-                            type="button"
-                            onClick={() => setShowDuplicates((prev) => !prev)}
-                            className="flex items-center justify-between w-full py-2 px-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            <span>Duplicate subscriptions ({duplicateSubs.length})</span>
-                            <ChevronDown
-                              className={cn(
-                                'size-4 transition-transform',
-                                showDuplicates && 'rotate-180',
-                              )}
-                            />
-                          </button>
-                          {showDuplicates &&
-                            duplicateGroups.map((group) => (
-                              <DiscoveredSubscriptionGroupCard
-                                key={`dup-${group.serviceName}`}
-                                serviceName={group.serviceName}
-                                serviceUrl={group.serviceUrl}
-                                items={group.items.map(({ sub, index }) => ({
-                                  subscription: sub,
-                                  index,
-                                  isSelected: false,
-                                  isDuplicate: true,
-                                }))}
-                                onToggle={handleToggleSubscription}
-                                onEdit={setEditingIndex}
-                                disabled={isSaving}
-                              />
-                            ))}
-                        </>
-                      )}
-                    </>
-                  )
-                })()}
-              </div>
-
-              <DialogFooter>
-                <Button variant="outline" onClick={handleClose} disabled={isSaving}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveSelected} disabled={isSaving}>
-                  {isSaving ? <Spinner /> : 'Done'}
-                </Button>
-              </DialogFooter>
-            </div>
+            <ReviewSubscriptionsView
+              discoveredSubscriptions={discoveredSubscriptions}
+              selectedSubscriptions={selectedSubscriptions}
+              isSaving={isSaving}
+              showDuplicates={showDuplicates}
+              onToggleShowDuplicates={() => setShowDuplicates((prev) => !prev)}
+              checkIfDuplicate={checkIfDuplicate}
+              onToggle={handleToggleSubscription}
+              onEdit={setEditingIndex}
+              onCancel={handleClose}
+              onSave={handleSaveSelected}
+            />
           ) : warning ? (
-            <>
-              <DialogHeader>
-                <DialogTitle>Discovery Limit Reached</DialogTitle>
-                <DialogDescription>This email address was recently discovered.</DialogDescription>
-              </DialogHeader>
-
-              <div className="rounded-md bg-amber-500/10 p-4 text-sm text-amber-600 dark:text-amber-400">
-                {warning}
-                <p className="text-sm text-muted-foreground ">
-                  <a
-                    href="/limits"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline hover:text-foreground"
-                  >
-                    Learn more about discovery limits
-                  </a>
-                </p>
-              </div>
-
-              <DialogFooter>
-                <Button onClick={handleClose}>Close</Button>
-              </DialogFooter>
-            </>
+            <WarningView warning={warning} onClose={handleClose} />
           ) : (
-            <>
-              <DialogHeader>
-                <DialogTitle>No Subscriptions Found</DialogTitle>
-                <DialogDescription>
-                  We couldn&apos;t find any subscription emails in your {providerName} inbox
-                  {finalElapsedTime.current !== null &&
-                    ` (searched for ${finalElapsedTime.current}s)`}
-                  .
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="py-4">
-                <p className="text-sm text-muted-foreground text-center">
-                  You can continue adding subscriptions manually or try again later.
-                </p>
-              </div>
-
-              <DialogFooter>
-                <Button onClick={handleClose}>Continue</Button>
-              </DialogFooter>
-            </>
+            <NoResultsView
+              providerName={providerName}
+              emailCount={emailCount}
+              elapsedTime={finalElapsedTime}
+              onClose={handleClose}
+            />
           )}
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showExitWarning} onOpenChange={setShowExitWarning}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Discovery?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Closing now will discard your progress. You&apos;ll need to reinitialize the discovery
-              process to try again.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowExitWarning(false)}>
-              Keep Going
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setShowExitWarning(false)
-                handleClose()
-              }}
-            >
-              Close Anyway
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ExitWarningDialog
+        open={showExitWarning}
+        onKeepGoing={() => setShowExitWarning(false)}
+        onClose={() => {
+          setShowExitWarning(false)
+          handleClose()
+        }}
+      />
 
       {editingIndex !== null && (
         <DiscoveryEditDialog

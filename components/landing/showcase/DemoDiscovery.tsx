@@ -8,74 +8,62 @@ import { formatDateRangeWithDuration, formatLocalizedDate, isSubscriptionActive 
 import { formatCurrencyAmount } from '@/lib/utils/currency'
 import * as React from 'react'
 
-const daysAgo = (days: number) => {
-  const date = new Date()
-  date.setDate(date.getDate() - days)
-  return date.toISOString().split('T')[0]
-}
-
-const daysFromNow = (days: number) => {
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  return date.toISOString().split('T')[0]
-}
-
 const DEMO_DISCOVERED: DiscoveredSubscription[] = [
   {
     service_name: 'Netflix',
     service_url: 'https://netflix.com',
     price: 15.99,
     currency: 'USD',
-    start_date: daysAgo(30),
-    end_date: daysFromNow(15),
+    start_date: '2026-05-07',
+    end_date: '2026-06-21',
   },
   {
     service_name: 'Netflix',
     service_url: 'https://netflix.com',
     price: 12.99,
     currency: 'USD',
-    start_date: daysAgo(180),
-    end_date: daysAgo(150),
+    start_date: '2025-12-08',
+    end_date: '2026-01-07',
   },
   {
     service_name: 'Spotify',
     service_url: 'https://spotify.com',
     price: 10.99,
     currency: 'USD',
-    start_date: daysAgo(365),
-    end_date: daysFromNow(3),
+    start_date: '2025-06-06',
+    end_date: '2026-06-09',
   },
   {
     service_name: 'Namecheap',
     service_url: 'https://namecheap.com',
     price: 12.98,
     currency: 'USD',
-    start_date: daysAgo(15),
-    end_date: daysAgo(15),
+    start_date: '2026-05-22',
+    end_date: '2026-05-22',
   },
   {
     service_name: 'Namecheap',
     service_url: 'https://namecheap.com',
     price: 9.58,
     currency: 'USD',
-    start_date: daysAgo(45),
-    end_date: daysAgo(45),
+    start_date: '2026-04-22',
+    end_date: '2026-04-22',
   },
   {
     service_name: 'Namecheap',
     service_url: 'https://namecheap.com',
     price: 14.98,
     currency: 'USD',
-    start_date: daysAgo(120),
-    end_date: daysAgo(120),
+    start_date: '2026-02-06',
+    end_date: '2026-02-06',
   },
   {
     service_name: 'Disney+',
     service_url: 'https://disneyplus.com',
     price: 7.99,
     currency: 'USD',
-    start_date: daysAgo(400),
-    end_date: daysAgo(35),
+    start_date: '2025-05-02',
+    end_date: '2026-05-02',
   },
 ]
 
@@ -203,7 +191,7 @@ export default function DemoDiscovery() {
     <div className="flex flex-col gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl border bg-background max-h-[400px] sm:max-h-[450px] overflow-y-auto">
       {/* Header */}
       <div className="space-y-1">
-        <h4 className="font-semibold text-sm sm:text-base">Subscriptions Discovered</h4>
+        <h3 className="font-semibold text-sm sm:text-base">Subscriptions Discovered</h3>
         <p className="text-xs sm:text-sm text-muted-foreground">
           Found {serviceGroups.length} service{serviceGroups.length !== 1 ? 's' : ''} in your inbox.
         </p>

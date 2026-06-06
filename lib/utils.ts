@@ -1,10 +1,8 @@
 import type { SubscriptionServiceInsert, UserSubscriptionInsert } from '@/lib/types/database'
 import type { CreateSubscriptionFormData } from '@/lib/types/forms'
+import { toDateString } from '@/lib/utils/date'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-
-import { getServiceNameKey } from '@/lib/utils/subscription-comparison'
-export { isDuplicateSubscription } from '@/lib/utils/subscription-comparison'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -68,7 +66,7 @@ export function formatDateDisplay(dateString: string): string {
   })
 }
 
-export function detectBillingPeriod(
+function detectBillingPeriod(
   startDate: string,
   endDate: string,
 ): 'weekly' | 'monthly' | 'yearly' | null {
@@ -88,16 +86,20 @@ export function normalizeToMonthlyPrice(price: number, startDate: string, endDat
   return price
 }
 
+/**
+ * Format a date string for display using the browser's locale (e.g. "Jan 15, 2024").
+ * Use formatDisplayDate (lib/utils/date.ts) for fixed English ordinal format ("January 15th, 2024").
+ */
 export function formatLocalizedDate(dateString: string): string {
   const date = new Date(dateString)
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
   })
 }
 
-export function calculateMonthsDuration(startDate: string, endDate: string): number {
+function calculateMonthsDuration(startDate: string, endDate: string): number {
   const start = new Date(startDate)
   const end = new Date(endDate)
 
@@ -121,20 +123,47 @@ export function formatDateRangeWithDuration(startDate: string, endDate: string):
   }
 }
 
+const NUMERIC_NAV_KEYS = new Set([8, 9, 27, 13, 46, 110, 190])
+const NUMERIC_CTRL_KEYS = new Set([65, 67, 86, 88])
+
 export function handleNumericInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>): void {
-  if (
-    [8, 9, 27, 13, 46, 110, 190].indexOf(e.keyCode) !== -1 ||
-    (e.keyCode === 65 && e.ctrlKey === true) ||
-    (e.keyCode === 67 && e.ctrlKey === true) ||
-    (e.keyCode === 86 && e.ctrlKey === true) ||
-    (e.keyCode === 88 && e.ctrlKey === true) ||
-    (e.keyCode >= 35 && e.keyCode <= 40)
-  ) {
-    return
+  const { keyCode: k, ctrlKey, shiftKey } = e
+  const isNavOrEdit =
+    NUMERIC_NAV_KEYS.has(k) || (ctrlKey && NUMERIC_CTRL_KEYS.has(k)) || (k >= 35 && k <= 40)
+  if (isNavOrEdit) return
+  const isDigit = (k >= 48 && k <= 57) || (k >= 96 && k <= 105)
+  if (!isDigit || shiftKey) e.preventDefault()
+}
+
+function normalizeDateForComparison(dateStr: string | null | undefined): string | null {
+  if (!dateStr || dateStr.trim() === '') return null
+  const dateOnlyMatch = dateStr.trim().match(/^(\d{4}-\d{2}-\d{2})/)
+  if (dateOnlyMatch) return dateOnlyMatch[1]
+  try {
+    const date = new Date(dateStr.trim())
+    return isNaN(date.getTime()) ? null : toDateString(date)
+  } catch {
+    return null
   }
-  if ((e.shiftKey || e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105)) {
-    e.preventDefault()
-  }
+}
+
+export function isDuplicateSubscription(
+  discovered: { service_name: string; start_date: string; end_date: string },
+  existing: {
+    subscription_service?: { name: string | null } | null
+    start_date: string | null
+    end_date: string | null
+  },
+): boolean {
+  const existingName = existing.subscription_service?.name || ''
+  if (discovered.service_name.toLowerCase().trim() !== existingName.toLowerCase().trim())
+    return false
+  const ds = normalizeDateForComparison(discovered.start_date)
+  const es = normalizeDateForComparison(existing.start_date)
+  const de = normalizeDateForComparison(discovered.end_date)
+  const ee = normalizeDateForComparison(existing.end_date)
+  if (!ds || !es || !de || !ee) return false
+  return ds === es && de === ee
 }
 
 export function isSubscriptionActive(startDate: string, endDate: string): boolean {
@@ -143,76 +172,6 @@ export function isSubscriptionActive(startDate: string, endDate: string): boolea
   const end = new Date(endDate)
 
   return now >= start && now <= end
-}
-
-export function mergeSubscriptionsByService<
-  T extends {
-    subscription_service?: { name: string | null } | null
-    start_date: string | null
-    end_date: string | null
-    price: number | null
-  },
->(
-  subscriptions: T[],
-  aggregateByService: boolean = true,
-): Map<
-  string,
-  {
-    subscriptions: T[]
-    merged: { startDate: string; endDate: string; price: number; active: boolean }
-  }
-> {
-  const grouped = new Map<string, T[]>()
-
-  subscriptions.forEach((sub) => {
-    const serviceName = getServiceNameKey(sub.subscription_service?.name || 'Unknown Service')
-    if (!grouped.has(serviceName)) {
-      grouped.set(serviceName, [])
-    }
-    grouped.get(serviceName)!.push(sub)
-  })
-
-  const result = new Map<
-    string,
-    {
-      subscriptions: T[]
-      merged: { startDate: string; endDate: string; price: number; active: boolean }
-    }
-  >()
-
-  grouped.forEach((subs, serviceName) => {
-    const oldestStartDate = subs.reduce((oldest, sub) => {
-      const subDate = new Date(sub.start_date || '')
-      const oldestDate = new Date(oldest)
-      return subDate < oldestDate ? sub.start_date || oldest : oldest
-    }, subs[0].start_date || '')
-
-    const mostRecentEndDate = subs.reduce((mostRecent, sub) => {
-      const subDate = new Date(sub.end_date || '')
-      const mostRecentDate = new Date(mostRecent)
-      return subDate > mostRecentDate ? sub.end_date || mostRecent : mostRecent
-    }, subs[0].end_date || '')
-
-    const price = aggregateByService
-      ? subs.reduce((sum, sub) => sum + (sub.price || 0), 0)
-      : subs.reduce((sum, sub) => sum + (sub.price || 0), 0) / subs.length
-
-    const isActive = subs.some(
-      (sub) => sub.start_date && sub.end_date && isSubscriptionActive(sub.start_date, sub.end_date),
-    )
-
-    result.set(serviceName, {
-      subscriptions: subs,
-      merged: {
-        startDate: oldestStartDate,
-        endDate: mostRecentEndDate,
-        price,
-        active: isActive,
-      },
-    })
-  })
-
-  return result
 }
 
 const VALID_CURRENCY_CODES = [

@@ -52,3 +52,8 @@ IMPLEMENTATION_SUMMARY.md
 
 .claude
 .vscode
+
+.playwright*
+.fallow*
+.yarn
+.agents

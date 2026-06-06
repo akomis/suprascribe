@@ -1,4 +1,4 @@
-export const DataProtectionLevel = {
+const DataProtectionLevel = {
   PUBLIC: 'PUBLIC',
   LOW: 'LOW',
   MEDIUM: 'MEDIUM',
@@ -8,6 +8,7 @@ export const DataProtectionLevel = {
 
 export type DataProtectionLevel = (typeof DataProtectionLevel)[keyof typeof DataProtectionLevel]
 
+// fallow-ignore-next-line unused-type
 export interface DataClassification {
   level: DataProtectionLevel
   description: string
@@ -15,7 +16,7 @@ export interface DataClassification {
   protectionMechanism: string
 }
 
-export const DATA_CLASSIFICATION = {
+const _DATA_CLASSIFICATION = {
   OAUTH_CLIENT_SECRETS: {
     level: DataProtectionLevel.CRITICAL,
     description: 'OAuth client secrets for Google, Microsoft, and Apple sign-in',

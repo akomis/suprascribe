@@ -1,17 +1,18 @@
 'use client'
 
-import InsightCard from '@/components/dashboard/InsightCard'
-import InsightsPieChart from '@/components/dashboard/InsightsPieChart'
+import { InsightsContentBase } from '@/components/dashboard/Insights'
 import { DemoSubscriptionDetailsDialog } from '@/components/demo/DemoSubscriptionDetailsDialog'
-import { useDemoContext } from '@/components/demo/DemoProvider'
 import { Spinner } from '@/components/ui/spinner'
+import { useDemoContext } from '@/components/demo/DemoProvider'
 import { useCurrency } from '@/lib/hooks/useCurrency'
 import { useDemoInsights } from '@/lib/demo/useDemoInsights'
 import { useInsightsSettings } from '@/providers/InsightsSettingsProvider'
+import type { InsightTab } from '@/lib/types/subscriptions'
+import type { UserSubscriptionWithDetails } from '@/lib/types/database'
 import * as React from 'react'
 import { Suspense } from 'react'
-import type { InsightTab } from '@/lib/hooks/useInsights'
-import type { UserSubscriptionWithDetails } from '@/lib/types/database'
+
+type MergedSubLike = { name: string; subscriptions: UserSubscriptionWithDetails[] }
 
 type DemoInsightsContentProps = {
   tab: InsightTab
@@ -23,58 +24,16 @@ function DemoInsightsContent({ tab, year }: DemoInsightsContentProps) {
   const { groupBy, mode } = useInsightsSettings()
   const { data: insights } = useDemoInsights(currency, groupBy, mode, tab, year)
   const { subscriptions } = useDemoContext()
-  const [selectedSubName, setSelectedSubName] = React.useState<string | null>(null)
-
-  const selectedMerged = React.useMemo(
-    () =>
-      selectedSubName ? (subscriptions.find((s) => s.name === selectedSubName) ?? null) : null,
-    [selectedSubName, subscriptions],
-  )
-
-  const selectedSub = selectedMerged?.subscriptions[0] as UserSubscriptionWithDetails | undefined
-  const allSubs =
-    selectedMerged && selectedMerged.subscriptions.length > 1
-      ? (selectedMerged.subscriptions as UserSubscriptionWithDetails[])
-      : undefined
-
-  if (!insights) {
-    return null
-  }
 
   return (
-    <div className="flex flex-col gap-2 sm:gap-4 fade-on-mount">
-      <InsightsPieChart
-        pieData={insights.pieData}
-        totalMonthly={insights.totalMonthly}
-        yearly={insights.yearly}
-        mode={mode}
-        tab={tab}
-        year={year}
-      />
-
-      {tab === 'active' && insights.nextExpiring.length > 0 && (
-        <InsightCard
-          title={insights.nextExpiring.length === 1 ? 'Upcoming Renewal' : 'Upcoming Renewals'}
-          subscriptions={insights.nextExpiring.map((sub) => ({
-            name: sub.name,
-            url: sub.url,
-            endDate: sub.endDate,
-            onOpen: () => setSelectedSubName(sub.name),
-          }))}
-        />
-      )}
-
-      {selectedSub && (
-        <DemoSubscriptionDetailsDialog
-          subscription={selectedSub}
-          allSubscriptions={allSubs}
-          open={Boolean(selectedSub)}
-          onOpenChange={(open) => {
-            if (!open) setSelectedSubName(null)
-          }}
-        />
-      )}
-    </div>
+    <InsightsContentBase
+      insights={insights}
+      subscriptions={subscriptions as unknown as MergedSubLike[]}
+      DetailsDialog={DemoSubscriptionDetailsDialog}
+      tab={tab}
+      year={year}
+      hideNextExpiring
+    />
   )
 }
 

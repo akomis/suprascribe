@@ -5,7 +5,7 @@ export function DiscoveryLearnMoreButton() {
   return (
     <Button variant="outline" size="sm" asChild>
       <Link href="/safety" target="_blank" rel="noopener noreferrer">
-        Learn More
+        Learn about data safety
       </Link>
     </Button>
   )

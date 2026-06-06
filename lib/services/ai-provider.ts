@@ -1,3 +1,5 @@
+import 'server-only'
+
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createCohere } from '@ai-sdk/cohere'
 import { createDeepSeek } from '@ai-sdk/deepseek'
@@ -13,91 +15,10 @@ import { createXai } from '@ai-sdk/xai'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { generateText, type LanguageModel } from 'ai'
 
-export type LLMProvider =
-  | 'openai'
-  | 'anthropic'
-  | 'google'
-  | 'mistral'
-  | 'groq'
-  | 'xai'
-  | 'cohere'
-  | 'deepseek'
-  | 'perplexity'
-  | 'togetherai'
-  | 'fireworks'
-  | 'openrouter'
+export type { LLMProvider, ProviderConfig } from './ai-provider-constants'
+export { DEFAULT_MODELS } from './ai-provider-constants'
 
-export interface ProviderConfig {
-  provider: LLMProvider
-  apiKey: string
-  model: string
-}
-
-export const DEFAULT_MODELS: Record<LLMProvider, string[]> = {
-  openai: [
-    'gpt-5-nano',
-    'gpt-5-mini',
-    'gpt-5',
-    'gpt-4.1-nano',
-    'gpt-4.1-mini',
-    'gpt-4.1',
-    'o4-mini',
-    'o3-mini',
-  ],
-  anthropic: ['claude-haiku-4-5-20251001', 'claude-sonnet-4-6', 'claude-opus-4-6'],
-  google: ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-3-flash-preview'],
-  mistral: ['mistral-small-3.2-24b-instruct', 'mistral-medium-3.1', 'mistral-large-2512'],
-  groq: [
-    'llama-3.3-70b-versatile',
-    'meta-llama/llama-4-scout-17b-16e-instruct',
-    'meta-llama/llama-4-maverick',
-    'openai/gpt-oss-20b',
-  ],
-  xai: ['grok-4-fast', 'grok-3-mini', 'grok-4', 'grok-3'],
-  cohere: ['command-r-plus-08-2024', 'command-r-08-2024'],
-  deepseek: ['deepseek-chat', 'deepseek-reasoner'],
-  perplexity: ['sonar', 'sonar-pro', 'sonar-reasoning-pro'],
-  togetherai: [
-    'meta-llama/Llama-3.3-70B-Instruct-Turbo',
-    'meta-llama/Llama-4-Scout-17B-16E-Instruct-Turbo',
-    'meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8',
-  ],
-  fireworks: [
-    'accounts/fireworks/models/llama-v3p3-70b-instruct',
-    'accounts/fireworks/models/llama4-scout-instruct-basic',
-  ],
-  openrouter: [],
-}
-
-export const RECOMMENDED_MODELS: Record<LLMProvider, string> = {
-  openai: 'gpt-5-nano',
-  anthropic: 'claude-haiku-4-5-20251001',
-  google: 'gemini-2.5-flash-lite',
-  mistral: 'mistral-small-3.2-24b-instruct',
-  groq: 'llama-3.3-70b-versatile',
-  xai: 'grok-4-fast',
-  cohere: 'command-r-plus-08-2024',
-  deepseek: 'deepseek-chat',
-  perplexity: 'sonar',
-  togetherai: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
-  fireworks: 'accounts/fireworks/models/llama-v3p3-70b-instruct',
-  openrouter: 'google/gemini-2.5-flash-lite',
-}
-
-export const PROVIDER_NAMES: Record<LLMProvider, string> = {
-  openai: 'OpenAI',
-  anthropic: 'Anthropic',
-  google: 'Google',
-  mistral: 'Mistral',
-  groq: 'Groq',
-  xai: 'xAI',
-  cohere: 'Cohere',
-  deepseek: 'DeepSeek',
-  perplexity: 'Perplexity',
-  togetherai: 'Together AI',
-  fireworks: 'Fireworks',
-  openrouter: 'OpenRouter',
-}
+import type { ProviderConfig } from './ai-provider-constants'
 
 export function createModel(config: ProviderConfig): LanguageModel {
   switch (config.provider) {
@@ -204,16 +125,4 @@ export async function validateApiKey(
 
     return { valid: false, error: 'Failed to validate key - please check and try again' }
   }
-}
-
-export function isValidModel(provider: LLMProvider, model: string): boolean {
-  if (provider === 'openrouter') {
-    return model.trim().length > 0
-  }
-  return DEFAULT_MODELS[provider].includes(model)
-}
-
-export function getModelLabel(provider: LLMProvider, model: string): string {
-  const isRecommended = model === RECOMMENDED_MODELS[provider]
-  return isRecommended ? `${model} (Recommended)` : model
 }

@@ -17,6 +17,216 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+const formSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(12, 'Password must be at least 12 characters'),
+})
+
+type FormValues = z.infer<typeof formSchema>
+
+function AuthView({
+  activeTab,
+  onTabChange,
+  loading,
+  signedUp,
+  register,
+  errors,
+  onSubmit,
+  onForgotPassword,
+  serverError,
+}: {
+  activeTab: 'signin' | 'signup'
+  onTabChange: (tab: 'signin' | 'signup') => void
+  loading: boolean
+  signedUp: boolean
+  register: ReturnType<typeof import('react-hook-form').useForm<FormValues>>['register']
+  errors: ReturnType<typeof import('react-hook-form').useForm<FormValues>>['formState']['errors']
+  onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>
+  onForgotPassword: () => void
+  serverError: string | null
+}) {
+  const isDisabled = loading || (activeTab === 'signup' && signedUp)
+  return (
+    <>
+      <div className="space-y-4">
+        <div className="flex rounded-md bg-secondary p-1">
+          <Button
+            type="button"
+            onClick={() => onTabChange('signin')}
+            variant={activeTab === 'signin' ? 'outline' : 'ghost'}
+            className="w-1/2 rounded-md px-4 py-2 text-sm font-medium transition"
+          >
+            Sign in
+          </Button>
+          <Button
+            type="button"
+            onClick={() => onTabChange('signup')}
+            variant={activeTab === 'signup' ? 'outline' : 'ghost'}
+            className="w-1/2 rounded-md px-4 py-2 text-sm font-medium transition"
+          >
+            Sign up
+          </Button>
+        </div>
+
+        <div className="space-y-3 mt-6">
+          <SSOButton provider="google" disabled={isDisabled} />
+          <SSOButton provider="azure" disabled={isDisabled} />
+          <SSOButton provider="apple" disabled={isDisabled} />
+        </div>
+
+        <div className="flex items-center gap-4 mt-6">
+          <Separator className="flex-1" />
+          <span className="text-sm text-muted-foreground">Or continue with email</span>
+          <Separator className="flex-1" />
+        </div>
+      </div>
+
+      <form className="space-y-6" onSubmit={onSubmit}>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email address</Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              {...register('email')}
+              placeholder="Email address"
+              disabled={isDisabled}
+            />
+            {errors.email?.message && (
+              <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              {activeTab === 'signin' && (
+                <button
+                  type="button"
+                  onClick={onForgotPassword}
+                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                >
+                  Forgot password?
+                </button>
+              )}
+            </div>
+            <Input
+              id="password"
+              type="password"
+              autoComplete={activeTab === 'signin' ? 'current-password' : 'new-password'}
+              required
+              {...register('password')}
+              placeholder="Password"
+              disabled={isDisabled}
+            />
+            {errors.password?.message && (
+              <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <Button
+            type="submit"
+            disabled={isDisabled}
+            data-loading={loading ? 'true' : 'false'}
+            aria-busy={loading}
+            variant={activeTab === 'signin' ? 'default' : 'secondary'}
+            className="group relative flex w-full items-center justify-center gap-2"
+          >
+            {loading && <Spinner aria-hidden="true" />}
+            <span>{loading ? '' : activeTab === 'signin' ? 'Sign in' : 'Sign up'}</span>
+          </Button>
+        </div>
+
+        {activeTab === 'signup' && (
+          <p className="text-center text-xs text-muted-foreground">
+            By signing up, you agree to our{' '}
+            <Link href="/terms-and-privacy" className="underline hover:text-foreground">
+              Terms of Service and Privacy Policy
+            </Link>
+            .
+          </p>
+        )}
+
+        {serverError && (
+          <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4">
+            <p className="text-sm text-destructive">{serverError}</p>
+          </div>
+        )}
+      </form>
+    </>
+  )
+}
+
+function ForgotPasswordView({
+  forgotEmail,
+  onEmailChange,
+  forgotLoading,
+  resetSent,
+  onSendReset,
+  onBack,
+}: {
+  forgotEmail: string
+  onEmailChange: (v: string) => void
+  forgotLoading: boolean
+  resetSent: boolean
+  onSendReset: () => void
+  onBack: () => void
+}) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold">Reset your password</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Enter your email and we&apos;ll send you a reset link.
+        </p>
+      </div>
+
+      {resetSent ? (
+        <div className="rounded-md bg-green-500/10 border border-green-500/20 p-4">
+          <p className="text-sm text-green-700 dark:text-green-400">
+            Check your email for a password reset link.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="forgot-email">Email address</Label>
+            <Input
+              id="forgot-email"
+              type="email"
+              autoComplete="email"
+              placeholder="Email address"
+              value={forgotEmail}
+              onChange={(e) => onEmailChange(e.target.value)}
+              disabled={forgotLoading}
+            />
+          </div>
+          <Button
+            type="button"
+            onClick={onSendReset}
+            disabled={forgotLoading || !forgotEmail}
+            className="flex w-full items-center justify-center gap-2"
+          >
+            {forgotLoading && <Spinner aria-hidden="true" />}
+            <span>{forgotLoading ? '' : 'Send reset link'}</span>
+          </Button>
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={onBack}
+        className="text-sm text-muted-foreground hover:text-foreground underline"
+      >
+        Back to sign in
+      </button>
+    </div>
+  )
+}
+
 interface LoginClientProps {
   initialTab: 'signin' | 'signup'
   errorParam?: string
@@ -36,20 +246,15 @@ export function LoginClient({ initialTab, errorParam }: LoginClientProps) {
 
   useEffect(() => {
     if (errorParam) {
+      // Use setTimeout to avoid synchronous setState during effect
       const decoded = decodeURIComponent(errorParam)
-      setServerError(decoded)
-      toast.error('Authentication failed', {
-        description: decoded,
-      })
+      const timer = setTimeout(() => {
+        setServerError(decoded)
+        toast.error('Authentication failed', { description: decoded })
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [errorParam])
-
-  const formSchema = z.object({
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(12, 'Password must be at least 12 characters'),
-  })
-
-  type FormValues = z.infer<typeof formSchema>
 
   const {
     register,
@@ -62,37 +267,30 @@ export function LoginClient({ initialTab, errorParam }: LoginClientProps) {
     mode: 'onSubmit',
   })
 
-  const onSubmit = handleSubmit(async ({ email, password }) => {
-    setLoading(true)
-    setServerError(null)
-
-    if (activeTab === 'signin') {
-      const { data: signInData, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      if (error) {
-        setServerError(error.message)
-        setLoading(false)
-        return
-      }
-      if (signInData.user) {
-        posthog.identify(signInData.user.id, { email: signInData.user.email })
-        posthog.capture('user_signed_in', { method: 'email' })
-      }
-      router.push('/dashboard')
-      router.refresh()
-      return
-    }
-
-    const { data: signUpData, error } = await supabase.auth.signUp({ email, password })
+  const handleSignIn = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setServerError(error.message)
       setLoading(false)
       return
     }
-    if (signUpData.user) {
-      posthog.identify(signUpData.user.id, { email: signUpData.user.email })
+    if (data.user) {
+      posthog.identify(data.user.id, { email: data.user.email })
+      posthog.capture('user_signed_in', { method: 'email' })
+    }
+    router.push('/dashboard')
+    router.refresh()
+  }
+
+  const handleSignUp = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signUp({ email, password })
+    if (error) {
+      setServerError(error.message)
+      setLoading(false)
+      return
+    }
+    if (data.user) {
+      posthog.identify(data.user.id, { email: data.user.email })
       posthog.capture('user_signed_up', { method: 'email' })
     }
     toast.success('Check your email', {
@@ -103,13 +301,23 @@ export function LoginClient({ initialTab, errorParam }: LoginClientProps) {
     setLoading(false)
     setActiveTab('signin')
     setValue('password', '')
+  }
+
+  const onSubmit = handleSubmit(async ({ email, password }) => {
+    setLoading(true)
+    setServerError(null)
+    if (activeTab === 'signin') {
+      await handleSignIn(email, password)
+    } else {
+      await handleSignUp(email, password)
+    }
   })
 
   const handleForgotPassword = async () => {
     if (!forgotEmail) return
     setForgotLoading(true)
     const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/dashboard/settings`,
+      redirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent('/reset-password')}`,
     })
     setForgotLoading(false)
     if (error) {
@@ -132,176 +340,26 @@ export function LoginClient({ initialTab, errorParam }: LoginClientProps) {
         <SuprascribeLogo layout="column" size={42} />
 
         {view === 'forgotPassword' ? (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-lg font-semibold">Reset your password</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Enter your email and we&apos;ll send you a reset link.
-              </p>
-            </div>
-
-            {resetSent ? (
-              <div className="rounded-md bg-green-500/10 border border-green-500/20 p-4">
-                <p className="text-sm text-green-700 dark:text-green-400">
-                  Check your email for a password reset link.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="forgot-email">Email address</Label>
-                  <Input
-                    id="forgot-email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="Email address"
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    disabled={forgotLoading}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  disabled={forgotLoading || !forgotEmail}
-                  className="flex w-full items-center justify-center gap-2"
-                >
-                  {forgotLoading && <Spinner aria-hidden="true" />}
-                  <span>{forgotLoading ? '' : 'Send reset link'}</span>
-                </Button>
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setView('auth')}
-              className="text-sm text-muted-foreground hover:text-foreground underline"
-            >
-              Back to sign in
-            </button>
-          </div>
+          <ForgotPasswordView
+            forgotEmail={forgotEmail}
+            onEmailChange={setForgotEmail}
+            forgotLoading={forgotLoading}
+            resetSent={resetSent}
+            onSendReset={handleForgotPassword}
+            onBack={() => setView('auth')}
+          />
         ) : (
-          <>
-            <div className="space-y-4">
-              <div className="flex rounded-md bg-secondary p-1">
-                <Button
-                  type="button"
-                  onClick={() => setActiveTab('signin')}
-                  variant={activeTab === 'signin' ? 'outline' : 'ghost'}
-                  className="w-1/2 rounded-md px-4 py-2 text-sm font-medium transition"
-                >
-                  Sign in
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => setActiveTab('signup')}
-                  variant={activeTab === 'signup' ? 'outline' : 'ghost'}
-                  className="w-1/2 rounded-md px-4 py-2 text-sm font-medium transition"
-                >
-                  Sign up
-                </Button>
-              </div>
-
-              <div className="space-y-3 mt-6">
-                <SSOButton
-                  provider="google"
-                  disabled={loading || (activeTab === 'signup' && signedUp)}
-                />
-                <SSOButton
-                  provider="azure"
-                  disabled={loading || (activeTab === 'signup' && signedUp)}
-                />
-                <SSOButton
-                  provider="apple"
-                  disabled={loading || (activeTab === 'signup' && signedUp)}
-                />
-              </div>
-
-              <div className="flex items-center gap-4 mt-6">
-                <Separator className="flex-1" />
-                <span className="text-sm text-muted-foreground">Or continue with email</span>
-                <Separator className="flex-1" />
-              </div>
-            </div>
-
-            <form className="space-y-6" onSubmit={onSubmit}>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    {...register('email')}
-                    placeholder="Email address"
-                    disabled={loading || (activeTab === 'signup' && signedUp)}
-                  />
-                  {errors.email?.message && (
-                    <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    {activeTab === 'signin' && (
-                      <button
-                        type="button"
-                        onClick={openForgotPassword}
-                        className="text-xs text-muted-foreground hover:text-foreground underline"
-                      >
-                        Forgot password?
-                      </button>
-                    )}
-                  </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    autoComplete={activeTab === 'signin' ? 'current-password' : 'new-password'}
-                    required
-                    {...register('password')}
-                    placeholder="Password"
-                    disabled={loading || (activeTab === 'signup' && signedUp)}
-                  />
-                  {errors.password?.message && (
-                    <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <Button
-                  type="submit"
-                  disabled={loading || (activeTab === 'signup' && signedUp)}
-                  data-loading={loading ? 'true' : 'false'}
-                  aria-busy={loading}
-                  variant={activeTab === 'signin' ? 'default' : 'secondary'}
-                  className="group relative flex w-full items-center justify-center gap-2"
-                >
-                  {loading && <Spinner aria-hidden="true" />}
-                  <span>
-                    {activeTab === 'signin' ? (loading ? '' : 'Sign in') : loading ? '' : 'Sign up'}
-                  </span>
-                </Button>
-              </div>
-
-              {activeTab === 'signup' && (
-                <p className="text-center text-xs text-muted-foreground">
-                  By signing up, you agree to our{' '}
-                  <Link href="/terms-and-privacy" className="underline hover:text-foreground">
-                    Terms of Service and Privacy Policy
-                  </Link>
-                  .
-                </p>
-              )}
-
-              {serverError && (
-                <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4">
-                  <p className="text-sm text-destructive">{serverError}</p>
-                </div>
-              )}
-            </form>
-          </>
+          <AuthView
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            loading={loading}
+            signedUp={signedUp}
+            register={register}
+            errors={errors}
+            onSubmit={onSubmit}
+            onForgotPassword={openForgotPassword}
+            serverError={serverError}
+          />
         )}
       </div>
     </div>

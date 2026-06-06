@@ -1,20 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
-import { getPostHogClient } from '@/lib/posthog-server'
+import { withAuth } from '@/lib/api/withAuth'
+import { captureEvent } from '@/lib/posthog-server'
 import { NextResponse } from 'next/server'
 
-export async function DELETE() {
+export const DELETE = withAuth(async (_req, { user, supabase }) => {
   try {
-    const supabase = await createClient()
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ error: 'User not authenticated' }, { status: 401 })
-    }
-
     const { error: discoveryError } = await supabase
       .from('DISCOVERY_RUNS')
       .delete()
@@ -39,13 +28,7 @@ export async function DELETE() {
       )
     }
 
-    const posthog = getPostHogClient()
-    posthog.capture({
-      distinctId: user.id,
-      event: 'user_data_reset',
-      properties: {},
-    })
-    await posthog.shutdown()
+    void captureEvent(user.id, 'user_data_reset')
 
     return NextResponse.json({ success: true }, { status: 200 })
   } catch (error) {
@@ -54,4 +37,4 @@ export async function DELETE() {
       { status: 500 },
     )
   }
-}
+})

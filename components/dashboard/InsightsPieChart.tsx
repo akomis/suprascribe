@@ -2,11 +2,11 @@
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { useCurrency } from '@/lib/hooks/useCurrency'
-import { InsightMode, InsightTab, PieDataItem } from '@/lib/hooks/useInsights'
+import type { InsightMode, InsightTab, PieDataItem } from '@/lib/types/subscriptions'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useTheme } from 'next-themes'
 import { useMemo } from 'react'
-import { Label, LabelList, Pie, PieChart } from 'recharts'
+import { Label, Pie, PieChart } from 'recharts'
 
 const lightModeColors = [
   '#1F2937', // gray-800
@@ -73,12 +73,18 @@ export default function InsightsPieChart({
 
   return (
     <div
-      className="flex flex-col gap-2 w-screen -mx-[50vw] left-1/2 relative"
+      className="w-full overflow-x-auto"
       role="img"
       aria-label={`Subscription spending breakdown: ${formatCurrency(totalMonthly)} per month, ${formatCurrency(yearly)} ${tab === 'past' ? `in ${year}` : mode === 'spent' ? 'year to date' : 'per year'}`}
     >
-      <ChartContainer config={{}} className="mx-auto h-[140px] sm:h-[250px] w-full">
-        <PieChart margin={{ top: 20, right: 80, bottom: 20, left: 80 }}>
+      <ChartContainer
+        id="insights-pie-chart"
+        config={{}}
+        className="mx-auto h-50 sm:h-62.5 w-full min-w-0 max-w-full aspect-auto"
+      >
+        <PieChart
+          margin={{ top: 30, right: isMobile ? 5 : 80, bottom: 30, left: isMobile ? 5 : 80 }}
+        >
           <ChartTooltip
             content={
               <ChartTooltipContent
@@ -99,19 +105,46 @@ export default function InsightsPieChart({
             nameKey="name"
             cx="50%"
             cy="50%"
-            innerRadius={isMobile ? '110%' : '90%'}
-            outerRadius={isMobile ? '140%' : '110%'}
+            innerRadius={isMobile ? '55%' : '90%'}
+            outerRadius={isMobile ? '78%' : '110%'}
             stroke="currentColor"
             className="text-border"
             strokeWidth={0.2}
             labelLine={false}
+            label={({
+              cx,
+              cy,
+              outerRadius,
+              midAngle,
+              name,
+            }: {
+              cx?: number
+              cy?: number
+              outerRadius?: number
+              midAngle?: number
+              name?: string
+            }) => {
+              if (!name || cx == null || cy == null || outerRadius == null || midAngle == null)
+                return null
+              const RADIAN = Math.PI / 180
+              const offset = 8
+              const x = cx + (outerRadius + offset) * Math.cos(-midAngle * RADIAN)
+              const y = cy + (outerRadius + offset) * Math.sin(-midAngle * RADIAN)
+              const textAnchor = x > cx + 1 ? 'start' : x < cx - 1 ? 'end' : 'middle'
+              return (
+                <text
+                  x={x}
+                  y={y}
+                  textAnchor={textAnchor}
+                  dominantBaseline="central"
+                  fontSize={10}
+                  className="hidden sm:block fill-muted-foreground dark:fill-white"
+                >
+                  {name}
+                </text>
+              )
+            }}
           >
-            <LabelList
-              position="outside"
-              dataKey="name"
-              strokeWidth={0}
-              className="fade-on-mount text-muted-foreground dark:text-white text-[8px] sm:text-xs hidden sm:block"
-            />
             <Label
               content={({ viewBox }) => {
                 if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {

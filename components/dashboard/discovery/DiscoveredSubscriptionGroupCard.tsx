@@ -4,7 +4,7 @@ import { ServiceLogo } from '@/components/shared/ServiceLogo'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { DiscoveredSubscription } from '@/lib/hooks/discovery/useGoogleDiscovery'
+import type { DiscoveredSubscription } from '@/lib/types/forms'
 import { CurrencyCode } from '@/lib/hooks/useCurrency'
 import {
   cn,
@@ -75,6 +75,7 @@ export function DiscoveredSubscriptionGroupCard({
                       size="icon"
                       variant={allNonDuplicateSelected ? 'destructive' : 'outline'}
                       onClick={handleCardToggle}
+                      aria-label={allNonDuplicateSelected ? 'Deselect all' : 'Select all'}
                       className={cn('h-6 w-6', {
                         'border-green-500 hover:bg-green-50 dark:hover:bg-green-950 text-green-600 dark:text-green-400':
                           !allNonDuplicateSelected,
@@ -173,6 +174,7 @@ function SubscriptionEntry({
                   size="icon"
                   variant="ghost"
                   className="h-6 w-6"
+                  aria-label="Edit subscription details"
                   disabled={disabled}
                   onClick={() => onEdit(item.index)}
                 >
