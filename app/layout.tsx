@@ -13,15 +13,28 @@ const GeistSans = localFont({
   weight: '100 900',
   display: 'optional',
 })
+import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
 import { GITHUB_URL } from '@/lib/config/urls'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 const siteDescription =
   'Suprascribe finds and tracks all your subscriptions by scanning Gmail, Outlook, iCloud, or any IMAP inbox. Free forever, one-time Pro upgrade.'
 
+export const viewport: Viewport = {
+  themeColor: '#000000',
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.suprascribe.com'),
+  applicationName: 'Suprascribe',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Suprascribe',
+  },
+  formatDetection: { telephone: false },
   title: {
     default: 'Suprascribe - Free Subscription Tracker & Manager',
     template: '%s | Suprascribe',
@@ -114,6 +127,7 @@ export default function RootLayout({
                 <AffiliateTracker />
               </Suspense>
               <Toaster />
+              <ServiceWorkerRegistration />
             </CurrencyProvider>
           </TooltipProvider>
         </ThemeProvider>

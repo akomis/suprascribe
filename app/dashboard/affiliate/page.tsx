@@ -72,7 +72,7 @@ export default function AffiliatePage() {
             </CardTitle>
             <CardDescription>
               Earn commission for every user you refer who upgrades to Pro. Affiliate links and
-              dealrs are managed by us - reach out and we&apos;ll get you set up.
+              commission percentages are managed by us - reach out and we&apos;ll get you set up.
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -1,5 +1,6 @@
-![alt text](public/marketing/email_banner_dark.svg)
+![Suprascribe - Discover and Take Control of your Subscriptions](public/marketing/svg/email_banner_dark.svg)
 
+[![www.suprascribe.com](https://img.shields.io/badge/www.suprascribe.com-→-black?style=for-the-badge)](https://suprascribe.com)
 [![Try the Demo](https://img.shields.io/badge/Try%20the%20Demo-→-blue?style=for-the-badge)](https://suprascribe.com/demo)
 
 ## Features

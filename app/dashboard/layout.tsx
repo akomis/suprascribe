@@ -1,4 +1,5 @@
 import { PostHogIdentifier } from '@/components/PostHogIdentifier'
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
 import { InsightsSettingsProvider } from '@/providers/InsightsSettingsProvider'
 import QueryProvider from '@/providers/QueryProvider'
 import { GeistMono } from 'geist/font/mono'
@@ -12,6 +13,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <InsightsSettingsProvider>
         <PostHogIdentifier />
         <div className={cn(GeistMono.variable)}>{children}</div>
+        <PWAInstallPrompt />
       </InsightsSettingsProvider>
     </QueryProvider>
   )

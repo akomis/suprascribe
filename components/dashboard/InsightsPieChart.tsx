@@ -117,12 +117,14 @@ export default function InsightsPieChart({
               outerRadius,
               midAngle,
               name,
+              index,
             }: {
               cx?: number
               cy?: number
               outerRadius?: number
               midAngle?: number
               name?: string
+              index?: number
             }) => {
               if (!name || cx == null || cy == null || outerRadius == null || midAngle == null)
                 return null
@@ -131,6 +133,7 @@ export default function InsightsPieChart({
               const x = cx + (outerRadius + offset) * Math.cos(-midAngle * RADIAN)
               const y = cy + (outerRadius + offset) * Math.sin(-midAngle * RADIAN)
               const textAnchor = x > cx + 1 ? 'start' : x < cx - 1 ? 'end' : 'middle'
+              const delay = (index ?? 0) * 80
               return (
                 <text
                   x={x}
@@ -139,6 +142,10 @@ export default function InsightsPieChart({
                   dominantBaseline="central"
                   fontSize={10}
                   className="hidden sm:block fill-muted-foreground dark:fill-white"
+                  style={{
+                    animation: `pie-label-fade-in 0.4s ease-out ${delay}ms forwards`,
+                    opacity: 0,
+                  }}
                 >
                   {name}
                 </text>
