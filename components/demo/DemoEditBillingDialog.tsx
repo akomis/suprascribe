@@ -15,6 +15,7 @@ type DemoEditBillingDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess?: () => void
+  disableServiceName?: boolean
 }
 
 export function DemoEditBillingDialog({
@@ -22,6 +23,7 @@ export function DemoEditBillingDialog({
   open,
   onOpenChange,
   onSuccess,
+  disableServiceName,
 }: DemoEditBillingDialogProps) {
   const updateMutation = useDemoUpdateSubscription()
   const deleteMutation = useDemoDeleteSubscription()
@@ -38,6 +40,7 @@ export function DemoEditBillingDialog({
       onOpenChange={onOpenChange}
       onSuccess={onSuccess}
       actions={actions}
+      disableServiceName={disableServiceName}
     />
   )
 }

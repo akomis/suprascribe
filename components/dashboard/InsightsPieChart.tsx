@@ -83,7 +83,7 @@ export default function InsightsPieChart({
         className="mx-auto h-50 sm:h-62.5 w-full min-w-0 max-w-full aspect-auto"
       >
         <PieChart
-          margin={{ top: 30, right: isMobile ? 5 : 80, bottom: 30, left: isMobile ? 5 : 80 }}
+          margin={{ top: 30, right: isMobile ? 50 : 80, bottom: 30, left: isMobile ? 50 : 80 }}
         >
           <ChartTooltip
             content={
@@ -105,8 +105,8 @@ export default function InsightsPieChart({
             nameKey="name"
             cx="50%"
             cy="50%"
-            innerRadius={isMobile ? '55%' : '90%'}
-            outerRadius={isMobile ? '78%' : '110%'}
+            innerRadius={isMobile ? '80%' : '90%'}
+            outerRadius={isMobile ? '100%' : '110%'}
             stroke="currentColor"
             className="text-border"
             strokeWidth={0.2}
@@ -141,7 +141,7 @@ export default function InsightsPieChart({
                   textAnchor={textAnchor}
                   dominantBaseline="central"
                   fontSize={10}
-                  className="hidden sm:block fill-muted-foreground dark:fill-white"
+                  className="fill-muted-foreground dark:fill-white"
                   style={{
                     animation: `pie-label-fade-in 0.4s ease-out ${delay}ms forwards`,
                     opacity: 0,

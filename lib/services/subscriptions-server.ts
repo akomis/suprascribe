@@ -4,6 +4,7 @@ import {
   calculateServiceSpentThisYear,
   calculateServiceForecastThisYear,
 } from '@/lib/utils/subscription-analytics'
+import { toMonthlyCost } from '@/lib/utils'
 import type { MergedSubscriptionResponse } from '@/lib/types/subscriptions'
 
 export async function fetchSubscriptionsServer(): Promise<MergedSubscriptionResponse[]> {
@@ -33,12 +34,15 @@ export async function fetchSubscriptionsServer(): Promise<MergedSubscriptionResp
   return Array.from(mergedMap.values()).map(({ subscriptions: subs, merged }) => {
     const mostRecent = getMostRecent(subs)
     const autoRenew = Boolean(mostRecent.auto_renew)
-    const monthlyPrice = mostRecent.price || 0
+    const period = mostRecent.period || 'MONTHLY'
+    const rawPrice = mostRecent.price || 0
+    const monthlyPrice = toMonthlyCost(rawPrice, period)
 
     return {
       name: mostRecent.subscription_service?.name || 'Unknown Service',
       serviceUrl: mostRecent.subscription_service?.url || undefined,
-      price: monthlyPrice,
+      price: rawPrice,
+      period,
       currency: mostRecent.currency,
       startDate: merged.startDate,
       endDate: merged.endDate,
@@ -47,8 +51,14 @@ export async function fetchSubscriptionsServer(): Promise<MergedSubscriptionResp
       category: mostRecent.subscription_service?.category || null,
       paymentMethod: mostRecent.payment_method || null,
       subscriptions: subs,
-      spentThisYear: calculateServiceSpentThisYear(subs, monthlyPrice, today),
-      forecastThisYear: calculateServiceForecastThisYear(subs, monthlyPrice, autoRenew, today),
+      spentThisYear: calculateServiceSpentThisYear(subs, monthlyPrice, today, period),
+      forecastThisYear: calculateServiceForecastThisYear(
+        subs,
+        monthlyPrice,
+        autoRenew,
+        today,
+        period,
+      ),
       totalSpent: subs.reduce((sum, s) => sum + (s.price || 0), 0),
     }
   })

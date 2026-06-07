@@ -8,10 +8,18 @@ import type { InsightMode } from '@/lib/types/subscriptions'
 import { formatDateDisplay } from '@/lib/utils'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
 
+const PERIOD_LABEL: Record<string, string> = {
+  MONTHLY: '/mo',
+  YEARLY: '/yr',
+  WEEKLY: '/wk',
+  QUARTERLY: '/qtr',
+}
+
 type SubscriptionCardProps = {
   name: string
   serviceUrl?: string
   price: number
+  period?: string
   currency: CurrencyCode
   startDate: string
   endDate: string
@@ -65,6 +73,7 @@ export function SubscriptionCard({
   name,
   serviceUrl,
   price,
+  period = 'MONTHLY',
   currency,
   startDate,
   endDate,
@@ -75,7 +84,8 @@ export function SubscriptionCard({
   forecastThisYear,
   totalSpent,
 }: SubscriptionCardProps) {
-  const monthlyCost = price || 0
+  const actualPrice = price || 0
+  const periodLabel = PERIOD_LABEL[period] ?? '/mo'
 
   const isPast = new Date(endDate) < new Date()
 
@@ -83,7 +93,7 @@ export function SubscriptionCard({
   let yearlyLabel: string
 
   if (isPast) {
-    yearlyCost = totalSpent ?? monthlyCost
+    yearlyCost = totalSpent ?? actualPrice
     yearlyLabel = ' total'
   } else if (mode === 'spent') {
     yearlyCost = spentThisYear ?? 0
@@ -131,7 +141,10 @@ export function SubscriptionCard({
           <div className="flex flex-col items-end gap-1 w-full md:w-auto sm:w-auto">
             <div className="flex items-end gap-1 flex-wrap justify-end">
               <Badge variant="outline" className="gap-1 text-sm sm:text-md px-2 sm:px-3 py-1">
-                <span className="font-mono">{formatCurrencyAmount(monthlyCost, currency)}</span>
+                <span className="font-mono">
+                  {formatCurrencyAmount(actualPrice, currency)}
+                  {periodLabel}
+                </span>
               </Badge>
             </div>
 

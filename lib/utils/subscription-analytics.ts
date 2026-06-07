@@ -9,6 +9,7 @@ import type {
 } from '@/lib/types/subscriptions'
 import { convertCurrency } from '@/lib/utils/currency'
 import { getMostRecent } from '@/lib/utils/subscription-aggregation'
+import { toMonthlyCost } from '@/lib/utils'
 
 // Inclusive month count between two dates (e.g. Jan 1 → Jan 31 = 1, not 0)
 function monthsInclusive(start: Date, end: Date): number {
@@ -124,6 +125,7 @@ export function calculateServiceSpentThisYear(
   subs: { start_date: string | null; end_date: string | null; price: number | null }[],
   monthlyPrice: number,
   today = new Date(),
+  period = 'MONTHLY',
 ): number {
   const day = new Date(today)
   day.setHours(0, 0, 0, 0)
@@ -147,6 +149,9 @@ export function calculateServiceSpentThisYear(
   })
 
   if (activeRecord) {
+    if (period === 'YEARLY' || period === 'QUARTERLY') {
+      return activeRecord.price || 0
+    }
     const effectiveStart =
       new Date(activeRecord.start_date!) < jan1st ? jan1st : new Date(activeRecord.start_date!)
     const monthsElapsed =
@@ -164,13 +169,32 @@ export function calculateServiceForecastThisYear(
   monthlyPrice: number,
   autoRenew: boolean,
   today = new Date(),
+  period = 'MONTHLY',
 ): number {
   const day = new Date(today)
   day.setHours(0, 0, 0, 0)
 
-  const spent = calculateServiceSpentThisYear(subs, monthlyPrice, today)
+  const spent = calculateServiceSpentThisYear(subs, monthlyPrice, today, period)
 
   if (!autoRenew) return spent
+
+  if (period === 'YEARLY') {
+    const mostRecentSub = subs.reduce<(typeof subs)[0] | null>((latest, s) => {
+      if (!s.start_date) return latest
+      return latest === null || s.start_date > (latest.start_date ?? '') ? s : latest
+    }, null)
+    return mostRecentSub?.price || spent
+  }
+
+  if (period === 'QUARTERLY') {
+    const mostRecentSub = subs.reduce<(typeof subs)[0] | null>((latest, s) => {
+      if (!s.start_date) return latest
+      return latest === null || s.start_date > (latest.start_date ?? '') ? s : latest
+    }, null)
+    const quarterlyPrice = mostRecentSub?.price || 0
+    const quartersInYear = 4
+    return quarterlyPrice * quartersInYear
+  }
 
   const jan1st = new Date(day.getFullYear(), 0, 1)
   const dec31st = new Date(day.getFullYear(), 11, 31)
@@ -191,6 +215,7 @@ type RawServiceSub = {
   start_date: string | null
   end_date: string | null
   price: number | null
+  period?: string | null
   currency: string
   auto_renew: boolean | null
 }
@@ -203,18 +228,21 @@ type ServiceGroup = {
 function prepareServiceGroup(
   subs: RawServiceSub[],
   targetCurrency: CurrencyCode,
-): { convertedSubs: RawServiceSub[]; monthlyCost: number; autoRenew: boolean } {
+): { convertedSubs: RawServiceSub[]; monthlyCost: number; autoRenew: boolean; period: string } {
   const mostRecent = getMostRecent(subs)
-  const monthlyCost = convertCurrency(
-    mostRecent?.price || 0,
+  const period = mostRecent?.period || 'MONTHLY'
+  const rawPrice = mostRecent?.price || 0
+  const convertedPrice = convertCurrency(
+    rawPrice,
     mostRecent?.currency as CurrencyCode,
     targetCurrency,
   )
+  const monthlyCost = toMonthlyCost(convertedPrice, period)
   const convertedSubs = subs.map((s) => ({
     ...s,
     price: convertCurrency(s.price || 0, s.currency as CurrencyCode, targetCurrency),
   }))
-  return { convertedSubs, monthlyCost, autoRenew: Boolean(mostRecent?.auto_renew) }
+  return { convertedSubs, monthlyCost, autoRenew: Boolean(mostRecent?.auto_renew), period }
 }
 
 export function buildInsights(
@@ -251,13 +279,19 @@ export function buildInsights(
 
     if (mode === 'spent') {
       yearly = activeGroups.reduce((sum, { subscriptions: subs }) => {
-        const { convertedSubs, monthlyCost } = prepareServiceGroup(subs, targetCurrency)
-        return sum + calculateServiceSpentThisYear(convertedSubs, monthlyCost)
+        const { convertedSubs, monthlyCost, period } = prepareServiceGroup(subs, targetCurrency)
+        return sum + calculateServiceSpentThisYear(convertedSubs, monthlyCost, undefined, period)
       }, 0)
     } else {
       yearly = activeGroups.reduce((sum, { subscriptions: subs }) => {
-        const { convertedSubs, monthlyCost, autoRenew } = prepareServiceGroup(subs, targetCurrency)
-        return sum + calculateServiceForecastThisYear(convertedSubs, monthlyCost, autoRenew)
+        const { convertedSubs, monthlyCost, autoRenew, period } = prepareServiceGroup(
+          subs,
+          targetCurrency,
+        )
+        return (
+          sum +
+          calculateServiceForecastThisYear(convertedSubs, monthlyCost, autoRenew, undefined, period)
+        )
       }, 0)
     }
 

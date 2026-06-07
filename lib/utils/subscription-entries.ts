@@ -1,9 +1,15 @@
 import { addWeeks, addMonths, addYears } from 'date-fns'
-import type { CreateSubscriptionFormData } from '@/lib/types/forms'
+import type { BillingPeriod, CreateSubscriptionFormData } from '@/lib/types/forms'
 import type { CurrencyCode } from '@/lib/hooks/useCurrency'
 import { toDateString } from '@/lib/utils/date'
 
 type BillingCycleType = 'weekly' | 'monthly' | 'annually'
+
+const CYCLE_TO_PERIOD: Record<BillingCycleType, BillingPeriod> = {
+  weekly: 'WEEKLY',
+  monthly: 'MONTHLY',
+  annually: 'YEARLY',
+}
 
 type GenerateEntriesParams = {
   serviceName: string
@@ -24,6 +30,7 @@ function advancePeriod(date: Date, cycle: BillingCycleType): Date {
 
 export function generateEntries(params: GenerateEntriesParams): CreateSubscriptionFormData[] {
   const { startDate, billingCycle, mode, autoRenew, ...baseFields } = params
+  const period = CYCLE_TO_PERIOD[billingCycle]
   const entries: CreateSubscriptionFormData[] = []
 
   // Parse startDate in local time to avoid UTC offset shifting
@@ -35,6 +42,7 @@ export function generateEntries(params: GenerateEntriesParams): CreateSubscripti
       const periodEnd = advancePeriod(periodStart, billingCycle)
       entries.push({
         ...baseFields,
+        period,
         startDate: toDateString(periodStart),
         endDate: toDateString(periodEnd),
         autoRenew: false,
@@ -54,6 +62,7 @@ export function generateEntries(params: GenerateEntriesParams): CreateSubscripti
       const periodEnd = advancePeriod(periodStart, billingCycle)
       entries.push({
         ...baseFields,
+        period,
         startDate: toDateString(periodStart),
         endDate: toDateString(periodEnd),
         autoRenew: false,

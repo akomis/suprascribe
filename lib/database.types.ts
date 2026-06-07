@@ -8,63 +8,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      AFFILIATES: {
-        Row: {
-          id: string
-          user_id: string
-          code: string
-          commission_rate: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          code: string
-          commission_rate?: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          code?: string
-          commission_rate?: number
-          created_at?: string
-        }
-        Relationships: []
-      }
       AFFILIATE_CONVERSIONS: {
         Row: {
-          id: string
           affiliate_code: string
-          converted_user_id: string
-          stripe_payment_intent_id: string | null
           amount_cents: number
-          currency: string
           commission_amount: number
-          status: 'pending' | 'paid'
+          converted_user_id: string
           created_at: string
+          currency: string
+          id: string
+          status: string
+          stripe_payment_intent_id: string | null
         }
         Insert: {
-          id?: string
           affiliate_code: string
-          converted_user_id: string
-          stripe_payment_intent_id?: string | null
           amount_cents: number
-          currency: string
           commission_amount: number
-          status?: 'pending' | 'paid'
+          converted_user_id: string
           created_at?: string
+          currency: string
+          id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
         }
         Update: {
-          id?: string
           affiliate_code?: string
-          converted_user_id?: string
-          stripe_payment_intent_id?: string | null
           amount_cents?: number
-          currency?: string
           commission_amount?: number
-          status?: 'pending' | 'paid'
+          converted_user_id?: string
           created_at?: string
+          currency?: string
+          id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
         }
         Relationships: [
           {
@@ -75,6 +51,30 @@ export type Database = {
             referencedColumns: ['code']
           },
         ]
+      }
+      AFFILIATES: {
+        Row: {
+          code: string
+          commission_rate: number
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       DISCOVERY_RUNS: {
         Row: {
@@ -198,6 +198,59 @@ export type Database = {
           },
         ]
       }
+      USER_SUBSCRIPTIONS: {
+        Row: {
+          auto_renew: boolean
+          created_at: string
+          currency: Database['public']['Enums']['CURRENCY_CODE']
+          end_date: string | null
+          id: number
+          payment_method: string | null
+          period: Database['public']['Enums']['BILLING_PERIOD']
+          price: number | null
+          source_email: string | null
+          start_date: string | null
+          subscription_service_id: number
+          user_id: string | null
+        }
+        Insert: {
+          auto_renew?: boolean
+          created_at?: string
+          currency?: Database['public']['Enums']['CURRENCY_CODE']
+          end_date?: string | null
+          id?: number
+          payment_method?: string | null
+          period?: Database['public']['Enums']['BILLING_PERIOD']
+          price?: number | null
+          source_email?: string | null
+          start_date?: string | null
+          subscription_service_id: number
+          user_id?: string | null
+        }
+        Update: {
+          auto_renew?: boolean
+          created_at?: string
+          currency?: Database['public']['Enums']['CURRENCY_CODE']
+          end_date?: string | null
+          id?: number
+          payment_method?: string | null
+          period?: Database['public']['Enums']['BILLING_PERIOD']
+          price?: number | null
+          source_email?: string | null
+          start_date?: string | null
+          subscription_service_id?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'USER_SUBSCRIPTIONS_subscription_service_id_fkey'
+            columns: ['subscription_service_id']
+            isOneToOne: false
+            referencedRelation: 'SUBSCRIPTION_SERVICES'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       USER_TIERS: {
         Row: {
           created_at: string
@@ -225,56 +278,6 @@ export type Database = {
         }
         Relationships: []
       }
-      USER_SUBSCRIPTIONS: {
-        Row: {
-          auto_renew: boolean
-          created_at: string
-          currency: Database['public']['Enums']['CURRENCY_CODE']
-          end_date: string | null
-          id: number
-          payment_method: string | null
-          price: number | null
-          source_email: string | null
-          start_date: string | null
-          subscription_service_id: number
-          user_id: string | null
-        }
-        Insert: {
-          auto_renew?: boolean
-          created_at?: string
-          currency?: Database['public']['Enums']['CURRENCY_CODE']
-          end_date?: string | null
-          id?: number
-          payment_method?: string | null
-          price?: number | null
-          source_email?: string | null
-          start_date?: string | null
-          subscription_service_id: number
-          user_id?: string | null
-        }
-        Update: {
-          auto_renew?: boolean
-          created_at?: string
-          currency?: Database['public']['Enums']['CURRENCY_CODE']
-          end_date?: string | null
-          id?: number
-          payment_method?: string | null
-          price?: number | null
-          source_email?: string | null
-          start_date?: string | null
-          subscription_service_id?: number
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'USER_SUBSCRIPTIONS_subscription_service_id_fkey'
-            columns: ['subscription_service_id']
-            isOneToOne: false
-            referencedRelation: 'SUBSCRIPTION_SERVICES'
-            referencedColumns: ['id']
-          },
-        ]
-      }
     }
     Views: {
       user_email_tier: {
@@ -296,6 +299,7 @@ export type Database = {
       }
     }
     Enums: {
+      BILLING_PERIOD: 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
       CURRENCY_CODE: 'USD' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'CAD' | 'CHF' | 'CNY' | 'INR' | 'KRW'
       SUBSCRIPTION_CATEGORY:
         | 'Entertainment'
@@ -432,9 +436,10 @@ export type CompositeTypes<
     ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never
 
-const _Constants = {
+export const Constants = {
   public: {
     Enums: {
+      BILLING_PERIOD: ['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'],
       CURRENCY_CODE: ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR', 'KRW'],
       SUBSCRIPTION_CATEGORY: [
         'Entertainment',

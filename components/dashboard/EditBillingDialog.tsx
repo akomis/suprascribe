@@ -37,6 +37,7 @@ type EditBillingDialogBaseProps = {
   onOpenChange: (open: boolean) => void
   onSuccess?: () => void
   actions: EditBillingActions
+  disableServiceName?: boolean
 }
 
 export function EditBillingDialogBase({
@@ -45,6 +46,7 @@ export function EditBillingDialogBase({
   onOpenChange,
   onSuccess,
   actions,
+  disableServiceName = false,
 }: EditBillingDialogBaseProps) {
   const handleSubmit = async (entries: CreateSubscriptionFormData[]) => {
     if (!subscription) return
@@ -74,6 +76,7 @@ export function EditBillingDialogBase({
           onCancel={() => onOpenChange(false)}
           isSubmitting={actions.update.isPending}
           submitError={actions.update.error}
+          disableServiceName={disableServiceName}
           deleteButton={
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center gap-2">
@@ -118,6 +121,7 @@ export function EditBillingDialog({
   open,
   onOpenChange,
   onSuccess,
+  disableServiceName,
 }: Omit<EditBillingDialogBaseProps, 'actions'>) {
   const updateMutation = useUpdateSubscription()
   const deleteMutation = useDeleteSubscription()
@@ -129,6 +133,7 @@ export function EditBillingDialog({
       onOpenChange={onOpenChange}
       onSuccess={onSuccess}
       actions={{ update: updateMutation, delete: deleteMutation }}
+      disableServiceName={disableServiceName}
     />
   )
 }

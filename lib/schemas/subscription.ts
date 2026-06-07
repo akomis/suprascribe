@@ -14,7 +14,7 @@ export const SUBSCRIPTION_CATEGORIES = [
   'Transportation',
 ] as const
 
-export const BILLING_PERIODS = ['monthly', 'yearly', 'quarterly', 'weekly'] as const
+export const BILLING_PERIODS = ['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'] as const
 
 const _EmailAnalysisResultSchema = z.object({
   is_subscription: z
@@ -35,7 +35,7 @@ const _EmailAnalysisResultSchema = z.object({
     .enum(BILLING_PERIODS)
     .optional()
     .describe(
-      'Billing period: "monthly" for monthly billing, "yearly" for annual/yearly billing, "quarterly" for quarterly billing, "weekly" for weekly billing. If unclear or one-time, omit.',
+      'Billing period: "MONTHLY" for monthly billing, "YEARLY" for annual/yearly billing, "QUARTERLY" for quarterly billing, "WEEKLY" for weekly billing. If unclear or one-time, omit.',
     ),
   currency: z.string().optional().describe('Currency code (USD, EUR, GBP, etc.)'),
   start_date: z.string().optional().describe('Billing/payment date in YYYY-MM-DD format'),
@@ -79,7 +79,7 @@ const DiscoveredSubscriptionSchema = z.object({
     .enum(BILLING_PERIODS)
     .optional()
     .describe(
-      'Billing period: "monthly" for monthly billing, "yearly" for annual/yearly billing, "quarterly" for quarterly billing, "weekly" for weekly billing. If unclear or one-time, omit.',
+      'Billing period: "MONTHLY" for monthly billing, "YEARLY" for annual/yearly billing, "QUARTERLY" for quarterly billing, "WEEKLY" for weekly billing. If unclear or one-time, omit.',
     ),
   currency: z.string().optional().describe('Currency code (USD, EUR, GBP, etc.)'),
   start_date: z.string().describe('Earliest billing/payment date found (YYYY-MM-DD format)'),

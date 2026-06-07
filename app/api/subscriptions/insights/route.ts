@@ -11,6 +11,7 @@ import type {
 import { buildInsights } from '@/lib/utils/subscription-analytics'
 import { mergeSubscriptionsByService, getMostRecent } from '@/lib/utils/subscription-aggregation'
 import { convertCurrency } from '@/lib/utils/currency'
+import { toMonthlyCost } from '@/lib/utils'
 import { NextResponse } from 'next/server'
 
 export const GET = withAuth(
@@ -44,15 +45,20 @@ export const GET = withAuth(
       const mergedSubscriptionsList: Subscription[] = Array.from(mergedMap.values()).map(
         ({ merged, subscriptions: subs }) => {
           const mostRecent = getMostRecent(subs)
+          const period = mostRecent.period || 'MONTHLY'
+          const rawPrice = mostRecent.price || 0
+          const convertedPrice = convertCurrency(
+            rawPrice,
+            mostRecent.currency as CurrencyCode,
+            targetCurrency,
+          )
           return {
             id: mostRecent.id.toString(),
             name: mostRecent.subscription_service?.name || 'Unknown Service',
             url: mostRecent.subscription_service?.url || undefined,
-            monthlyCost: convertCurrency(
-              mostRecent.price || 0,
-              mostRecent.currency as CurrencyCode,
-              targetCurrency,
-            ),
+            price: convertedPrice,
+            period,
+            monthlyCost: toMonthlyCost(convertedPrice, period),
             currency: targetCurrency,
             startDate: merged.startDate,
             endDate: merged.endDate,

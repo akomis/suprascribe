@@ -190,6 +190,12 @@ function SubscriptionHeader({
                   mostRecentSubscription.price || 0,
                   mostRecentSubscription.currency as CurrencyCode,
                 )}
+                {(
+                  { WEEKLY: '/wk', MONTHLY: '/mo', QUARTERLY: '/qtr', YEARLY: '/yr' } as Record<
+                    string,
+                    string
+                  >
+                )[mostRecentSubscription.period] ?? '/mo'}
               </Badge>
               {mostRecentSubscription.payment_method && (
                 <p className="text-sm text-muted-foreground">
@@ -204,7 +210,7 @@ function SubscriptionHeader({
             )}
           </div>
         </div>
-        {!isPast && hasQuickUnsubscribe && subscription.subscription_service?.unsubscribe_url && (
+        {!isPast && hasQuickUnsubscribe && (
           <Button variant="outline" size="sm" onClick={onOpenUnsubscribeUrl}>
             <UserX className="size-4" />
             Unsubscribe
@@ -221,7 +227,8 @@ function SubscriptionActions({
   hasSubscriptionHistory,
   isPast,
   isDeletePending,
-  onEdit,
+  onEditFromDot,
+  onEditFromButton,
   onDelete,
   onAddBilling,
 }: {
@@ -230,7 +237,8 @@ function SubscriptionActions({
   hasSubscriptionHistory: boolean
   isPast: boolean | null | Date | string
   isDeletePending: boolean
-  onEdit: (sub: UserSubscriptionWithDetails) => void
+  onEditFromDot: (sub: UserSubscriptionWithDetails) => void
+  onEditFromButton: (sub: UserSubscriptionWithDetails) => void
   onDelete: () => void
   onAddBilling: () => void
 }) {
@@ -238,7 +246,7 @@ function SubscriptionActions({
     <div className="space-y-4 max-w-full overflow-x-hidden">
       {hasSubscriptionHistory && (
         <>
-          <SubscriptionHistory subscriptions={subscriptionsToShow} onEdit={onEdit} />
+          <SubscriptionHistory subscriptions={subscriptionsToShow} onEdit={onEditFromDot} />
           <div className="flex items-center gap-1 -mt-8">
             <Info className="text-muted-foreground/70" size={12} />
             <p className="text-xs text-muted-foreground/60 text-start">
@@ -264,7 +272,7 @@ function SubscriptionActions({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onEdit(mostRecentSubscription)}
+              onClick={() => onEditFromButton(mostRecentSubscription)}
               title="Edit latest billing period"
             >
               <Pencil className="size-4" />
@@ -298,6 +306,7 @@ export type SubscriptionDetailsActions = {
     open: boolean
     onOpenChange: (open: boolean) => void
     onSuccess?: () => void
+    disableServiceName?: boolean
   }>
 }
 
@@ -327,6 +336,7 @@ export function SubscriptionDetailsDialogBase({
   const [showAddBillingDialog, setShowAddBillingDialog] = React.useState(false)
   const [editingSubscription, setEditingSubscription] =
     React.useState<UserSubscriptionWithDetails | null>(null)
+  const [editingFromDot, setEditingFromDot] = React.useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false)
   const [showUnsubscribeConfirm, setShowUnsubscribeConfirm] = React.useState(false)
   const [isMarkingCancelled, setIsMarkingCancelled] = React.useState(false)
@@ -371,7 +381,10 @@ export function SubscriptionDetailsDialogBase({
   const handleOpenServiceUrl = () => openExternalUrl(subscription.subscription_service?.url)
 
   const handleOpenUnsubscribeUrl = () => {
-    openExternalUrl(subscription.subscription_service?.unsubscribe_url)
+    const unsubscribeUrl =
+      subscription.subscription_service?.unsubscribe_url ||
+      `https://justdeleteme.xyz/#${encodeURIComponent((subscription.subscription_service?.name ?? '').toLowerCase().replace(/\s+/g, ''))}`
+    openExternalUrl(unsubscribeUrl)
     setShowUnsubscribeConfirm(true)
   }
 
@@ -413,7 +426,14 @@ export function SubscriptionDetailsDialogBase({
           hasSubscriptionHistory={hasSubscriptionHistory}
           isPast={isPast}
           isDeletePending={deleteMutation.isPending}
-          onEdit={setEditingSubscription}
+          onEditFromDot={(sub) => {
+            setEditingSubscription(sub)
+            setEditingFromDot(true)
+          }}
+          onEditFromButton={(sub) => {
+            setEditingSubscription(sub)
+            setEditingFromDot(false)
+          }}
           onDelete={() => setShowDeleteConfirm(true)}
           onAddBilling={() => setShowAddBillingDialog(true)}
         />
@@ -433,9 +453,13 @@ export function SubscriptionDetailsDialogBase({
         subscription={editingSubscription}
         open={Boolean(editingSubscription)}
         onOpenChange={(open) => {
-          if (!open) setEditingSubscription(null)
+          if (!open) {
+            setEditingSubscription(null)
+            setEditingFromDot(false)
+          }
         }}
         onSuccess={() => onOpenChange(false)}
+        disableServiceName={editingFromDot}
       />
 
       <DeleteConfirmDialog
