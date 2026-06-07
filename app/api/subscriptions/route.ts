@@ -4,7 +4,7 @@ import type { UserSubscriptionWithDetails } from '@/lib/types/database'
 import type { CreateSubscriptionFormData } from '@/lib/types/forms'
 import type { MergedSubscriptionResponse } from '@/lib/types/subscriptions'
 import type { ApiResponse } from '@/lib/types/api'
-import { transformFormToDatabaseInserts } from '@/lib/utils'
+import { transformFormToDatabaseInserts, toMonthlyCost } from '@/lib/utils'
 import { mergeSubscriptionsByService, getMostRecent } from '@/lib/utils/subscription-aggregation'
 import {
   calculateServiceSpentThisYear,
@@ -41,12 +41,15 @@ export const GET = withAuth(
         ({ subscriptions: subs, merged }) => {
           const mostRecent = getMostRecent(subs)
           const autoRenew = Boolean(mostRecent.auto_renew)
-          const monthlyPrice = mostRecent.price || 0
+          const period = mostRecent.period || 'MONTHLY'
+          const rawPrice = mostRecent.price || 0
+          const monthlyPrice = toMonthlyCost(rawPrice, period)
 
           return {
             name: mostRecent.subscription_service?.name || 'Unknown Service',
             serviceUrl: mostRecent.subscription_service?.url || undefined,
-            price: monthlyPrice,
+            price: rawPrice,
+            period,
             currency: mostRecent.currency,
             startDate: merged.startDate,
             endDate: merged.endDate,
@@ -55,12 +58,13 @@ export const GET = withAuth(
             category: mostRecent.subscription_service?.category || null,
             paymentMethod: mostRecent.payment_method || null,
             subscriptions: subs,
-            spentThisYear: calculateServiceSpentThisYear(subs, monthlyPrice, today),
+            spentThisYear: calculateServiceSpentThisYear(subs, monthlyPrice, today, period),
             forecastThisYear: calculateServiceForecastThisYear(
               subs,
               monthlyPrice,
               autoRenew,
               today,
+              period,
             ),
             totalSpent: subs.reduce((sum, s) => sum + (s.price || 0), 0),
           }

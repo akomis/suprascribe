@@ -18,10 +18,10 @@ async function fetchOwnedSubscription(
   supabase: SupabaseClient,
   subscriptionId: number,
   userId: string,
-): Promise<NextResponse | { id: number; user_id: string }> {
+): Promise<NextResponse | { id: number; user_id: string; subscription_service_id: number | null }> {
   const { data, error } = await supabase
     .from('USER_SUBSCRIPTIONS')
-    .select('id, user_id')
+    .select('id, user_id, subscription_service_id')
     .eq('id', subscriptionId)
     .single()
 
@@ -47,7 +47,14 @@ export const PUT = withAuth<Params>(async (request, { user, supabase, params }) 
       user.id,
     )
 
-    const result = await updateSubscription(supabase, subscriptionId, serviceData, subscriptionData)
+    const result = await updateSubscription(
+      supabase,
+      subscriptionId,
+      serviceData,
+      subscriptionData,
+      user.id,
+      owned.subscription_service_id ?? undefined,
+    )
 
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: result.status })

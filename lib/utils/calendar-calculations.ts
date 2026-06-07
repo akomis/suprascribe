@@ -1,5 +1,6 @@
 import type { MergedSubscriptionResponse } from '@/lib/types/subscriptions'
 import type { DaySubscription } from '@/lib/types/calendar'
+import { toMonthlyCost } from '@/lib/utils'
 
 const CALENDAR_YEAR_RANGE = { min: 2020, max: 2030 }
 
@@ -16,7 +17,7 @@ export function buildSubscriptionDateMap(
       id: sub.subscriptions[0]?.id?.toString() || sub.name,
       name: sub.name,
       serviceUrl: sub.serviceUrl,
-      price: sub.price,
+      price: toMonthlyCost(sub.price, sub.period),
       autoRenew: sub.autoRenew,
     }
 

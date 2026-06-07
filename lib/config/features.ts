@@ -47,6 +47,13 @@ export const Features = {
     tier: TIER.BASIC,
     enabled: true,
   },
+  pwa_install: {
+    key: 'pwa_install',
+    name: 'Install as App',
+    description: 'Install as a desktop or mobile app (PWA)',
+    tier: TIER.BASIC,
+    enabled: true,
+  },
   auto_discovery: {
     key: 'auto_discovery',
     name: 'Auto Discovery',

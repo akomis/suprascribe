@@ -191,18 +191,12 @@ function cleanServiceName(name: string): string {
   return cleaned
 }
 
-function normalizePriceByBillingPeriod(price: number, billingPeriod?: BillingPeriod): number {
-  switch (billingPeriod) {
-    case 'yearly':
-      return price / 12
-    case 'quarterly':
-      return price / 3
-    case 'weekly':
-      return price * 4.33
-    case 'monthly':
-    default:
-      return price
+function toBillingPeriodEnum(raw?: string | null): BillingPeriod {
+  const upper = (raw ?? '').toUpperCase()
+  if (upper === 'WEEKLY' || upper === 'MONTHLY' || upper === 'QUARTERLY' || upper === 'YEARLY') {
+    return upper as BillingPeriod
   }
+  return 'MONTHLY'
 }
 
 function isStoreUrl(url: string): boolean {
@@ -243,14 +237,12 @@ export function normalizeDiscoveredSubscription(raw: {
       ? (raw.category as SubscriptionCategory)
       : undefined
 
-  const monthlyPrice = normalizePriceByBillingPeriod(
-    raw.price,
-    raw.billing_period as BillingPeriod | undefined,
-  )
+  const period = toBillingPeriodEnum(raw.billing_period)
 
   const candidate = {
     service_name: cleanServiceName(raw.service_name),
-    price: monthlyPrice,
+    price: raw.price,
+    period,
     currency: raw.currency ?? undefined,
     start_date: raw.start_date,
     end_date: endDate,
@@ -281,13 +273,14 @@ export function deduplicateAndMerge(
 
   for (const sub of subscriptions) {
     const nameKey = sub.service_name.toLowerCase().trim()
-    const directKey = `${nameKey}_${sub.price}`
+    const subPeriod = sub.period ?? 'MONTHLY'
+    const directKey = `${nameKey}_${sub.price}_${subPeriod}`
     const key =
       Object.keys(acc).find(
         (k) =>
-          k.startsWith(`${nameKey}_`) &&
           acc[k].service_name.toLowerCase().trim() === nameKey &&
-          acc[k].price === sub.price,
+          acc[k].price === sub.price &&
+          (acc[k].period ?? 'MONTHLY') === subPeriod,
       ) ?? directKey
 
     if (!acc[key]) {

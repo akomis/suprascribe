@@ -16,18 +16,24 @@ function transformSubscriptions(
   subscriptions: DemoMergedSubscription[],
   targetCurrency: CurrencyCode,
 ): Subscription[] {
-  return subscriptions.map((sub, index) => ({
-    id: index.toString(),
-    name: sub.name,
-    url: sub.serviceUrl,
-    monthlyCost: convertCurrency(sub.price, sub.currency as CurrencyCode, targetCurrency),
-    currency: targetCurrency,
-    startDate: sub.startDate,
-    endDate: sub.endDate,
-    category: sub.category || sub.subscriptions[0]?.category || null,
-    paymentMethod: sub.subscriptions[0]?.payment_method || null,
-    autoRenew: Boolean(sub.autoRenew),
-  }))
+  return subscriptions.map((sub, index) => {
+    const period = sub.period ?? 'MONTHLY'
+    const convertedPrice = convertCurrency(sub.price, sub.currency as CurrencyCode, targetCurrency)
+    return {
+      id: index.toString(),
+      name: sub.name,
+      url: sub.serviceUrl,
+      price: convertedPrice,
+      period,
+      monthlyCost: convertedPrice,
+      currency: targetCurrency,
+      startDate: sub.startDate,
+      endDate: sub.endDate,
+      category: sub.category || sub.subscriptions[0]?.category || null,
+      paymentMethod: sub.subscriptions[0]?.payment_method || null,
+      autoRenew: Boolean(sub.autoRenew),
+    }
+  })
 }
 
 export function useDemoInsights(

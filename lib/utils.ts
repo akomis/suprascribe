@@ -39,6 +39,7 @@ export function transformFormToDatabaseInserts(
       auto_renew: formData.autoRenew,
       price: formData.price,
       currency: formData.currency,
+      period: formData.period,
       ...(formData.paymentMethod && { payment_method: formData.paymentMethod }),
       ...(formData.sourceEmail && { source_email: formData.sourceEmail }),
     },
@@ -66,24 +67,17 @@ export function formatDateDisplay(dateString: string): string {
   })
 }
 
-function detectBillingPeriod(
-  startDate: string,
-  endDate: string,
-): 'weekly' | 'monthly' | 'yearly' | null {
-  const diffDays = Math.round(
-    (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24),
-  )
-  if (diffDays >= 360 && diffDays <= 370) return 'yearly'
-  if (diffDays >= 28 && diffDays <= 31) return 'monthly'
-  if (diffDays >= 6 && diffDays <= 8) return 'weekly'
-  return null
-}
-
-export function normalizeToMonthlyPrice(price: number, startDate: string, endDate: string): number {
-  const period = detectBillingPeriod(startDate, endDate)
-  if (period === 'weekly') return price * (52 / 12)
-  if (period === 'yearly') return price / 12
-  return price
+export function toMonthlyCost(price: number, period: string): number {
+  switch (period) {
+    case 'YEARLY':
+      return Math.round((price / 12) * 100) / 100
+    case 'QUARTERLY':
+      return Math.round((price / 3) * 100) / 100
+    case 'WEEKLY':
+      return Math.round(price * (52 / 12) * 100) / 100
+    default:
+      return price
+  }
 }
 
 /**
@@ -204,6 +198,7 @@ export function convertDiscoveredToFormData(discovered: {
   category?: string | null
   currency?: string | null
   price: number
+  period?: string | null
   start_date: string
   end_date: string
   service_url?: string | null
@@ -229,6 +224,7 @@ export function convertDiscoveredToFormData(discovered: {
     serviceName,
     price: discovered.price,
     currency: normalizeCurrency(discovered.currency),
+    period: (discovered.period as any) ?? 'MONTHLY',
     startDate: discovered.start_date,
     endDate: discovered.end_date,
     autoRenew: discovered.auto_renew ?? false,

@@ -44,6 +44,7 @@ export function DemoSubscriptionDetailsDialog({
           autoRenew: false,
           price: sub.price || 0,
           currency: sub.currency as CurrencyCode,
+          period: sub.period ?? 'MONTHLY',
           paymentMethod: sub.payment_method || undefined,
         },
       })

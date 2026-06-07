@@ -4,7 +4,7 @@ import type {
   UserSubscriptionInsert,
   UserSubscriptionWithDetails,
 } from '@/lib/types/database'
-import { isDuplicateSubscription, normalizeToMonthlyPrice } from '@/lib/utils'
+import { isDuplicateSubscription } from '@/lib/utils'
 
 export type IntakeResult =
   | { ok: true; subscription: UserSubscriptionWithDetails }
@@ -139,15 +139,9 @@ export async function intakeSubscription(
     }
   }
 
-  const monthlyPrice = normalizeToMonthlyPrice(
-    subscriptionData.price ?? 0,
-    subscriptionData.start_date!,
-    subscriptionData.end_date!,
-  )
-
   const { data: inserted, error: insertError } = await supabase
     .from('USER_SUBSCRIPTIONS')
-    .insert({ ...subscriptionData, price: monthlyPrice, subscription_service_id: serviceId })
+    .insert({ ...subscriptionData, subscription_service_id: serviceId })
     .select('id')
     .single()
 
@@ -175,21 +169,33 @@ export async function updateSubscription(
   subscriptionId: number,
   serviceData: SubscriptionServiceInsert,
   subscriptionData: Omit<UserSubscriptionInsert, 'subscription_service_id'>,
+  userId?: string,
+  oldServiceId?: number,
 ): Promise<IntakeResult> {
   const serviceResult = await upsertService(supabase, serviceData)
   if ('error' in serviceResult) return { ok: false, ...serviceResult }
 
   const { serviceId } = serviceResult
 
-  const monthlyPrice = normalizeToMonthlyPrice(
-    subscriptionData.price ?? 0,
-    subscriptionData.start_date!,
-    subscriptionData.end_date!,
-  )
+  // Service changed: repoint ALL of this user's billing periods from old service to new
+  if (userId && oldServiceId && oldServiceId !== serviceId) {
+    const { error: bulkError } = await supabase
+      .from('USER_SUBSCRIPTIONS')
+      .update({ subscription_service_id: serviceId })
+      .eq('user_id', userId)
+      .eq('subscription_service_id', oldServiceId)
+    if (bulkError) {
+      return {
+        ok: false,
+        error: `Error updating service for all periods: ${bulkError.message}`,
+        status: 500,
+      }
+    }
+  }
 
   const { error: updateError } = await supabase
     .from('USER_SUBSCRIPTIONS')
-    .update({ ...subscriptionData, price: monthlyPrice, subscription_service_id: serviceId })
+    .update({ ...subscriptionData, subscription_service_id: serviceId })
     .eq('id', subscriptionId)
 
   if (updateError) {

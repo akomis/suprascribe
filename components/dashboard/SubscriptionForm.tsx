@@ -35,6 +35,7 @@ type SubscriptionFormProps = {
   submitError: Error | null
   deleteButton?: React.ReactNode
   isNewBillingPeriod?: boolean
+  disableServiceName?: boolean
 }
 
 type DatePickerButtonProps = {
@@ -339,6 +340,7 @@ type SubmitParams = {
   addBillingCycle: BillingCycle | null
   upUntilToday: boolean
   addDuration: string
+  subscriptionPeriod?: import('@/lib/types/forms').BillingPeriod
 }
 
 function buildSubmitEntries(isAddMode: boolean, p: SubmitParams): CreateSubscriptionFormData[] {
@@ -359,12 +361,18 @@ function buildSubmitEntries(isAddMode: boolean, p: SubmitParams): CreateSubscrip
       autoRenew: p.autoRenew,
     })
   }
+  const cycleMap: Record<BillingCycle, import('@/lib/types/forms').BillingPeriod> = {
+    weekly: 'WEEKLY',
+    monthly: 'MONTHLY',
+    annually: 'YEARLY',
+  }
   return [
     {
       serviceName,
       serviceUrl,
       price,
       currency: p.currency,
+      period: p.subscriptionPeriod ?? (p.addBillingCycle ? cycleMap[p.addBillingCycle] : 'MONTHLY'),
       startDate: p.startDate,
       endDate: p.endDate,
       autoRenew: p.autoRenew,
@@ -530,6 +538,7 @@ export function SubscriptionForm({
   submitError,
   deleteButton,
   isNewBillingPeriod = false,
+  disableServiceName = false,
 }: SubscriptionFormProps) {
   const { currency: userCurrency } = useCurrency()
   const [name, setName] = React.useState(subscription?.subscription_service?.name || '')
@@ -622,6 +631,9 @@ export function SubscriptionForm({
         addBillingCycle,
         upUntilToday,
         addDuration,
+        subscriptionPeriod: subscription?.period as
+          | import('@/lib/types/forms').BillingPeriod
+          | undefined,
       })
       await onSubmit(entries)
     } catch (err) {
@@ -639,7 +651,7 @@ export function SubscriptionForm({
             setName(serviceName)
             if (url) setServiceUrl(url)
           }}
-          disabled={isSubmitting || isNewBillingPeriod}
+          disabled={isSubmitting || isNewBillingPeriod || disableServiceName}
         />
       </div>
 

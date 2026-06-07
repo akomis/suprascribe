@@ -118,6 +118,7 @@ function SubscriptionList({
       name={merged.name}
       serviceUrl={merged.serviceUrl || ''}
       price={merged.price}
+      period={merged.period}
       currency={merged.currency as CurrencyCode}
       startDate={merged.startDate}
       endDate={merged.endDate}

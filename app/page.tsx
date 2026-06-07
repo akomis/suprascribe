@@ -90,7 +90,7 @@ export default function Home() {
               className="inline-flex items-center rounded-full border border-border bg-background/60 px-4 py-1 text-xs font-medium backdrop-blur-sm transition-colors hover:border-foreground/30 hover:bg-background/80"
             >
               <ShinyText
-                text="Release v1.1 - June 2026"
+                text="Release v1.2 - June 2026"
                 speed={3}
                 color="#888888"
                 shineColor="#ffffff"

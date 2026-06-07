@@ -4,6 +4,7 @@ export interface MergedSubscriptionResponse {
   name: string
   serviceUrl?: string
   price: number
+  period: string
   currency: string
   startDate: string
   endDate: string
@@ -52,6 +53,8 @@ export type Subscription = {
   id: string
   name: string
   url?: string
+  price: number
+  period: string
   monthlyCost: number
   currency: string
   startDate: string
