@@ -1,4 +1,4 @@
-import { Badges } from '@/components/landing/Badges'
+import { BadgesCarousel } from '@/components/landing/BadgesCarousel'
 import { CompetitorTable } from '@/components/landing/CompetitorTable'
 import { DiscoveryLearnMoreButton } from '@/components/landing/DiscoveryLearnMoreButton'
 import { FAQSection } from '@/components/landing/FAQSection'
@@ -260,7 +260,7 @@ export default function Home() {
                 </Link>
               </Button>
             </div>
-            <Badges />
+            <BadgesCarousel />
           </div>
         </section>
 
