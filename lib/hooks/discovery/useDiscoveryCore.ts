@@ -7,9 +7,17 @@ import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useInvalidateDiscoveryRuns } from './useDiscoveryRuns'
 
+export interface DiscoveryTeaser {
+  subscriptionsFound: number
+  preview: DiscoveredSubscription[]
+  email: string
+  emailCount: number
+}
+
 export interface DiscoveryCoreReturn {
   isDiscovering: boolean
   discoveredSubscriptions: DiscoveredSubscription[]
+  teaser: DiscoveryTeaser | null
   emailCount: number | null
   scannedEmail: string | null
   error: string | null
@@ -25,6 +33,7 @@ export function useDiscoveryCore(provider: string): DiscoveryCoreReturn {
   const [discoveredSubscriptions, setDiscoveredSubscriptions] = useState<DiscoveredSubscription[]>(
     [],
   )
+  const [teaser, setTeaser] = useState<DiscoveryTeaser | null>(null)
   const [emailCount, setEmailCount] = useState<number | null>(null)
   const [scannedEmail, setScannedEmail] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -49,6 +58,24 @@ export function useDiscoveryCore(provider: string): DiscoveryCoreReturn {
           if (data.kind === 'quota_exceeded') throw new Error(`Quota exceeded: ${msg}`)
           throw new Error(msg)
         }
+        return
+      }
+
+      if (data.teaser) {
+        setTeaser({
+          subscriptionsFound: data.subscriptionsFound,
+          preview: data.preview.map((sub) => ({ ...sub, source_email: data.email })),
+          email: data.email,
+          emailCount: data.emailCount,
+        })
+        setEmailCount(data.emailCount)
+        setScannedEmail(data.email)
+
+        posthog.capture('discovery_teaser_shown', {
+          provider,
+          subscriptions_found: data.subscriptionsFound,
+          emails_scanned: data.emailCount,
+        })
         return
       }
 
@@ -92,6 +119,7 @@ export function useDiscoveryCore(provider: string): DiscoveryCoreReturn {
   const clearDiscovery = () => {
     setIsDiscovering(false)
     setDiscoveredSubscriptions([])
+    setTeaser(null)
     setEmailCount(null)
     setScannedEmail(null)
     setError(null)
@@ -102,6 +130,7 @@ export function useDiscoveryCore(provider: string): DiscoveryCoreReturn {
   return {
     isDiscovering,
     discoveredSubscriptions,
+    teaser,
     emailCount,
     scannedEmail,
     error,

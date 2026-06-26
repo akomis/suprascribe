@@ -35,7 +35,7 @@ export function ShinyText({
     <span
       className={`inline-block ${className}`}
       style={{
-        backgroundImage: `linear-gradient(${spread}deg, ${color} 0%, ${color} 35%, ${shineColor} 50%, ${color} 65%, ${color} 100%)`,
+        backgroundImage: `linear-gradient(${spread}deg, var(--shiny-text-color, ${color}) 0%, var(--shiny-text-color, ${color}) 35%, ${shineColor} 50%, var(--shiny-text-color, ${color}) 65%, var(--shiny-text-color, ${color}) 100%)`,
         backgroundSize: '200% auto',
         WebkitBackgroundClip: 'text',
         backgroundClip: 'text',

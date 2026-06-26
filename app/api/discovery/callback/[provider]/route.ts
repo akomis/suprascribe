@@ -13,10 +13,13 @@ async function handleOAuthCallback(
   error: string | null,
 ) {
   const origin = process.env.NEXT_PUBLIC_BASE_URL as string
+  // Anonymous one-time funnel users return to /one-time-scan; everyone else to /dashboard.
+  const isOnceFlow = getCookieValue(request, 'discovery_flow') === 'once'
+  const errorBase = isOnceFlow ? `${origin}/one-time-scan` : `${origin}/dashboard`
 
   if (error) {
     console.error(`${provider} OAuth error:`, error)
-    return NextResponse.redirect(`${origin}/dashboard?error=oauth_denied`)
+    return NextResponse.redirect(`${errorBase}?error=oauth_denied`)
   }
 
   const savedState = getCookieValue(request, 'discovery_state')
@@ -27,12 +30,12 @@ async function handleOAuthCallback(
     timingSafeEqual(Buffer.from(state), Buffer.from(savedState))
   if (!stateValid) {
     console.error('Invalid or missing state parameter')
-    return NextResponse.redirect(`${origin}/dashboard?error=invalid_state`)
+    return NextResponse.redirect(`${errorBase}?error=invalid_state`)
   }
 
   if (!code) {
     console.error('No authorization code provided')
-    return NextResponse.redirect(`${origin}/dashboard?error=no_code`)
+    return NextResponse.redirect(`${errorBase}?error=no_code`)
   }
 
   try {
@@ -61,12 +64,12 @@ async function handleOAuthCallback(
         break
       default:
         console.error('Unsupported provider:', provider)
-        return NextResponse.redirect(`${origin}/dashboard?error=unsupported_provider`)
+        return NextResponse.redirect(`${errorBase}?error=unsupported_provider`)
     }
 
     if (!clientId || !clientSecret) {
       console.error(`${provider} OAuth credentials not configured`)
-      return NextResponse.redirect(`${origin}/dashboard?error=config_error`)
+      return NextResponse.redirect(`${errorBase}?error=config_error`)
     }
 
     const redirectUri = `${origin}/api/discovery/callback/${provider}`
@@ -89,7 +92,7 @@ async function handleOAuthCallback(
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.json().catch(() => ({}))
       console.error('Token exchange failed:', errorData)
-      return NextResponse.redirect(`${origin}/dashboard?error=token_exchange_failed`)
+      return NextResponse.redirect(`${errorBase}?error=token_exchange_failed`)
     }
 
     const tokenData = await tokenResponse.json()
@@ -97,10 +100,14 @@ async function handleOAuthCallback(
 
     if (!accessToken) {
       console.error('No access token in response')
-      return NextResponse.redirect(`${origin}/dashboard?error=no_access_token`)
+      return NextResponse.redirect(`${errorBase}?error=no_access_token`)
     }
 
-    const response = NextResponse.redirect(`${origin}/dashboard?discover=true`)
+    // Route anonymous one-time funnel users back to /one-time-scan; everyone else to the dashboard.
+    const returnPath = isOnceFlow
+      ? `/one-time-scan?discover=true&provider=${provider}`
+      : '/dashboard?discover=true'
+    const response = NextResponse.redirect(`${origin}${returnPath}`)
 
     response.cookies.set(`discovery_token_${provider}`, accessToken, {
       httpOnly: true,
@@ -115,10 +122,15 @@ async function handleOAuthCallback(
       maxAge: 0,
     })
 
+    response.cookies.set('discovery_flow', '', {
+      path: '/',
+      maxAge: 0,
+    })
+
     return response
   } catch (err) {
     console.error('Error in OAuth callback:', err)
-    return NextResponse.redirect(`${origin}/dashboard?error=server_error`)
+    return NextResponse.redirect(`${errorBase}?error=server_error`)
   }
 }
 

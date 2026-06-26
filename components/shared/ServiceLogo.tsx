@@ -1,5 +1,6 @@
 'use client'
 
+import { Spinner } from '@/components/ui/spinner'
 import { useLogo } from '@/lib/hooks/useLogo'
 import { cn } from '@/lib/utils'
 import { Box } from 'lucide-react'
@@ -33,6 +34,13 @@ export function ServiceLogo({
   )
   const logoUrl = resolvedLogoUrl !== undefined ? resolvedLogoUrl : fetchedLogoUrl
   const [logoError, setLogoError] = React.useState(false)
+  const [isLoaded, setIsLoaded] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsLoaded(false)
+    setLogoError(false)
+  }, [logoUrl])
+
   if (logoUrl && !logoError) {
     if (naturalSize) {
       return (
@@ -48,15 +56,29 @@ export function ServiceLogo({
       )
     }
     return (
-      <Image
-        src={logoUrl}
-        alt={`${name} logo`}
-        width={size}
-        height={size}
-        className={cn('object-contain', className)}
-        unoptimized
-        onError={() => setLogoError(true)}
-      />
+      <span
+        className={cn('relative inline-flex items-center justify-center', className)}
+        style={className ? undefined : { width: size, height: size }}
+      >
+        {!isLoaded && (
+          <Spinner
+            className="absolute size-auto text-muted-foreground"
+            style={{ width: '60%', height: '60%' }}
+          />
+        )}
+        <Image
+          src={logoUrl}
+          alt={`${name} logo`}
+          width={size}
+          height={size}
+          className={cn('h-full w-full object-contain transition-opacity', {
+            'opacity-0': !isLoaded,
+          })}
+          unoptimized
+          onLoad={() => setIsLoaded(true)}
+          onError={() => setLogoError(true)}
+        />
+      </span>
     )
   }
 

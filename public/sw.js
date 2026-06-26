@@ -6,7 +6,7 @@ const STATIC_ASSETS = [
   '/manifest.webmanifest',
 ]
 
-// Never cache these — always go to network
+// Never cache these - always go to network
 const BYPASS_PATTERNS = [/^\/api\//, /^\/dashboard/, /^\/supraph\//]
 
 self.addEventListener('install', (event) => {
@@ -32,7 +32,7 @@ self.addEventListener('fetch', (event) => {
   // Only handle same-origin GET requests
   if (request.method !== 'GET' || url.origin !== self.location.origin) return
 
-  // Bypass: API, dashboard, PostHog proxy — network only
+  // Bypass: API, dashboard, PostHog proxy - network only
   if (BYPASS_PATTERNS.some((pattern) => pattern.test(url.pathname))) return
 
   // Cache-first for Next.js static chunks (immutable, content-hashed)

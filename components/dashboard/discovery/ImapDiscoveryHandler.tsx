@@ -12,6 +12,7 @@ export function ImapDiscoveryHandler() {
   const {
     isDiscovering,
     discoveredSubscriptions,
+    teaser,
     emailCount,
     error,
     warning,
@@ -58,6 +59,7 @@ export function ImapDiscoveryHandler() {
       <DiscoveryDialog
         isDiscovering={isDiscovering}
         discoveredSubscriptions={discoveredSubscriptions}
+        teaser={teaser}
         emailCount={emailCount}
         error={error}
         warning={warning}

@@ -23,6 +23,7 @@ import { SubscriptionGroupBy, toInsightsGroupBy, type GroupByValue } from './Sub
 import { SubscriptionSearch } from './SubscriptionSearch'
 import { SubscriptionSort } from './SubscriptionSort'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import { Calculator, Check, PenLine } from 'lucide-react'
 import {
   DropdownMenu,
@@ -748,7 +749,8 @@ function SubscriptionsSectionContent({
 }: SubscriptionsSectionContentProps = {}) {
   const { data: mergedSubscriptions = [], error } = useSubscriptionsSuspense()
   const { hasAccess: hasSubscriptionHistory } = useFeatureAccess('subscription_history')
-  const { hasAccess: hasAutoDiscovery } = useAutoDiscoveryAccess()
+  const { hasAccess: hasAutoDiscovery, isLoading: isAutoDiscoveryLoading } =
+    useAutoDiscoveryAccess()
   const { hasAccess: hasSearchSort } = useFeatureAccess('search_sort_group')
 
   const actions: SubscriptionsSectionActions = {
@@ -772,7 +774,15 @@ function SubscriptionsSectionContent({
             Add Manually
           </Button>
         </div>
-        {hasAutoDiscovery ? <EmailProviderSelection /> : <SetupBYOKPrompt />}
+        {isAutoDiscoveryLoading ? (
+          <div className="flex items-center justify-center w-[300px] md:w-[450px] min-h-[200px]">
+            <Spinner className="size-8" />
+          </div>
+        ) : hasAutoDiscovery ? (
+          <EmailProviderSelection />
+        ) : (
+          <SetupBYOKPrompt />
+        )}
       </>
     ),
     renderActiveTabEmpty: () => <EmailProviderSelection />,

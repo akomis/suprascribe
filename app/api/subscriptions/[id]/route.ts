@@ -86,10 +86,17 @@ export const PATCH = withAuth<Params>(async (request, { user, supabase, params }
     const owned = await fetchOwnedSubscription(supabase, subscriptionId, user.id)
     if (owned instanceof NextResponse) return owned
 
-    const updateData: { auto_renew?: boolean } = {}
+    const updateData: { auto_renew?: boolean; end_date?: string } = {}
 
     if (typeof body.auto_renew === 'boolean') {
       updateData.auto_renew = body.auto_renew
+    }
+
+    if (typeof body.end_date === 'string') {
+      if (isNaN(new Date(body.end_date).getTime())) {
+        return NextResponse.json({ error: 'Invalid end_date' }, { status: 400 })
+      }
+      updateData.end_date = body.end_date
     }
 
     if (Object.keys(updateData).length === 0) {
@@ -115,10 +122,12 @@ export const PATCH = withAuth<Params>(async (request, { user, supabase, params }
       )
     }
 
-    void captureEvent(user.id, 'subscription_auto_renew_toggled', {
-      subscription_id: subscriptionId,
-      auto_renew: updateData.auto_renew,
-    })
+    if (typeof updateData.auto_renew === 'boolean') {
+      void captureEvent(user.id, 'subscription_auto_renew_toggled', {
+        subscription_id: subscriptionId,
+        auto_renew: updateData.auto_renew,
+      })
+    }
 
     return NextResponse.json({ data: updatedSubscription }, { status: 200 })
   } catch (error) {

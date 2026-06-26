@@ -268,8 +268,8 @@ function validateAddModeFields(fields: FormFields): string | null {
 
 function validateEditModeFields(fields: FormFields): string | null {
   if (!fields.endDate) return 'End date is required'
-  if (new Date(fields.endDate) <= new Date(fields.startDate))
-    return 'End date must be after start date'
+  if (new Date(fields.endDate) < new Date(fields.startDate))
+    return 'End date cannot be before start date'
   return null
 }
 

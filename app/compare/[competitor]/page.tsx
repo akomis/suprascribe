@@ -76,7 +76,7 @@ export default async function CompetitorPage({
             name: `What is the best alternative to ${competitor.name}?`,
             acceptedAnswer: {
               '@type': 'Answer',
-              text: `Suprascribe is the top alternative to ${competitor.name}. It offers unlimited free subscription tracking, automatic discovery via email scanning (no bank access), and a one-time €10 Pro upgrade with no recurring fees. ${competitor.verdict}`,
+              text: `Suprascribe is the top alternative to ${competitor.name}. It offers unlimited free subscription tracking, automatic discovery via email scanning (no bank access), and a one-time Pro upgrade with no recurring fees. ${competitor.verdict}`,
             },
           },
         ],

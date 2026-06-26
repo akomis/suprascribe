@@ -3,8 +3,10 @@
 import ICloudDiscoveryDialog from '@/components/dashboard/discovery/ICloudDiscoveryDialog'
 import { ImapDiscoveryHandler } from '@/components/dashboard/discovery/ImapDiscoveryHandler'
 import ProviderDiscoverButton from '@/components/dashboard/discovery/ProviderDiscoverButton'
+import { redirectToOAuth } from '@/lib/discovery/oauth-redirect'
 import { useDiscoveryRuns } from '@/lib/hooks/discovery/useDiscoveryRuns'
 import { useImapDiscovery } from '@/lib/hooks/discovery/useImapDiscovery'
+import { useAutoDiscoveryAccess } from '@/lib/hooks/useAutoDiscoveryAccess'
 import { useBYOKSettings } from '@/lib/hooks/useBYOKSettings'
 import { useDiscoveryAIProvider } from '@/lib/hooks/useDiscoveryAIProvider'
 import { formatRateLimitTooltip } from '@/lib/utils/discovery-rate-limit'
@@ -18,25 +20,6 @@ import { Spinner } from '../ui/spinner'
 import { DiscoveryDialog } from './discovery/DiscoveryDialog'
 import { ExhaustedDiscoveriesMessage } from './discovery/ExhaustedDiscoveriesMessage'
 
-function redirectToOAuth(config: {
-  authBaseUrl: string
-  clientId: string
-  redirectPath: string
-  scope: string
-  extraParams?: Record<string, string>
-}) {
-  const url = new URL(config.authBaseUrl)
-  url.searchParams.set('client_id', config.clientId)
-  url.searchParams.set('redirect_uri', `${window.location.origin}${config.redirectPath}`)
-  url.searchParams.set('response_type', 'code')
-  url.searchParams.set('scope', config.scope)
-  for (const [k, v] of Object.entries(config.extraParams ?? {})) url.searchParams.set(k, v)
-  const state = crypto.randomUUID()
-  document.cookie = `discovery_state=${state}; path=/; max-age=300; SameSite=Lax`
-  url.searchParams.set('state', state)
-  window.location.href = url.toString()
-}
-
 function DiscoveryCard({
   hasByokActive,
   activeKey,
@@ -47,6 +30,7 @@ function DiscoveryCard({
   isMicrosoftLoading,
   globalRateLimitTooltip,
   rateLimitInfo,
+  isFreeTeaser,
   onGoogleClick,
   onMicrosoftClick,
   onICloudClick,
@@ -60,6 +44,7 @@ function DiscoveryCard({
   isMicrosoftLoading: boolean
   globalRateLimitTooltip: string | null
   rateLimitInfo: { discoveriesUsed: number; maxDiscoveries: number } | null | undefined
+  isFreeTeaser: boolean
   onGoogleClick: () => void
   onMicrosoftClick: () => void
   onICloudClick: () => void
@@ -80,6 +65,7 @@ function DiscoveryCard({
             <ProviderDiscoverButton
               displayName="Gmail"
               logoQuery="google"
+              logoSrc="/logos/google.svg"
               onClick={onGoogleClick}
               disabled={!isGoogleConfigured}
               isLoading={isGoogleLoading}
@@ -88,6 +74,7 @@ function DiscoveryCard({
             <ProviderDiscoverButton
               displayName="Outlook"
               logoQuery="microsoft"
+              logoSrc="/logos/microsoft.svg"
               onClick={onMicrosoftClick}
               disabled={!isMicrosoftConfigured}
               isLoading={isMicrosoftLoading}
@@ -96,6 +83,7 @@ function DiscoveryCard({
             <ProviderDiscoverButton
               displayName="iCloud"
               logoQuery="apple"
+              logoSrc="/logos/apple.svg"
               onClick={onICloudClick}
               isLoading={isDiscovering}
               tooltipContent={globalRateLimitTooltip}
@@ -104,7 +92,7 @@ function DiscoveryCard({
           <div className="text-center">
             <ImapDiscoveryHandler />
           </div>
-          {!hasByokActive && (
+          {!hasByokActive && !isFreeTeaser && (
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
               {rateLimitInfo && rateLimitInfo.discoveriesUsed > 0 && (
                 <Link
@@ -148,12 +136,14 @@ export function EmailProviderSelection() {
   const [isGoogleConfigured, setIsGoogleConfigured] = React.useState(false)
   const [isMicrosoftConfigured, setIsMicrosoftConfigured] = React.useState(false)
 
+  const { canRunFreeTeaser } = useAutoDiscoveryAccess()
   const { rateLimitInfo, isLoading: isRateLimitLoading } = useDiscoveryRuns()
   const { keys, activeKeyId, isLoading: isByokLoading } = useBYOKSettings()
   const { aiProvider, aiModel, isLoadingAI, isByok: hasByokActive } = useDiscoveryAIProvider()
   const {
     isDiscovering,
     discoveredSubscriptions,
+    teaser,
     emailCount,
     error,
     warning,
@@ -241,6 +231,7 @@ export function EmailProviderSelection() {
           isMicrosoftLoading={isMicrosoftLoading}
           globalRateLimitTooltip={globalRateLimitTooltip}
           rateLimitInfo={rateLimitInfo}
+          isFreeTeaser={canRunFreeTeaser}
           onGoogleClick={handleGoogleClick}
           onMicrosoftClick={handleMicrosoftClick}
           onICloudClick={() => setShowICloudDialog(true)}
@@ -256,6 +247,7 @@ export function EmailProviderSelection() {
       <DiscoveryDialog
         isDiscovering={isDiscovering}
         discoveredSubscriptions={discoveredSubscriptions}
+        teaser={teaser}
         emailCount={emailCount}
         error={error}
         warning={warning}

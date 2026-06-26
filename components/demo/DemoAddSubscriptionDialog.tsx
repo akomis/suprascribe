@@ -5,6 +5,7 @@ import {
   type AddSubscriptionActions,
   type ViewType,
 } from '@/components/dashboard/AddSubscriptionDialog'
+import { DemoEmailProviderSelection } from '@/components/demo/DemoEmailProviderSelection'
 import { useDemoCreateSubscription } from '@/lib/demo/useDemoSubscriptions'
 
 export type { ViewType }
@@ -26,7 +27,8 @@ export default function DemoAddSubscriptionDialog({
 
   const actions: AddSubscriptionActions = {
     create: createSubscriptionMutation,
-    autoDiscoverEnabled: false,
+    autoDiscoverEnabled: true,
+    AutoDiscoverComponent: DemoEmailProviderSelection,
   }
 
   return (

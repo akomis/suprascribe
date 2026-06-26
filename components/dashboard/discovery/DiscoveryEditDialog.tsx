@@ -25,9 +25,11 @@ export function DiscoveryEditDialog({
     subscription_service: {
       name: subscription.service_name,
       url: subscription.service_url ?? null,
+      category: subscription.category ?? null,
     },
     price: subscription.price,
     currency: subscription.currency ?? 'USD',
+    period: subscription.period,
     start_date: subscription.start_date,
     end_date: subscription.end_date,
     auto_renew: subscription.auto_renew ?? false,

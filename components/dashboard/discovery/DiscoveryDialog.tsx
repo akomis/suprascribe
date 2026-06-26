@@ -26,15 +26,21 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
 import { useSubscriptions } from '@/lib/hooks/useSubscriptions'
+import type { DiscoveryTeaser } from '@/lib/hooks/discovery/useDiscoveryCore'
 import type { CreateSubscriptionFormData, DiscoveredSubscription } from '@/lib/types/forms'
 import {
   cn,
   convertDiscoveredToFormData,
+  formDataToDiscovered,
   isDuplicateSubscription,
   isSubscriptionActive,
 } from '@/lib/utils'
+import { formatCurrencyAmount } from '@/lib/utils/currency'
+import type { CurrencyCode } from '@/lib/hooks/useCurrency'
+import { ServiceLogo } from '@/components/shared/ServiceLogo'
+import { UpgradeButton } from '@/components/UpgradeButton'
 import { useQueryClient } from '@tanstack/react-query'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Lock } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -380,6 +386,86 @@ function ReviewSubscriptionsView({
   )
 }
 
+function TeaserPreviewRow({ sub }: { sub: DiscoveredSubscription }) {
+  return (
+    <div className="flex items-center gap-3 rounded-lg border p-3">
+      <div className="flex size-10 items-center justify-center rounded-lg overflow-hidden flex-shrink-0">
+        <ServiceLogo name={sub.service_name} serviceUrl={sub.service_url} />
+      </div>
+      <div className="flex flex-1 items-center justify-between gap-2 min-w-0">
+        <span className="font-medium truncate">{sub.service_name}</span>
+        {sub.price > 0 && (
+          <span className="text-sm text-muted-foreground tabular-nums">
+            {formatCurrencyAmount(sub.price, (sub.currency as CurrencyCode) ?? 'USD')}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function TeaserBlurredRow() {
+  return (
+    <div
+      className="flex items-center gap-3 rounded-lg border p-3 blur-sm select-none pointer-events-none"
+      aria-hidden="true"
+    >
+      <div className="size-10 rounded-lg bg-muted flex-shrink-0" />
+      <div className="flex flex-1 items-center justify-between gap-2">
+        <span className="h-4 w-32 rounded bg-muted" />
+        <span className="h-4 w-12 rounded bg-muted" />
+      </div>
+    </div>
+  )
+}
+
+function TeaserLockedView({ teaser, onClose }: { teaser: DiscoveryTeaser; onClose: () => void }) {
+  const hiddenCount = Math.max(teaser.subscriptionsFound - teaser.preview.length, 0)
+  // Cap the number of blurred placeholder rows so the dialog stays compact.
+  const placeholderRows = Math.min(hiddenCount, 4)
+
+  return (
+    <div className="animate-in fade-in duration-300 flex flex-col flex-1 overflow-hidden">
+      <DialogHeader>
+        <DialogTitle>We found {teaser.subscriptionsFound} subscriptions!</DialogTitle>
+        <DialogDescription>
+          Here&apos;s a peek at what we discovered in your inbox. Upgrade to Pro to unlock and
+          import the full list - no need to scan again.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="flex flex-col gap-2 py-4 overflow-y-auto flex-1 pr-1">
+        {teaser.preview.map((sub, i) => (
+          <TeaserPreviewRow key={`preview-${i}`} sub={sub} />
+        ))}
+
+        {placeholderRows > 0 && (
+          <div className="relative">
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: placeholderRows }).map((_, i) => (
+                <TeaserBlurredRow key={`blur-${i}`} />
+              ))}
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="flex items-center gap-2 rounded-full bg-background/80 px-3 py-1 text-sm font-medium shadow-sm">
+                <Lock className="size-4" />
+                {hiddenCount} more locked
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <DialogFooter className="flex-col sm:flex-row gap-2">
+        <Button variant="outline" onClick={onClose}>
+          Maybe later
+        </Button>
+        <UpgradeButton text="Upgrade to unlock all" location="discovery_teaser" />
+      </DialogFooter>
+    </div>
+  )
+}
+
 function ExitWarningDialog({
   open,
   onKeepGoing,
@@ -411,6 +497,7 @@ function ExitWarningDialog({
 interface DiscoveryDialogProps {
   isDiscovering: boolean
   discoveredSubscriptions: DiscoveredSubscription[]
+  teaser?: DiscoveryTeaser | null
   emailCount?: number | null
   error: string | null
   warning: string | null
@@ -421,11 +508,13 @@ interface DiscoveryDialogProps {
   aiModel?: string
   isLoadingAI?: boolean
   isByok?: boolean
+  onImport?: (entries: CreateSubscriptionFormData[]) => Promise<void>
 }
 
 export function DiscoveryDialog({
   isDiscovering,
   discoveredSubscriptions,
+  teaser,
   emailCount,
   error,
   warning,
@@ -436,14 +525,13 @@ export function DiscoveryDialog({
   aiModel,
   isLoadingAI,
   isByok,
+  onImport,
 }: DiscoveryDialogProps) {
   const queryClient = useQueryClient()
   const { data: existingSubscriptions = [] } = useSubscriptions({ skipStale: true })
   const [showDialog, setShowDialog] = useState(false)
   const [selectedSubscriptions, setSelectedSubscriptions] = useState<Set<number>>(new Set())
-  const [subscriptionOverrides, setSubscriptionOverrides] = useState<
-    Map<number, CreateSubscriptionFormData>
-  >(new Map())
+  const [editedSubscriptions, setEditedSubscriptions] = useState<DiscoveredSubscription[]>([])
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -453,8 +541,13 @@ export function DiscoveryDialog({
   const [finalElapsedTime, setFinalElapsedTime] = useState<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
 
+  // Keep a local, editable copy of the discovered list so edits live in the data itself.
+  useEffect(() => {
+    setEditedSubscriptions(discoveredSubscriptions)
+  }, [discoveredSubscriptions])
+
   const checkIfDuplicate = (discoveredIndex: number): boolean => {
-    const discovered = discoveredSubscriptions[discoveredIndex]
+    const discovered = editedSubscriptions[discoveredIndex]
     if (!discovered) return false
 
     return existingSubscriptions.some((merged) => {
@@ -510,17 +603,18 @@ export function DiscoveryDialog({
     if (
       isDiscovering ||
       discoveredSubscriptions.length > 0 ||
+      teaser != null ||
       error !== null ||
       warning !== null ||
       hasStartedDiscovery.current
     ) {
       setShowDialog(true)
     }
-  }, [isDiscovering, discoveredSubscriptions, error, warning])
+  }, [isDiscovering, discoveredSubscriptions, teaser, error, warning])
 
   useEffect(() => {
-    if (discoveredSubscriptions.length > 0) {
-      const nonDuplicateIndices = discoveredSubscriptions
+    if (editedSubscriptions.length > 0) {
+      const nonDuplicateIndices = editedSubscriptions
         .map((_, index) => index)
         .filter((index) => !checkIfDuplicate(index))
       // Use setTimeout to avoid synchronous setState during effect
@@ -529,12 +623,12 @@ export function DiscoveryDialog({
       }, 0)
       return () => clearTimeout(timer)
     }
-  }, [discoveredSubscriptions, existingSubscriptions])
+  }, [editedSubscriptions, existingSubscriptions])
 
   const handleClose = () => {
     setShowDialog(false)
     setSelectedSubscriptions(new Set())
-    setSubscriptionOverrides(new Map())
+    setEditedSubscriptions([])
     setEditingIndex(null)
     hasStartedDiscovery.current = false
     setFinalElapsedTime(null)
@@ -544,11 +638,9 @@ export function DiscoveryDialog({
   }
 
   const handleEditSave = (index: number, data: CreateSubscriptionFormData) => {
-    setSubscriptionOverrides((prev) => {
-      const newMap = new Map(prev)
-      newMap.set(index, data)
-      return newMap
-    })
+    setEditedSubscriptions((prev) =>
+      prev.map((sub, i) => (i === index ? formDataToDiscovered(data, sub) : sub)),
+    )
   }
 
   const handleToggleSubscription = (index: number, checked: boolean) => {
@@ -566,15 +658,30 @@ export function DiscoveryDialog({
   const handleSaveSelected = async () => {
     setIsSaving(true)
 
-    const subscriptionsToAdd = discoveredSubscriptions
+    const subscriptionsToAdd = editedSubscriptions
       .map((sub, index) => ({ sub, index }))
       .filter(({ index }) => selectedSubscriptions.has(index))
 
+    if (onImport) {
+      const entries = subscriptionsToAdd.map(({ sub }) => convertDiscoveredToFormData(sub))
+      try {
+        await onImport(entries)
+        toast.success('Subscriptions Added', {
+          description: `Successfully added ${entries.length} subscription${entries.length !== 1 ? 's' : ''}.`,
+        })
+      } catch {
+        toast.error('Some subscriptions failed', {
+          description: 'Could not add the selected subscriptions.',
+        })
+      }
+      setIsSaving(false)
+      handleClose()
+      return
+    }
+
     const results = await Promise.allSettled(
-      subscriptionsToAdd.map(async ({ sub, index }) => {
-        const formData = subscriptionOverrides.has(index)
-          ? subscriptionOverrides.get(index)!
-          : convertDiscoveredToFormData(sub)
+      subscriptionsToAdd.map(async ({ sub }) => {
+        const formData = convertDiscoveredToFormData(sub)
 
         const response = await fetch('/api/subscriptions', {
           method: 'POST',
@@ -656,9 +763,11 @@ export function DiscoveryDialog({
               onRetry={retry}
               isRetrying={isDiscovering}
             />
+          ) : teaser ? (
+            <TeaserLockedView teaser={teaser} onClose={handleClose} />
           ) : discoveredSubscriptions.length > 0 ? (
             <ReviewSubscriptionsView
-              discoveredSubscriptions={discoveredSubscriptions}
+              discoveredSubscriptions={editedSubscriptions}
               selectedSubscriptions={selectedSubscriptions}
               isSaving={isSaving}
               showDuplicates={showDuplicates}
@@ -697,7 +806,7 @@ export function DiscoveryDialog({
           onOpenChange={(open) => {
             if (!open) setEditingIndex(null)
           }}
-          subscription={discoveredSubscriptions[editingIndex]}
+          subscription={editedSubscriptions[editingIndex]}
           onSave={(data) => handleEditSave(editingIndex, data)}
         />
       )}

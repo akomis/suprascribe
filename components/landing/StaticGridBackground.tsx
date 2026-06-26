@@ -9,7 +9,6 @@ type LogoPosition = {
   showOnMobile?: boolean
 }
 
-// Reduced from 13 to 8 logos for better performance
 const LOGO_POSITIONS: LogoPosition[] = [
   {
     name: 'Netflix',
@@ -47,12 +46,17 @@ const LOGO_POSITIONS: LogoPosition[] = [
     name: 'Adobe Creative Cloud',
     url: 'adobe.com',
     logoPath: '/logos/adobe.svg',
-    x: 65,
-    y: 2,
+    x: 96,
+    y: 40,
   },
-  // Desktop-only logos
-  { name: 'YouTube Premium', url: 'youtube.com', logoPath: '/logos/youtube.svg', x: 5, y: 32 },
-  { name: 'Amazon Prime', url: 'amazon.com', logoPath: '/logos/amazon.svg', x: 96, y: 45 },
+  { name: 'YouTube Premium', url: 'youtube.com', logoPath: '/logos/youtube.svg', x: 60, y: 3 },
+  {
+    name: 'Amazon Prime',
+    url: 'amazon.com',
+    logoPath: '/logos/amazon.svg',
+    x: 5,
+    y: 32,
+  },
 ]
 
 const MASK =
@@ -85,7 +89,7 @@ export function StaticGridBackground({ cellSize = 80 }: { cellSize?: number }) {
             animation: `fadeIn 0.6s ease-out ${i * 80}ms both`,
           }}
         >
-          <div className="flex h-full w-full items-center justify-center opacity-20 grayscale rounded-2xl overflow-hidden transition-all duration-500 md:group-hover:grayscale-0 md:group-hover:opacity-70">
+          <div className="flex h-full w-full items-center justify-center opacity-60 grayscale rounded-2xl overflow-hidden transition-all duration-500 md:group-hover:grayscale-0 md:group-hover:opacity-90">
             <ServiceLogo
               name={logo.name}
               serviceUrl={logo.url}

@@ -131,6 +131,14 @@ async function handleAffiliateConversion(
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<NextResponse> {
+  // One-time anonymous discovery payments are fulfilled synchronously at the
+  // success_url (see /api/discovery/once/verify). They have no user to upgrade,
+  // so skip the PRO-grant path entirely.
+  if (session.metadata?.purpose === 'one_time_discovery') {
+    console.log(`[Webhook] Ignoring one_time_discovery session ${session.id} (no PRO grant)`)
+    return NextResponse.json({ received: true })
+  }
+
   const supabase = createSupabaseAdmin()
   const resolved = await resolveUserId(supabase, session)
   if (resolved instanceof NextResponse) return resolved

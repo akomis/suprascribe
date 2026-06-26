@@ -2,7 +2,7 @@
 
 import type { DiscoveredSubscription } from '@/lib/types/forms'
 import type { DiscoveryResponse } from '@/lib/types/discovery'
-import { useDiscoveryCore } from './useDiscoveryCore'
+import { useDiscoveryCore, type DiscoveryTeaser } from './useDiscoveryCore'
 
 interface ImapCredentials {
   email: string
@@ -15,6 +15,7 @@ interface ImapCredentials {
 interface UseImapDiscoveryReturn {
   isDiscovering: boolean
   discoveredSubscriptions: DiscoveredSubscription[]
+  teaser: DiscoveryTeaser | null
   emailCount: number | null
   scannedEmail: string | null
   error: string | null
@@ -28,6 +29,7 @@ export function useImapDiscovery(): UseImapDiscoveryReturn {
   const {
     isDiscovering,
     discoveredSubscriptions,
+    teaser,
     emailCount,
     scannedEmail,
     error,
@@ -50,6 +52,7 @@ export function useImapDiscovery(): UseImapDiscoveryReturn {
   return {
     isDiscovering,
     discoveredSubscriptions,
+    teaser,
     emailCount,
     scannedEmail,
     error,

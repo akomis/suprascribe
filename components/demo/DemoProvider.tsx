@@ -18,9 +18,15 @@ export function useDemoContext() {
   return context
 }
 
-export function DemoProvider({ children }: { children: React.ReactNode }) {
+export function DemoProvider({
+  children,
+  initialSubscriptions = SAMPLE_SUBSCRIPTIONS,
+}: {
+  children: React.ReactNode
+  initialSubscriptions?: DemoMergedSubscription[]
+}) {
   const [subscriptions, setSubscriptions] =
-    React.useState<DemoMergedSubscription[]>(SAMPLE_SUBSCRIPTIONS)
+    React.useState<DemoMergedSubscription[]>(initialSubscriptions)
 
   const value = React.useMemo(
     () => ({

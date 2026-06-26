@@ -26,6 +26,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date('2026-05-16'),
     },
     {
+      url: 'https://www.suprascribe.com/one-time-scan',
+      lastModified: new Date('2026-06-15'),
+    },
+    {
       url: 'https://www.suprascribe.com/free-subscription-tracker',
       lastModified: new Date('2026-05-27'),
     },

@@ -26,6 +26,7 @@ export type AddSubscriptionActions = {
     error: Error | null
   }
   autoDiscoverEnabled: boolean
+  AutoDiscoverComponent?: React.ComponentType<{ onComplete?: () => void }>
 }
 
 type AddSubscriptionDialogBaseProps = {
@@ -110,7 +111,11 @@ export function AddSubscriptionDialogBase({
 
         {actions.autoDiscoverEnabled && currentView === 'auto-discover' && (
           <div className="fade-on-mount">
-            <EmailProviderSelection />
+            {actions.AutoDiscoverComponent ? (
+              <actions.AutoDiscoverComponent onComplete={() => handleOpenChange(false)} />
+            ) : (
+              <EmailProviderSelection />
+            )}
           </div>
         )}
 
