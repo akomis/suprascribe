@@ -185,3 +185,12 @@
     background-position: -50% center;
   }
 }
+
+@keyframes badge-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}

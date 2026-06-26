@@ -1,5 +1,5 @@
 import type { SubscriptionServiceInsert, UserSubscriptionInsert } from '@/lib/types/database'
-import type { CreateSubscriptionFormData } from '@/lib/types/forms'
+import type { CreateSubscriptionFormData, DiscoveredSubscription } from '@/lib/types/forms'
 import { toDateString } from '@/lib/utils/date'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -234,5 +234,31 @@ export function convertDiscoveredToFormData(discovered: {
     ...(discovered.receipt_url && { receiptUrl: discovered.receipt_url }),
     ...(discovered.payment_method && { paymentMethod: discovered.payment_method }),
     ...(discovered.source_email && { sourceEmail: discovered.source_email }),
+  }
+}
+
+/**
+ * Reverse of convertDiscoveredToFormData: maps edited form data back into a
+ * DiscoveredSubscription so edits live in the discovered data itself. Fields the edit
+ * form does not expose fall back to the base entry.
+ */
+export function formDataToDiscovered(
+  data: CreateSubscriptionFormData,
+  base: DiscoveredSubscription,
+): DiscoveredSubscription {
+  return {
+    ...base,
+    service_name: data.serviceName,
+    price: data.price,
+    currency: data.currency,
+    period: data.period,
+    start_date: data.startDate,
+    end_date: data.endDate,
+    auto_renew: data.autoRenew,
+    service_url: data.serviceUrl ?? base.service_url,
+    unsubscribe_url: data.serviceUnsubscribeUrl ?? base.unsubscribe_url,
+    category: data.serviceCategory ?? base.category,
+    payment_method: data.paymentMethod ?? base.payment_method,
+    source_email: base.source_email,
   }
 }

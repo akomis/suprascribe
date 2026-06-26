@@ -338,7 +338,7 @@ export const blogPosts: BlogPost[] = [
     sections: [
       {
         type: 'callout',
-        text: 'Quick answer: The best free subscription manager in 2026 should impose no cap on the free tier, require no bank account access, and offer automatic discovery through email scanning. Suprascribe meets all three criteria: unlimited free tracking, email-based discovery via Gmail and Outlook, and a one-time €10 Pro upgrade with no recurring fees.',
+        text: 'Quick answer: The best free subscription manager in 2026 should impose no cap on the free tier, require no bank account access, and offer automatic discovery through email scanning. Suprascribe meets all three criteria: unlimited free tracking, email-based discovery via Gmail and Outlook, and a one-time Pro upgrade with no recurring fees.',
       },
       {
         type: 'p',
@@ -402,6 +402,444 @@ export const blogPosts: BlogPost[] = [
       {
         type: 'p',
         text: 'For 2026, Suprascribe stands out as the best free subscription manager for three reasons: the free tier has no subscription cap, no bank access is required at any tier, and the Pro upgrade is a one-time payment rather than yet another recurring charge. It is also open source, so the privacy claims are verifiable.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-netflix-subscription',
+    title: 'How to Cancel Your Netflix Subscription in 2026',
+    description:
+      'Cancel Netflix on the web, in the mobile app, or through Apple, Google, or PayPal billing - and keep watching until your paid period ends.',
+    publishedAt: '2026-06-22',
+    readingTimeMin: 5,
+    intro:
+      'Cancelling Netflix takes about two minutes once you know where you are billed. The only real catch is third-party billing - if you signed up through Apple, Google, or PayPal, the cancel button is not inside Netflix.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-subscriptions',
+      'how-to-find-all-your-subscriptions',
+      'subscription-fatigue',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Start Tracking for Free' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'Quick answer: To cancel Netflix, go to netflix.com, open Account, and select "Cancel Membership". If you subscribed through Apple, Google Play, or PayPal, you must cancel there instead - the option will not appear inside Netflix. Either way, you keep access until the end of your current paid period and there is nothing to refund.',
+      },
+      {
+        type: 'p',
+        text: 'Netflix is one of the easier services to cancel, but where you cancel depends entirely on how you pay. This guide covers the web, the mobile app, and the three most common third-party billing routes, plus what happens to your account afterwards.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on the Web (Recommended)',
+      },
+      {
+        type: 'p',
+        text: 'The most reliable way to cancel is from a browser, where every billing type is handled in one place:',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Go to netflix.com and sign in',
+          'Click your profile icon in the top-right corner and choose "Account"',
+          'Under "Membership", select "Cancel Membership"',
+          'Confirm on the next screen - you will see the date your access ends',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel in the Mobile App',
+      },
+      {
+        type: 'p',
+        text: 'You can manage your membership from the Netflix app under "Account", and the steps mirror the web. Note that if you subscribed via the Apple App Store or Google Play, the app will not show a cancel option at all - it will point you to the store instead. That is normal, and it is covered next.',
+      },
+      {
+        type: 'h2',
+        text: "If You're Billed Through Apple, Google, or PayPal",
+      },
+      {
+        type: 'p',
+        text: 'When a third party handles your billing, Netflix cannot cancel the charge for you. Cancel from the platform that bills you:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Apple: Settings → Apple ID → Subscriptions → Netflix → Cancel Subscription',
+          'Google Play: Play Store → Profile → Payments & subscriptions → Subscriptions → Netflix → Cancel',
+          'PayPal: Settings → Payments → Manage automatic payments → Netflix → Cancel',
+        ],
+      },
+      {
+        type: 'callout',
+        text: 'Tip: Not sure who bills you? Open your Netflix Account page and check the payment method shown, or search your inbox for the Netflix receipt - it names the billing platform.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'p',
+        text: 'Cancelling does not cut you off immediately. Your plan stays active until the end of the period you have already paid for, so there is no partial refund to chase.',
+      },
+      {
+        type: 'ul',
+        items: [
+          'You keep full access until your current billing period ends',
+          'No partial refund is issued - and none is needed, since you keep what you paid for',
+          'Netflix retains your profiles and viewing history for 10 months in case you return',
+          'You can restart anytime before that without losing your settings',
+        ],
+      },
+      {
+        type: 'h2',
+        text: "Don't Lose Track of the Next One",
+      },
+      {
+        type: 'p',
+        text: 'Netflix is rarely the only recurring charge on an account. The reason subscriptions add up is that each one is easy to forget individually. Keeping a single live list of every service, its cost, and its renewal date is the simplest way to stay in control - and a renewal reminder a week before each charge turns every renewal into a conscious choice rather than a surprise.',
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free to use for manual subscription tracking - no bank access required. Pro adds automatic email discovery and renewal reminders as a one-time payment, not another monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-amazon-prime',
+    title: 'How to Cancel Amazon Prime (and Get a Refund if Eligible)',
+    description:
+      'A step-by-step guide to cancelling Amazon Prime, skipping the retention screens, and knowing when you qualify for a refund on unused benefits.',
+    publishedAt: '2026-06-22',
+    readingTimeMin: 5,
+    intro:
+      'Amazon hides Prime cancellation behind several "are you sure?" retention screens. Here is the direct path to the real cancel button, plus the refund rules most people miss.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do I find all my subscriptions?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-free-trial-before-charged',
+      'how-to-cancel-subscriptions',
+      'how-to-find-all-your-subscriptions',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Start Tracking for Free' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'Quick answer: To cancel Amazon Prime, go to Account → Prime Membership → "Manage Membership" → "End Membership", then click past the retention offers until you reach the final confirmation. If you have not used any Prime benefits in the current period, you may be entitled to a full or prorated refund.',
+      },
+      {
+        type: 'p',
+        text: 'Cancelling Prime is straightforward in principle, but Amazon deliberately adds friction: a series of screens offering reminders, pauses, and discounts designed to talk you out of leaving. The trick is knowing that the real cancel button sits at the end of that maze.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel Prime Step by Step',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Sign in at amazon.com and open "Accounts & Lists"',
+          'Select "Prime Membership" (or "Prime" from the menu)',
+          'Choose "Manage Membership" → "End Membership" (sometimes labelled "Update, Cancel and More")',
+          'Click through the retention offers - decline each one',
+          'Confirm the cancellation and note the end date shown',
+        ],
+      },
+      {
+        type: 'callout',
+        text: 'The retention maze: Amazon shows several screens designed to keep you - "Remind Me Later", "Pause Membership", and discount offers. None of these cancel your membership. Keep declining until you see a clear end date confirmation.',
+      },
+      {
+        type: 'h2',
+        text: 'Will You Get a Refund?',
+      },
+      {
+        type: 'p',
+        text: 'Whether you get money back depends on your plan and how much you have used:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Annual plan, no benefits used this term: typically a full refund',
+          'Annual plan, benefits already used: a prorated refund or none, depending on usage',
+          'Monthly plan: usually no refund - the membership simply runs to the end of the period',
+          'In the EU, a 14-day right of withdrawal can apply to a recent renewal - cancel promptly to use it',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel a Prime Free Trial',
+      },
+      {
+        type: 'p',
+        text: 'If you are on a Prime free trial, cancel before it ends and you will not be charged - and you usually keep the benefits until the trial expiry date. Cancelling early does not cut the trial short. For the full playbook on timing trial cancellations, see our guide on cancelling a free trial before you get charged.',
+      },
+      {
+        type: 'h2',
+        text: 'Other Amazon Subscriptions to Check',
+      },
+      {
+        type: 'p',
+        text: 'Cancelling Prime does not stop the other recurring charges Amazon bills separately. Check each of these under "Memberships & Subscriptions":',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Prime Video Channels (e.g. add-on streaming services)',
+          'Audible credits and memberships',
+          'Kindle Unlimited',
+          'Subscribe & Save recurring deliveries',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Keep an Eye on Recurring Amazon Charges',
+      },
+      {
+        type: 'p',
+        text: 'Because Amazon spreads subscriptions across several products, it is easy to cancel Prime and still be paying for an Audible plan or a Prime Video channel you forgot about. A single dashboard that lists every recurring charge - Amazon and otherwise - makes these easy to spot before they renew.',
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe gives you one place to see every subscription and its renewal date, free for manual tracking. Pro adds automatic email discovery to surface charges like Audible or Prime Video channels you may have missed - a one-time payment, not a recurring fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-free-trial-before-charged',
+    title: 'How to Cancel a Free Trial Before You Get Charged',
+    description:
+      'How to cancel a free trial in time, keep access until it ends, avoid the auto-renewal charge - and what to do if you get billed anyway.',
+    publishedAt: '2026-06-22',
+    readingTimeMin: 6,
+    intro:
+      'Around 86% of people mean to cancel a free trial and forget. The auto-renewal is the trap - it converts silently the moment the trial ends. Here is how to win every time.',
+    faqQuestions: [
+      'How do renewal reminders work?',
+      'How do I cancel a subscription I forgot about?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-amazon-prime',
+      'how-to-cancel-subscriptions',
+      'subscription-fatigue',
+    ],
+    relatedPageLinks: [
+      { href: '/free-subscription-manager', label: 'Take Control of Subscriptions' },
+    ],
+    sections: [
+      {
+        type: 'callout',
+        text: 'Quick answer: Cancel a free trial 24-48 hours before it ends, not at the last minute. Most major services - Netflix, Spotify, Apple, Google, Amazon - let you cancel immediately after signing up and still keep access until the trial expiry date. The safest move is to set a reminder the moment you start the trial.',
+      },
+      {
+        type: 'p',
+        text: 'Free trials work because of negative-option billing: doing nothing means you get charged. The trial is genuinely free, but it auto-converts to a paid subscription the instant it ends unless you act. Beating it is about timing and a reliable reminder, not about cancelling at the perfect second.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel Immediately, Keep the Trial',
+      },
+      {
+        type: 'p',
+        text: 'The most common myth is that cancelling early cuts your trial short. For most major services it does not - you can cancel right after signing up and still use the trial until its expiry date. Cancelling simply switches off the auto-renewal.',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Netflix, Spotify, Apple services, Google services, and Amazon Prime all let you cancel during a trial and keep access until it ends',
+          'Always check the wording on the confirmation screen - a few smaller services do end access on cancellation',
+          'When in doubt, cancel a day before expiry rather than on day one',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Where to Cancel',
+      },
+      {
+        type: 'p',
+        text: 'The cancel option lives wherever you set up billing, which is not always the provider itself:',
+      },
+      {
+        type: 'ul',
+        items: [
+          "The provider's own account settings, under Billing or Subscription",
+          'Apple: Settings → Apple ID → Subscriptions',
+          'Google Play: Play Store → Profile → Payments & subscriptions → Subscriptions',
+          'PayPal: Settings → Payments → Manage automatic payments',
+        ],
+      },
+      {
+        type: 'callout',
+        text: 'Tip: "I will cancel tomorrow" is exactly how most people get charged. Cancel the day you sign up if the service lets you keep trial access, or set a hard reminder for 48 hours before the deadline.',
+      },
+      {
+        type: 'h2',
+        text: "Set a Reminder You Won't Miss",
+      },
+      {
+        type: 'p',
+        text: 'A calendar reminder works, but it is easy to dismiss and forget. A dedicated renewal reminder tied to the subscription itself is harder to ignore. Suprascribe Pro sends you an email before any subscription - including a converting trial - renews, so you always get a decision window instead of a surprise charge.',
+      },
+      {
+        type: 'h2',
+        text: 'Know Your Rights (EU)',
+      },
+      {
+        type: 'p',
+        text: 'In the EU you often have a 14-day right of withdrawal on online purchases, and providers must disclose auto-renewal terms clearly up front. Cancellation must also be as easy as sign-up. These rules give you leverage if a service makes cancelling deliberately difficult.',
+      },
+      {
+        type: 'h2',
+        text: "What If You're Charged Anyway",
+      },
+      {
+        type: 'p',
+        text: 'If a charge slips through despite cancelling, act quickly:',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Contact the provider and request a refund - many will reverse a charge made days after a clear cancellation',
+          'Keep evidence: screenshots, the cancellation confirmation email, and any reference number',
+          'If the provider refuses, ask your card issuer or bank to block future payments or dispute the charge',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Track Trials So None Slip Through',
+      },
+      {
+        type: 'p',
+        text: 'The reliable long-term fix is to log every trial the moment you start it, with its end date, in one place. Suprascribe keeps a live list of your subscriptions and trials, and its email auto-discovery can surface trials you signed up for and forgot - before they quietly convert.',
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free for manual tracking, with no bank access required. Renewal reminders and automatic email discovery are part of a one-time Pro upgrade - pay once, never pay a monthly fee to manage your monthly fees.',
+      },
+    ],
+  },
+  {
+    slug: 'how-much-americans-spend-on-subscriptions',
+    title: 'How Much Do Americans Spend on Subscriptions? (2025 Survey)',
+    description:
+      'A 2025 CNET survey found the average American spends about $1,080 a year on subscriptions - and wastes roughly $205 of it on services they barely use.',
+    publishedAt: '2026-06-24',
+    readingTimeMin: 6,
+    intro:
+      'The average American spends around $1,080 a year on subscriptions, and roughly $205 of that goes to services they rarely or never use. Those figures come from a 2025 CNET survey, and they line up with a feeling most people already have: the small monthly charges add up to a lot more than expected.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'What is the best free app to track subscriptions?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'subscription-fatigue',
+      'how-to-find-all-your-subscriptions',
+      'how-to-cancel-subscriptions',
+    ],
+    relatedPageLinks: [
+      {
+        href: 'https://www.cnet.com/tech/services-and-software/subscription-survey-2025/',
+        label: 'Read the CNET Subscription Survey',
+      },
+      { href: '/free-subscription-tracker', label: 'Start Tracking for Free' },
+    ],
+    sections: [
+      {
+        type: 'callout',
+        text: 'Quick answer: According to a 2025 CNET survey conducted with YouGov, the average American spends about $90 a month - roughly $1,080 a year - on subscriptions, and around $17 of that monthly total (about $205 a year) goes to services they barely touch. Streaming video is the most common category, and most people underestimate their own total until they add it up.',
+      },
+      {
+        type: 'p',
+        text: 'It is easy to dismiss any single subscription as a few dollars a month. The problem is that almost nobody has just one. CNET surveyed 2,440 Americans in 2025 in partnership with YouGov, of whom 1,932 had paid for at least one subscription in the past year, and the results put a hard number on a soft, creeping cost most households never sit down to total. The figures below are drawn from that survey.',
+      },
+      {
+        type: 'h2',
+        text: 'What Americans Actually Spend',
+      },
+      {
+        type: 'p',
+        text: 'The headline numbers are larger than most people guess for themselves. When CNET asked respondents to account for everything they pay for on a recurring basis, the averages came out like this:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'About $90 per month on subscriptions overall',
+          'Roughly $1,080 per year once those monthly charges are added up',
+          'Around $17 per month - about $205 a year - spent on subscriptions that are rarely or never used',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'That last figure is the one worth pausing on. Over $200 a year, for most people, is money leaving the account every month for something that delivers no value - not because of a single bad decision, but because forgotten subscriptions quietly renew in the background.',
+      },
+      {
+        type: 'h2',
+        text: 'Where the Money Goes',
+      },
+      {
+        type: 'p',
+        text: 'The survey also mapped which categories dominate household subscription budgets. Streaming led by a wide margin, but the long tail of e-commerce memberships and music services adds up:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Streaming video - the most common subscription, held by 61% of respondents',
+          'E-commerce memberships like Amazon Prime and Walmart+ - 37%',
+          'Streaming music services - 33%',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'These three categories alone explain a large share of the monthly total, and because each one auto-renews on its own schedule, they are rarely reviewed together. That is precisely how the bill creeps upward without any single moment where someone decided to spend more.',
+      },
+      {
+        type: 'h2',
+        text: 'People Are Already Cutting Back',
+      },
+      {
+        type: 'p',
+        text: 'The CNET survey found that subscription fatigue is translating into action. With economic pressure on household budgets, 61% of respondents said they were reconsidering at least one subscription, and one in four said they had already cancelled one. The appetite to trim is clearly there - what most people lack is a clear, complete picture of what they are paying for in the first place.',
+      },
+      {
+        type: 'h2',
+        text: 'How to Audit Your Own Subscriptions',
+      },
+      {
+        type: 'p',
+        text: 'The survey numbers are averages, but the only ones that matter are yours. A short audit usually surfaces at least one or two charges worth cutting. Work through it in order:',
+      },
+      {
+        type: 'ol',
+        items: [
+          'List every recurring charge you have - check email receipts and bank statements, or use a tracker so nothing slips through',
+          'Convert each one to a monthly cost and add them up to get your real total',
+          'For each subscription ask: did I actually use this in the last 30 days?',
+          'For the ones you did not: will I realistically use it in the next 30 days?',
+          'Cancel everything that fails both questions',
+        ],
+      },
+      {
+        type: 'callout',
+        text: 'Be honest at step 3. "I might watch it one day" is not the same as using a service. If it sat untouched for a month, it will probably sit untouched for the next one - and that is exactly the $205-a-year category the CNET survey identified.',
+      },
+      {
+        type: 'h2',
+        text: 'Stop Paying for the Ones You Forgot',
+      },
+      {
+        type: 'p',
+        text: 'The reason these costs accumulate is that each subscription is forgettable on its own. The fix is a single live list of every service, what it costs, and when it renews - so the total is always visible and every renewal is a conscious choice rather than a surprise charge. Suprascribe is free for manual tracking with no bank access required. The Pro upgrade adds automatic email discovery to surface subscriptions you have forgotten, plus renewal reminders that email you before each charge so you can decide to keep or cancel in time.',
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe Pro is a one-time payment, not another monthly fee. You should not have to pay a recurring subscription just to keep your other recurring subscriptions under control.',
       },
     ],
   },

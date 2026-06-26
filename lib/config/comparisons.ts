@@ -358,7 +358,7 @@ export const competitors: Competitor[] = [
       {
         label: 'Open source',
         detail:
-          'Unsubby is closed source — you cannot verify what it does with your bank data; Suprascribe is fully auditable on GitHub',
+          'Unsubby is closed source - you cannot verify what it does with your bank data; Suprascribe is fully auditable on GitHub',
       },
       {
         label: 'Unlimited free tier',
@@ -366,11 +366,11 @@ export const competitors: Competitor[] = [
       },
     ],
     verdict:
-      'Unsubby adds a useful cancellation-letter service on top of subscription tracking, but it requires Plaid bank access and charges a recurring monthly fee. Suprascribe finds the same subscriptions through email scanning — no bank login, no monthly cost.',
+      'Unsubby adds a useful cancellation-letter service on top of subscription tracking, but it requires Plaid bank access and charges a recurring monthly fee. Suprascribe finds the same subscriptions through email scanning - no bank login, no monthly cost.',
     metaDescription:
       'Suprascribe vs Unsubby: Unsubby auto-detects subscriptions via Plaid and sends cancellation letters, but requires bank access and charges ~$12.95/month. Suprascribe discovers subscriptions from Gmail, Outlook, or iCloud with no bank linking and a one-time Pro upgrade.',
     intro:
-      'Unsubby is a web-based subscription manager that connects to your bank account via Plaid to detect recurring payments and can send cancellation letters to services on your behalf. It has built meaningful scale — 50,000+ users and 22,000+ Trustpilot reviews — and the cancellation letter feature is genuinely useful. The tradeoffs are significant though: Plaid access means handing over your bank login credentials to a third party, the free tier is capped at 4 subscriptions, and the Premium plan runs ~$12.95/month — a recurring fee to manage other recurring fees. Suprascribe takes the opposite approach: subscriptions are found by scanning your email inbox (read-only OAuth, no passwords), the free tier is unlimited, and the Pro upgrade is a one-time purchase.',
+      'Unsubby is a web-based subscription manager that connects to your bank account via Plaid to detect recurring payments and can send cancellation letters to services on your behalf. It has built meaningful scale - 50,000+ users and 22,000+ Trustpilot reviews - and the cancellation letter feature is genuinely useful. The tradeoffs are significant though: Plaid access means handing over your bank login credentials to a third party, the free tier is capped at 4 subscriptions, and the Premium plan runs ~$12.95/month - a recurring fee to manage other recurring fees. Suprascribe takes the opposite approach: subscriptions are found by scanning your email inbox (read-only OAuth, no passwords), the free tier is unlimited, and the Pro upgrade is a one-time purchase.',
   },
   {
     slug: 'subchecks',

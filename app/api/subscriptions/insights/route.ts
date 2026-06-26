@@ -17,7 +17,7 @@ import { NextResponse } from 'next/server'
 export const GET = withAuth(
   async (request, { user, supabase }): Promise<NextResponse<ApiResponse<InsightData>>> => {
     try {
-      const { searchParams } = new URL(request.url)
+      const { searchParams } = request.nextUrl
       const targetCurrency = (searchParams.get('currency') || 'USD') as CurrencyCode
       const groupBy = (searchParams.get('groupBy') || 'service') as GroupByOption
       const mode = (searchParams.get('mode') || 'forecast') as InsightMode

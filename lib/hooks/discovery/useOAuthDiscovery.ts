@@ -4,11 +4,12 @@ import type { DiscoveredSubscription } from '@/lib/types/forms'
 import type { DiscoveryResponse } from '@/lib/types/discovery'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useRef } from 'react'
-import { useDiscoveryCore } from './useDiscoveryCore'
+import { useDiscoveryCore, type DiscoveryTeaser } from './useDiscoveryCore'
 
 interface UseOAuthDiscoveryReturn {
   isDiscovering: boolean
   discoveredSubscriptions: DiscoveredSubscription[]
+  teaser: DiscoveryTeaser | null
   emailCount: number | null
   scannedEmail: string | null
   error: string | null
@@ -24,6 +25,7 @@ export function useOAuthDiscovery(provider: 'google' | 'microsoft'): UseOAuthDis
   const {
     isDiscovering,
     discoveredSubscriptions,
+    teaser,
     emailCount,
     scannedEmail,
     error,
@@ -76,6 +78,7 @@ export function useOAuthDiscovery(provider: 'google' | 'microsoft'): UseOAuthDis
   return {
     isDiscovering,
     discoveredSubscriptions,
+    teaser,
     emailCount,
     scannedEmail,
     error,

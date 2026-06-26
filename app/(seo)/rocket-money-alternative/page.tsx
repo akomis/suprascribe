@@ -87,7 +87,7 @@ const comparisonRows = [
   {
     feature: 'Recurring monthly fee',
     suprascribe: false,
-    suprascribeNote: 'No - one-time €10 Pro upgrade only',
+    suprascribeNote: 'No - one-time Pro upgrade only',
     rocketMoney: true,
     rocketMoneyNote: '$4–$12/month for premium',
   },
@@ -208,7 +208,7 @@ export default function RocketMoneyAlternativePage() {
           <p>
             <strong className="text-foreground">Monthly fee.</strong> The premium tier costs $4–$12
             per month depending on what you pay, which means you&apos;re adding another recurring
-            charge to manage your recurring charges. Suprascribe Pro is a one-time €10 purchase - no
+            charge to manage your recurring charges. Suprascribe Pro is a one-time purchase - no
             ongoing commitment.
           </p>
           <p>
@@ -228,8 +228,8 @@ export default function RocketMoneyAlternativePage() {
             <li>• No credit card, no bank access, no recurring fee</li>
           </ul>
           <p className="text-xs text-muted-foreground pt-1">
-            Pro (one-time €10) adds email auto-discovery, renewal reminders, calendar view, search,
-            and unsubscribe assistance.
+            Pro (one-time) adds email auto-discovery, renewal reminders, calendar view, search, and
+            unsubscribe assistance.
           </p>
         </div>
       </SEOSection>

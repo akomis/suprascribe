@@ -15,6 +15,7 @@ export function OAuthDiscoveryHandler({ provider }: { provider: OAuthProvider })
   const {
     isDiscovering,
     discoveredSubscriptions,
+    teaser,
     emailCount,
     error,
     warning,
@@ -27,6 +28,7 @@ export function OAuthDiscoveryHandler({ provider }: { provider: OAuthProvider })
     <DiscoveryDialog
       isDiscovering={isDiscovering}
       discoveredSubscriptions={discoveredSubscriptions}
+      teaser={teaser}
       emailCount={emailCount}
       error={error}
       warning={warning}

@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Separator } from '../ui/separator'
 
 export function LandingCTA() {
   const [user, setUser] = useState<User | null>(null)
@@ -36,16 +35,20 @@ export function LandingCTA() {
         <Link href="/login?tab=signin">
           <Button
             size="lg"
-            variant="outline"
+            variant="secondary"
             className="text-sm sm:text-base rounded-l-none border-l-0"
           >
             Sign In
           </Button>
         </Link>
       </div>
-      <Separator className="max-w-24" orientation="horizontal" />
+
       <Link href="/demo">
-        <Button size="lg" variant="secondary" className="text-sm sm:text-base">
+        <Button
+          size="lg"
+          variant="link"
+          className="text-shadow-neutral-400 text-xs sm:text-sm underline"
+        >
           Try Demo
         </Button>
       </Link>

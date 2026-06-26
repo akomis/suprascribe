@@ -1,4 +1,4 @@
-import { Badges } from '@/components/landing/Badges'
+import { BadgesCarousel } from '@/components/landing/BadgesCarousel'
 import { CompetitorTable } from '@/components/landing/CompetitorTable'
 import { DiscoveryLearnMoreButton } from '@/components/landing/DiscoveryLearnMoreButton'
 import { FAQSection } from '@/components/landing/FAQSection'
@@ -82,30 +82,21 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="z-10 w-full flex justify-center -mt-2">
-            <Link
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center rounded-full border border-border bg-background/60 px-4 py-1 text-xs font-medium backdrop-blur-sm transition-colors hover:border-foreground/30 hover:bg-background/80"
-            >
-              <ShinyText
-                text="Release v1.2 - June 2026"
-                speed={3}
-                color="#888888"
-                shineColor="#ffffff"
-              />
-            </Link>
-          </div>
-
           <h1 className="max-w-5xl font-bold block tracking-tighter text-5xl md:text-6xl lg:text-7xl text-muted-foreground z-20 mx-auto">
             You Are Losing Money
           </h1>
 
           <div className="flex flex-col gap-4 z-10 mx-auto">
             <p className="max-w-3xl text-base sm:text-lg md:text-xl text-muted-foreground px-2">
-              Suprascribe helps you automatically find all your paying subscriptions through your
-              inbox and then manage, cancel, group them in less than a minute
+              Suprascribe{' '}
+              <ShinyText
+                text="automatically finds all your paying subscriptions"
+                speed={3}
+                className="[--shiny-text-color:#737373] dark:[--shiny-text-color:#B6B6B6]"
+                shineColor="#ffffff"
+              />{' '}
+              through your inbox and then helps you manage, cancel, group them in less than a
+              minute.
             </p>
             <div className="flex flex-col-reverse sm:flex-row items-center justify-center gap-2 sm:gap-4">
               <LandingCTA />
@@ -143,7 +134,7 @@ export default function Home() {
 
         {/* Pricing Section */}
         <section id="pricing" className="container mx-auto py-10 sm:py-20 px-2 sm:px-4">
-          <div className="mx-auto max-w-5xl space-y-8 sm:space-y-12">
+          <div className="mx-auto max-w-5xl space-y-8">
             <div className="text-center">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
                 Straight-forward Pricing
@@ -153,7 +144,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid gap-4 sm:gap-6 md:gap-8 md:grid-cols-2">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
               <TierCard
                 name="Basic"
                 description="Perfect for getting started"
@@ -167,9 +158,9 @@ export default function Home() {
               <TierCard
                 name="PRO"
                 description="For power users who want more"
-                price="€10"
+                price="€9"
                 originalPrice="€20"
-                earlyBirdLabel="50% OFF - Early Adopter"
+                earlyBirdLabel="55% OFF - Launch Offer"
                 period="once, forever"
                 features={proFeatures}
                 buttonText="Upgrade to Pro"
@@ -180,6 +171,19 @@ export default function Home() {
                 checkmarkColor="text-primary"
                 additionalNote="Everything in Basic, plus:"
               />
+            </div>
+
+            <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed p-4 text-center sm:flex-row sm:justify-between sm:text-left">
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold">Just want a quick one-time scan?</h3>
+                <p className="text-sm text-muted-foreground">
+                  Pay €1, connect one inbox, and instantly see your subscriptions with unsubscribe
+                  links. Ephemeral, no sign-up.
+                </p>
+              </div>
+              <Button size="lg" variant="outline" asChild className="shrink-0">
+                <Link href="/one-time-scan">Scan 1 inbox for €1</Link>
+              </Button>
             </div>
           </div>
         </section>
@@ -260,7 +264,7 @@ export default function Home() {
                 </Link>
               </Button>
             </div>
-            <Badges />
+            <BadgesCarousel />
           </div>
         </section>
 

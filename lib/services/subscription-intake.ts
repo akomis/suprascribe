@@ -12,14 +12,66 @@ export type IntakeResult =
 
 type ServiceResult = { serviceId: number } | { error: string; status: number }
 
+// Generic billing/app-store hosts that are wrongly curated as service domains on some
+// rows (e.g. a payment processor). Never derive an unsubscribe_url from these.
+const NON_SERVICE_HOSTS = new Set([
+  'stripe.com',
+  'paddle.com',
+  'apple.com',
+  'apps.apple.com',
+  'itunes.apple.com',
+  'play.google.com',
+  'market.android.com',
+])
+
+function hostnameFromUrl(url: string): string | undefined {
+  try {
+    return new URL(url.startsWith('http') ? url : `https://${url}`).hostname
+      .replace(/^www\./, '')
+      .toLowerCase()
+  } catch {
+    return undefined
+  }
+}
+
+// Derives an unsubscribe_url for a service from a curated sibling row sharing the same
+// domain, so tier/variant rows ("Spotify Premium Individual") inherit the canonical cancel
+// link. Returns undefined when the host is generic, unknown, or maps to more than one
+// distinct unsubscribe_url (ambiguous — e.g. amazon.com → Amazon Prime vs AWS).
+async function deriveUnsubscribeUrlByDomain(
+  supabase: SupabaseClient,
+  url: string | null | undefined,
+): Promise<string | undefined> {
+  if (!url) return undefined
+  const host = hostnameFromUrl(url)
+  if (!host || NON_SERVICE_HOSTS.has(host)) return undefined
+
+  const { data, error } = await supabase
+    .from('SUBSCRIPTION_SERVICES')
+    .select('unsubscribe_url')
+    .contains('domains', [host])
+    .not('unsubscribe_url', 'is', null)
+
+  if (error || !data || data.length === 0) return undefined
+
+  const distinct = Array.from(
+    new Set(data.map((r) => r.unsubscribe_url).filter((u): u is string => Boolean(u))),
+  )
+  return distinct.length === 1 ? distinct[0] : undefined
+}
+
 async function updateExistingService(
   supabase: SupabaseClient,
-  existing: { id: number; url: string | null },
+  existing: { id: number; url: string | null; unsubscribe_url: string | null },
   serviceData: SubscriptionServiceInsert,
 ): Promise<ServiceResult> {
   const updateData: Partial<SubscriptionServiceInsert> = {}
   if (!existing.url && serviceData.url) updateData.url = serviceData.url
   if (serviceData.unsubscribe_url) updateData.unsubscribe_url = serviceData.unsubscribe_url
+  else if (!existing.unsubscribe_url) {
+    const derived = await deriveUnsubscribeUrlByDomain(supabase, serviceData.url ?? existing.url)
+    if (derived) updateData.unsubscribe_url = derived
+  }
 
   if (Object.keys(updateData).length > 0) {
     const { error } = await supabase
@@ -35,10 +87,13 @@ async function createNewService(
   supabase: SupabaseClient,
   serviceData: SubscriptionServiceInsert,
 ): Promise<ServiceResult> {
+  const unsubscribeUrl =
+    serviceData.unsubscribe_url ?? (await deriveUnsubscribeUrlByDomain(supabase, serviceData.url))
+
   const serviceToCreate = {
     name: serviceData.name,
     ...(serviceData.url && { url: serviceData.url }),
-    ...(serviceData.unsubscribe_url && { unsubscribe_url: serviceData.unsubscribe_url }),
+    ...(unsubscribeUrl && { unsubscribe_url: unsubscribeUrl }),
     ...(serviceData.category && { category: serviceData.category }),
   }
 
@@ -73,7 +128,7 @@ async function upsertService(
     .from('SUBSCRIPTION_SERVICES')
     .select('id, url, unsubscribe_url')
     .ilike('name', serviceData.name!)
-    .single()
+    .single<{ id: number; url: string | null; unsubscribe_url: string | null }>()
 
   if (findError && findError.code !== 'PGRST116')
     return { error: `Error finding service: ${findError.message}`, status: 500 }

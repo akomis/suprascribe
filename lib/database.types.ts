@@ -106,6 +106,42 @@ export type Database = {
         }
         Relationships: []
       }
+      DISCOVERY_TEASERS: {
+        Row: {
+          claimed: boolean
+          created_at: string
+          email_address: string
+          expires_at: string
+          id: string
+          payload_encrypted: string
+          provider: string
+          subscriptions_found: number
+          user_id: string
+        }
+        Insert: {
+          claimed?: boolean
+          created_at?: string
+          email_address: string
+          expires_at?: string
+          id?: string
+          payload_encrypted: string
+          provider: string
+          subscriptions_found?: number
+          user_id: string
+        }
+        Update: {
+          claimed?: boolean
+          created_at?: string
+          email_address?: string
+          expires_at?: string
+          id?: string
+          payload_encrypted?: string
+          provider?: string
+          subscriptions_found?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       SUBSCRIPTION_SERVICES: {
         Row: {
           category: Database['public']['Enums']['SUBSCRIPTION_CATEGORY']

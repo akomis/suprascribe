@@ -189,14 +189,14 @@ export default function SafetyPage() {
                     <h3 className="font-semibold text-foreground">Open Source</h3>
                     <p className="text-muted-foreground text-sm">
                       Suprascribe is fully open source. You can inspect the code, verify our privacy
-                      claims, and contribute at{' '}
+                      claims, and contribute on{' '}
                       <Link
                         href={GITHUB_URL}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="underline underline-offset-4 hover:text-foreground transition-colors"
                       >
-                        github.com/akomis/suprascribe
+                        Github
                       </Link>
                       .
                     </p>

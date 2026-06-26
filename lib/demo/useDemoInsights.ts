@@ -8,6 +8,7 @@ import type {
   Subscription,
 } from '@/lib/types/subscriptions'
 import type { CurrencyCode } from '@/lib/hooks/useCurrency'
+import { toMonthlyCost } from '@/lib/utils'
 import { convertCurrency } from '@/lib/utils/currency'
 import { buildInsights } from '@/lib/utils/subscription-analytics'
 import { useDemoContext } from '@/components/demo/DemoProvider'
@@ -25,7 +26,7 @@ function transformSubscriptions(
       url: sub.serviceUrl,
       price: convertedPrice,
       period,
-      monthlyCost: convertedPrice,
+      monthlyCost: toMonthlyCost(convertedPrice, period),
       currency: targetCurrency,
       startDate: sub.startDate,
       endDate: sub.endDate,

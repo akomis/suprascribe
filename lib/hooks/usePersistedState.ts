@@ -1,31 +1,30 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export function usePersistedState<T>(
   key: string,
   defaultValue: T,
   validate?: (value: unknown) => value is T,
 ): [T, (value: T | ((prev: T) => T)) => void] {
-  const [state, setStateInner] = useState<T>(() => {
-    if (typeof window === 'undefined') return defaultValue
+  const [state, setStateInner] = useState<T>(defaultValue)
 
+  useEffect(() => {
     try {
       const stored = localStorage.getItem(key)
-      if (stored === null) return defaultValue
+      if (stored === null) return
 
+      let value: T
       if (validate) {
-        return validate(stored) ? stored : defaultValue
+        value = validate(stored) ? (stored as unknown as T) : defaultValue
+      } else {
+        try {
+          value = JSON.parse(stored) as T
+        } catch {
+          value = stored as unknown as T
+        }
       }
-
-      try {
-        const parsed = JSON.parse(stored)
-        return parsed as T
-      } catch {
-        return stored as unknown as T
-      }
-    } catch {
-      return defaultValue
-    }
-  })
+      setStateInner(value)
+    } catch {}
+  }, [key])
 
   const setState = useCallback(
     (value: T | ((prev: T) => T)) => {

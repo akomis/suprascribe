@@ -6,7 +6,9 @@ import { getBYOKConfig } from '@/lib/services/byok'
 import { discover, type ImapCredentials } from '@/lib/services/subscription-discovery'
 import { getUserTier } from '@/lib/supabase/tier'
 import type { DiscoveryErrorKind, DiscoveryResponse } from '@/lib/types/discovery'
+import { TEASER_PREVIEW_COUNT } from '@/lib/types/discovery'
 import { checkRateLimit } from '@/lib/utils/discovery-rate-limit'
+import { encryptApiKey } from '@/lib/utils/server-crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 function trackDiscovery(userId: string, event: string, properties: Record<string, unknown>): void {
@@ -19,7 +21,13 @@ export type OrchestratorInput =
   | { provider: 'google' | 'microsoft'; token: string }
   | { provider: 'imap'; credentials: ImapCredentials }
 
-type PolicyPass = { ok: true; isByokMode: boolean; byokConfig: ProviderConfig | undefined }
+type DiscoveryMode = 'full' | 'teaser'
+type PolicyPass = {
+  ok: true
+  mode: DiscoveryMode
+  isByokMode: boolean
+  byokConfig: ProviderConfig | undefined
+}
 type PolicyFail = { ok: false; kind: DiscoveryErrorKind | 'rate_limited'; message: string }
 type PolicyResult = PolicyPass | PolicyFail
 
@@ -45,11 +53,27 @@ async function checkDiscoveryPolicy(
 
   if (!isByokMode) {
     if (!hasFeatureAccess(userTier, 'auto_discovery')) {
-      return {
-        ok: false,
-        kind: 'auth_failed',
-        message: 'Auto-discovery requires a Pro subscription.',
+      // BASIC, non-BYOK user: offer one free teaser scan instead of rejecting.
+      const { data: existingTeaser, error: teaserError } = await supabase
+        .from('DISCOVERY_TEASERS')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      if (teaserError) {
+        console.error('[Discovery] Error checking teaser usage:', teaserError)
+        return { ok: false, kind: 'unknown', message: 'Failed to check free scan availability' }
       }
+
+      if (existingTeaser) {
+        return {
+          ok: false,
+          kind: 'rate_limited',
+          message: 'Free scan already used - upgrade to scan again.',
+        }
+      }
+
+      return { ok: true, mode: 'teaser', isByokMode: false, byokConfig: undefined }
     }
 
     const { data: existingRuns, error: runsError } = await supabase
@@ -77,7 +101,7 @@ async function checkDiscoveryPolicy(
     }
   }
 
-  return { ok: true, isByokMode, byokConfig }
+  return { ok: true, mode: 'full', isByokMode, byokConfig }
 }
 
 export async function runDiscovery(
@@ -90,9 +114,9 @@ export async function runDiscovery(
   const policy = await checkDiscoveryPolicy(userId, provider, supabase)
   if (!policy.ok) return { success: false, kind: policy.kind, error: policy.message }
 
-  const { isByokMode, byokConfig } = policy
+  const { mode, isByokMode, byokConfig } = policy
 
-  trackDiscovery(userId, 'discovery_started', { provider, is_byok: isByokMode })
+  trackDiscovery(userId, 'discovery_started', { provider, is_byok: isByokMode, mode })
 
   const startTime = Date.now()
   let result: Awaited<ReturnType<typeof discover>>
@@ -124,8 +148,41 @@ export async function runDiscovery(
     (usage.outputTokens / 1_000_000) * outputCostPerMillion
 
   console.log(
-    `[Discovery] ${provider} (${isByokMode ? 'BYOK' : 'default'}) | ✓ ${subscriptions.length}/${emailCount} subs | ${(duration / 1000).toFixed(1)}s | $${totalCost.toFixed(4)}`,
+    `[Discovery] ${provider} (${mode}, ${isByokMode ? 'BYOK' : 'default'}) | ✓ ${subscriptions.length}/${emailCount} subs | ${(duration / 1000).toFixed(1)}s | $${totalCost.toFixed(4)}`,
   )
+
+  if (mode === 'teaser') {
+    // Persist the full result encrypted server-side; send only a count + preview to the client.
+    const { error: teaserInsertError } = await supabase.from('DISCOVERY_TEASERS').insert({
+      user_id: userId,
+      provider,
+      email_address: email,
+      subscriptions_found: subscriptions.length,
+      payload_encrypted: encryptApiKey(JSON.stringify(subscriptions)),
+    })
+
+    if (teaserInsertError) {
+      console.error('[Discovery] Error storing teaser:', teaserInsertError)
+      return { success: false, kind: 'unknown', error: 'Failed to store discovery results' }
+    }
+
+    trackDiscovery(userId, 'discovery_teaser_stored', {
+      provider,
+      emails_scanned: emailCount,
+      subscriptions_found: subscriptions.length,
+      duration_ms: duration,
+      cost_usd: parseFloat(totalCost.toFixed(6)),
+    })
+
+    return {
+      success: true,
+      teaser: true,
+      subscriptionsFound: subscriptions.length,
+      preview: subscriptions.slice(0, TEASER_PREVIEW_COUNT),
+      emailCount,
+      email,
+    }
+  }
 
   const { error: insertError } = await supabase.from('DISCOVERY_RUNS').insert({
     user_id: userId,

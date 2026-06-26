@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils'
 type ProviderDiscoverButtonProps = {
   displayName: string
   logoQuery: string
+  /** Local static logo path. When set, skips the remote logo fetch. */
+  logoSrc?: string
   onClick: () => void
   disabled?: boolean
   isLoading?: boolean
@@ -19,6 +21,7 @@ type ProviderDiscoverButtonProps = {
 function ProviderDiscoverButton({
   displayName,
   logoQuery,
+  logoSrc,
   onClick,
   disabled = false,
   isLoading = false,
@@ -44,6 +47,7 @@ function ProviderDiscoverButton({
         <div className="flex flex-col gap-0.5 sm:gap-1 items-center">
           <ServiceLogo
             name={logoQuery}
+            resolvedLogoUrl={logoSrc}
             size={48}
             className="object-contain rounded-lg w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12"
             fallbackClassName="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10"
