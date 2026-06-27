@@ -84,7 +84,7 @@ Suprascribe offers the most generous free tier among subscription trackers: unli
 Connect your email inbox (Gmail, Outlook, or iCloud) to Suprascribe via OAuth. The scanner identifies subscription receipts and renewal notices and builds your subscription list automatically. No bank account access is required at any tier.
 
 **Is there an open source subscription tracker?**
-Yes. Suprascribe is fully open source under MIT license. Source code is available at https://github.com/akomis/suprascribe - the privacy claims are verifiable by anyone.
+Yes. Suprascribe is fully open source under the GNU AGPL v3 license. Source code is available at https://github.com/akomis/suprascribe - the privacy claims are verifiable by anyone.
 
 **What makes Suprascribe different from Rocket Money?**
 Rocket Money requires connecting your bank account via Plaid and charges a monthly subscription fee ($4–$12/month). Suprascribe discovers subscriptions through email scanning (no bank access) and charges a one-time Pro upgrade with no recurring fees.
@@ -102,5 +102,5 @@ Subscription fatigue is the financial and mental drain of paying for more recurr
 
 - Built with Next.js (App Router), Supabase (PostgreSQL), and the Vercel AI SDK
 - Supports 11+ AI providers via BYOK (Bring Your Own Key): OpenAI, Anthropic, Google, Groq, OpenRouter, and more
-- Fully open source under MIT license
+- Fully open source under the GNU AGPL v3 license
 - Email scanning uses read-only OAuth scopes; no email content is stored

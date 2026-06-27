@@ -171,3 +171,9 @@ yarn build   # must pass
 ```
 
 Please keep changes focused - one feature or fix per PR.
+
+## License
+
+Suprascribe is open source under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0).
+
+This means you are free to use, study, modify, and redistribute the code. If you run a modified version as a network service, you must make your modified source code available to its users under the same license.
