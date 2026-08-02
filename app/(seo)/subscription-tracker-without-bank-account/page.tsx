@@ -7,22 +7,22 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Best Rocket Money Alternative - No Bank Access, No Monthly Fee',
+  title: 'Subscription Tracker Without a Bank Account - No Plaid, No Linking',
   description:
-    'Looking for a Rocket Money alternative that does not require bank account access? Suprascribe finds subscriptions by scanning email instead - free forever, one-time Pro upgrade.',
+    'A subscription tracker that never asks for your bank account. Suprascribe finds subscriptions by scanning your email instead of linking to Plaid - free, private, one-time Pro upgrade.',
   alternates: {
-    canonical: 'https://www.suprascribe.com/rocket-money-alternative',
+    canonical: 'https://www.suprascribe.com/subscription-tracker-without-bank-account',
   },
 }
 
-const rocketFaqItems = faqItems.filter((item) =>
+const pageFaqItems = faqItems.filter((item) =>
   [
     'Is there a subscription tracker that does not require bank access?',
-    'Is Suprascribe really free?',
-    'Is Pro really a one-time payment?',
     'How does auto-discovery work? Does it read all my emails?',
     'Is my data safe and private?',
+    'Can I use Suprascribe without connecting my email?',
     'Is Suprascribe open source?',
+    'Is Suprascribe really free?',
   ].includes(item.question),
 )
 
@@ -36,7 +36,7 @@ const jsonLd = {
       operatingSystem: 'Web',
       url: 'https://www.suprascribe.com',
       description:
-        'Rocket Money alternative that finds subscriptions through email scanning instead of bank linking - no Plaid access, no monthly fee, free unlimited tier.',
+        'Subscription tracker that works without a bank account. Finds subscriptions by scanning email instead of linking to Plaid - no financial-account access, no monthly fee, free unlimited tier.',
       offers: [
         {
           '@type': 'Offer',
@@ -54,76 +54,73 @@ const jsonLd = {
         },
       ],
     },
-    faqPageSchema(rocketFaqItems),
+    faqPageSchema(pageFaqItems),
     breadcrumbSchema(
-      'Rocket Money Alternative',
-      'https://www.suprascribe.com/rocket-money-alternative',
+      'Subscription Tracker Without a Bank Account',
+      'https://www.suprascribe.com/subscription-tracker-without-bank-account',
     ),
   ],
 }
 
 const comparisonRows = [
   {
-    feature: 'Subscription auto-discovery',
-    suprascribe: true,
-    suprascribeNote: 'Email scanning - no bank access needed',
-    rocketMoney: true,
-    rocketMoneyNote: 'Requires full bank account access via Plaid',
-  },
-  {
     feature: 'Bank account access required',
     suprascribe: false,
-    suprascribeNote: 'Never',
-    rocketMoney: true,
-    rocketMoneyNote: 'Required for auto-detection',
+    suprascribeNote: 'Never - your financial accounts are never touched',
+    bankApps: true,
+    bankAppsNote: 'Full transaction history via Plaid',
   },
   {
-    feature: 'Free tier',
+    feature: 'How subscriptions are found',
     suprascribe: true,
-    suprascribeNote: 'Unlimited subscriptions, free forever',
-    rocketMoney: true,
-    rocketMoneyNote: 'Limited features on free plan',
+    suprascribeNote: 'Scans your email receipts and renewal notices',
+    bankApps: true,
+    bankAppsNote: 'Reads every transaction on your accounts',
+  },
+  {
+    feature: 'Data at risk in a breach',
+    suprascribe: true,
+    suprascribeNote: 'Only your list of subscriptions',
+    bankApps: false,
+    bankAppsNote: 'Bank connection and full spending history',
+  },
+  {
+    feature: 'Works with no account linked at all',
+    suprascribe: true,
+    suprascribeNote: 'Add subscriptions manually, unlimited and free',
+    bankApps: false,
+    bankAppsNote: 'Auto-detection needs a linked bank',
   },
   {
     feature: 'Recurring monthly fee',
     suprascribe: false,
     suprascribeNote: 'No - one-time Pro upgrade only',
-    rocketMoney: true,
-    rocketMoneyNote: '$4–$12/month for premium',
+    bankApps: true,
+    bankAppsNote: 'Most charge $4-$12/month for premium',
   },
   {
     feature: 'Open source',
     suprascribe: true,
     suprascribeNote: 'Full source code on GitHub',
-    rocketMoney: false,
-    rocketMoneyNote: 'Closed source',
-  },
-  {
-    feature: 'Subscription-focused',
-    suprascribe: true,
-    suprascribeNote: 'Purpose-built for subscription tracking',
-    rocketMoney: false,
-    rocketMoneyNote: 'General personal finance app',
+    bankApps: false,
+    bankAppsNote: 'Closed source',
   },
 ]
 
-export default function RocketMoneyAlternativePage() {
+export default function SubscriptionTrackerWithoutBankAccountPage() {
   return (
     <SEOPage
       jsonLd={jsonLd}
-      title="A Rocket Money Alternative That Does Not Touch Your Bank Account"
-      description="Rocket Money finds subscriptions by reading your full transaction history via Plaid. Suprascribe finds the same subscriptions by scanning your email - same result, no bank access, no monthly fee. The free tier is unlimited."
+      title="A Subscription Tracker That Never Asks for Your Bank Account"
+      description="Most subscription trackers only work if you hand over your bank login through Plaid. Suprascribe finds the same subscriptions by scanning your email - no bank access, no financial data exposure, no monthly fee. And you can skip email entirely and add them by hand."
       primaryCta={{ href: '/login?tab=signup', label: 'Try Suprascribe Free' }}
       secondaryCta={{ href: '/demo', label: 'See the Demo' }}
-      faqItems={rocketFaqItems}
-      relatedHeading="Compare All Alternatives"
-      relatedDescription="See how Suprascribe stacks up against Rocket Money, YNAB, Bobby, and every other subscription tracker in one place."
+      faqItems={pageFaqItems}
+      relatedHeading="Also worth exploring"
+      relatedDescription="See how the no-bank-linking approach compares to the tools that require it."
       relatedPages={[
-        { href: '/compare/rocket-money', label: 'Suprascribe vs Rocket Money' },
-        {
-          href: '/subscription-tracker-without-bank-account',
-          label: 'Tracker With No Bank Linking',
-        },
+        { href: '/open-source-subscription-tracker', label: 'Open Source Subscription Tracker' },
+        { href: '/rocket-money-alternative', label: 'Rocket Money Alternative' },
         { href: '/free-subscription-tracker', label: 'Track Subscriptions for Free' },
       ]}
     >
@@ -131,10 +128,10 @@ export default function RocketMoneyAlternativePage() {
         <div className="space-y-8">
           <div className="text-center space-y-3">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Suprascribe vs. Rocket Money
+              No Bank Linking vs. Bank-Linked Apps
             </h2>
             <p className="text-muted-foreground">
-              Both tools automatically detect subscriptions. The difference is how.
+              Both find your subscriptions. Only one needs the keys to your accounts.
             </p>
           </div>
 
@@ -145,7 +142,7 @@ export default function RocketMoneyAlternativePage() {
                   <th className="text-left py-3 pr-4 font-medium">Feature</th>
                   <th className="text-center py-3 px-4 font-medium">Suprascribe</th>
                   <th className="text-center py-3 px-4 font-medium text-muted-foreground">
-                    Rocket Money
+                    Bank-linked apps
                   </th>
                 </tr>
               </thead>
@@ -167,13 +164,13 @@ export default function RocketMoneyAlternativePage() {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex flex-col items-center gap-1">
-                        {row.rocketMoney ? (
+                        {row.bankApps ? (
                           <Check className="h-4 w-4 text-muted-foreground/60" />
                         ) : (
                           <X className="h-4 w-4 text-muted-foreground/30" />
                         )}
                         <span className="text-xs text-muted-foreground text-center">
-                          {row.rocketMoneyNote}
+                          {row.bankAppsNote}
                         </span>
                       </div>
                     </td>
@@ -196,43 +193,48 @@ export default function RocketMoneyAlternativePage() {
         </div>
       </section>
 
-      <SEOSection title="Why People Switch from Rocket Money">
+      <SEOSection title="Why Skip Bank Linking at All?">
         <div className="space-y-5 text-muted-foreground">
           <p>
-            Rocket Money works - it genuinely finds subscriptions and can even negotiate bills on
-            your behalf. The trade-offs are the reason people look for alternatives.
+            Apps like Rocket Money, PocketGuard, and Trim detect subscriptions by connecting to your
+            bank through Plaid. That connection gives them read access to your entire transaction
+            history - every purchase, not just the recurring ones. To find a handful of
+            subscriptions, you expose all of your spending.
           </p>
           <p>
-            <strong className="text-foreground">Bank access.</strong> Rocket Money uses Plaid to
-            connect your bank account, which gives it read access to your full transaction history -
-            not just subscriptions. For many users, that level of financial data exposure is more
-            than they want to grant to a third-party app.
+            <strong className="text-foreground">Less data at risk.</strong> A manual or email-based
+            tracker never holds your bank credentials, so a breach cannot expose your accounts. The
+            only data involved is a list of the services you pay for.
           </p>
           <p>
-            <strong className="text-foreground">Monthly fee.</strong> The premium tier costs $4–$12
-            per month depending on what you pay, which means you&apos;re adding another recurring
-            charge to manage your recurring charges. Suprascribe Pro is a one-time purchase - no
-            ongoing commitment.
+            <strong className="text-foreground">Your email is a better record anyway.</strong>{' '}
+            Almost every subscription sends a receipt or renewal notice. Your inbox captures
+            subscriptions billed through the App Store, Google Play, and PayPal that a single bank
+            statement can miss or disguise behind cryptic labels.
           </p>
           <p>
-            <strong className="text-foreground">Feature scope.</strong> Rocket Money is a full
-            personal finance app. If all you want is to track and manage subscriptions, most of its
-            features are noise. Suprascribe is purpose-built for subscriptions only.
+            <strong className="text-foreground">No recurring fee.</strong> Most bank-linked apps
+            charge a monthly premium - you end up paying a subscription to manage your
+            subscriptions. Suprascribe Pro is a one-time purchase.
           </p>
         </div>
 
         <div className="border rounded-lg p-5 space-y-3">
-          <h3 className="font-semibold">Suprascribe free tier includes</h3>
+          <h3 className="font-semibold">Two private ways to use Suprascribe</h3>
           <ul className="text-sm text-muted-foreground space-y-1.5">
-            <li>• Unlimited manual subscriptions - no cap</li>
-            <li>• Full dashboard with spend insights</li>
-            <li>• Multi-currency support</li>
-            <li>• Complete subscription history</li>
-            <li>• No credit card, no bank access, no recurring fee</li>
+            <li>
+              • <strong className="text-foreground">Fully manual.</strong> Add subscriptions by hand
+              - unlimited and free, with nothing connected at all.
+            </li>
+            <li>
+              • <strong className="text-foreground">Email auto-discovery (Pro).</strong> Connect
+              Gmail, Outlook, or iCloud via OAuth. Only subscription-related emails are scanned, and
+              no email content is ever stored.
+            </li>
           </ul>
           <p className="text-xs text-muted-foreground pt-1">
-            Pro (one-time) adds email auto-discovery, renewal reminders, calendar view, search, and
-            unsubscribe assistance.
+            Either way, your bank account is never involved. Suprascribe is open source, so you can
+            verify exactly how your data is handled.
           </p>
         </div>
       </SEOSection>

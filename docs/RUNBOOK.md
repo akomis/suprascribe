@@ -51,7 +51,6 @@ Copy `.env.example` to `.env.local` and fill in all values before running locall
 | `MODEL_API_KEY`                   | https://openrouter.ai/keys                                                              |
 | `BRANDFETCH_API_KEY`              | https://brandfetch.com/developers                                                       |
 | `RESEND_API_KEY`                  | https://resend.com/api-keys                                                             |
-| `NEXT_PUBLIC_STRIPE_PAYMENT_LINK` | Stripe Dashboard → Payment Links                                                        |
 | `STRIPE_SECRET_KEY`               | Stripe Dashboard → Developers → API Keys                                                |
 | `STRIPE_WEBHOOK_SECRET`           | Generated when registering webhook endpoint (see §6)                                    |
 | `ENCRYPTION_SECRET`               | Generate: `openssl rand -base64 32` - store securely, never rotate without migrating DB |
@@ -184,11 +183,10 @@ supabase functions invoke send-renewal-reminders --no-verify-jwt
    - `checkout.session.completed`
    - `charge.failed`
 4. Copy the **Signing secret** → set as `STRIPE_WEBHOOK_SECRET`
-5. Set the **Success URL** on your Payment Link:
-   - Production: `https://your-domain.com/confirmation`
-   - Local dev: `http://localhost:3000/confirmation`
 
-The webhook handler stores processed event IDs in `stripe_webhook_events` to prevent duplicate processing on replay.
+Success and cancel URLs are set in code by `app/api/upgrade/route.ts` and derived from `NEXT_PUBLIC_BASE_URL`. That variable must be correct in production — if it is wrong, users are redirected to the wrong host after paying.
+
+Replay safety: the `USER_TIERS` upsert is idempotent, so re-delivering a `checkout.session.completed` is harmless. Affiliate conversions rely on a unique constraint in `AFFILIATE_CONVERSIONS` (the insert swallows Postgres `23505`).
 
 **Test webhooks locally:**
 
@@ -267,7 +265,7 @@ supabase db push
 1. Stripe Dashboard → Developers → Webhooks → select endpoint → Roll secret
 2. Update `STRIPE_WEBHOOK_SECRET` in Railway environment variables
 3. Redeploy to pick up the new value
-4. Check `stripe_webhook_events` table for any missed events during the gap and replay if needed from Stripe Dashboard
+4. Check Stripe Dashboard → Developers → Events for failed deliveries during the gap and resend them
 
 ### Full re-deployment from scratch
 

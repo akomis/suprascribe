@@ -29,7 +29,7 @@ export function LandingCTA() {
       <div className="flex items-center">
         <Link href="/login?tab=signup">
           <Button size="lg" className="text-sm sm:text-base rounded-r-none">
-            Get Started Free
+            Sign Up
           </Button>
         </Link>
         <Link href="/login?tab=signin">
@@ -44,12 +44,8 @@ export function LandingCTA() {
       </div>
 
       <Link href="/demo">
-        <Button
-          size="lg"
-          variant="link"
-          className="text-shadow-neutral-400 text-xs sm:text-sm underline"
-        >
-          Try Demo
+        <Button size="lg" variant="link" className="text-shadow-neutral-400 text-xs underline">
+          Dashboard Demo
         </Button>
       </Link>
     </div>

@@ -25,7 +25,7 @@ export default function TermsAndPrivacyPage() {
             </Button>
           </Link>
           <h1 className="text-4xl font-bold tracking-tight">Terms of Service & Privacy Policy</h1>
-          <p className="mt-2 text-muted-foreground">Last updated: June 2, 2026</p>
+          <p className="mt-2 text-muted-foreground">Last updated: July 15, 2026</p>
         </div>
 
         <div className="space-y-8">
@@ -72,7 +72,38 @@ export default function TermsAndPrivacyPage() {
               </section>
 
               <section>
-                <h3 className="text-lg font-semibold">5. User Data and Content</h3>
+                <h3 className="text-lg font-semibold">5. Refund Policy</h3>
+                <p className="text-muted-foreground">
+                  Suprascribe offers refunds on the one-time Pro purchase strictly in cases of
+                  demonstrable product failure. A refund shall be granted where a technical fault,
+                  error, or defect attributable to the service prevented the product from
+                  functioning as intended and rendered you unable to use the Pro features for which
+                  payment was made.
+                </p>
+                <p className="text-muted-foreground">
+                  Refunds shall not be granted where the service functioned as intended but did not
+                  return results satisfactory to the user. In particular, the inability to discover
+                  one or more expected subscriptions does not constitute a product failure, as such
+                  outcomes are frequently a consequence of the state, contents, or organization of
+                  the user&apos;s email inbox and other factors outside the control of Suprascribe.
+                  Accordingly, dissatisfaction with detection results, absent an underlying
+                  technical error, is not a valid ground for a refund.
+                </p>
+                <p className="text-muted-foreground">
+                  To request a refund, you must contact us at{' '}
+                  <a href="mailto:refunds@suprascribe.com" className="text-primary hover:underline">
+                    refunds@suprascribe.com
+                  </a>{' '}
+                  within one (1) week of the date of purchase and provide sufficient information to
+                  enable us to assess the alleged fault. Requests submitted after this period may be
+                  declined. All refund requests are evaluated on a case-by-case basis, and
+                  Suprascribe reserves the right, acting reasonably, to determine whether the
+                  conditions set out in this section have been met.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold">6. User Data and Content</h3>
                 <p className="text-muted-foreground">
                   You retain all rights to the data you enter into Suprascribe. We do not claim
                   ownership of your subscription information or any data you provide. You grant us
@@ -82,7 +113,7 @@ export default function TermsAndPrivacyPage() {
               </section>
 
               <section>
-                <h3 className="text-lg font-semibold">6. Service Availability</h3>
+                <h3 className="text-lg font-semibold">7. Service Availability</h3>
                 <p className="text-muted-foreground">
                   While we strive to provide continuous service, we do not guarantee that the
                   service will be uninterrupted or error-free. We reserve the right to modify,
@@ -91,7 +122,7 @@ export default function TermsAndPrivacyPage() {
               </section>
 
               <section>
-                <h3 className="text-lg font-semibold">7. Limitation of Liability</h3>
+                <h3 className="text-lg font-semibold">8. Limitation of Liability</h3>
                 <p className="text-muted-foreground">
                   Suprascribe is provided &quot;as is&quot; without any warranties. We are not
                   liable for any damages arising from the use or inability to use our service. We do
@@ -100,7 +131,7 @@ export default function TermsAndPrivacyPage() {
               </section>
 
               <section>
-                <h3 className="text-lg font-semibold">8. Modifications to Terms</h3>
+                <h3 className="text-lg font-semibold">9. Modifications to Terms</h3>
                 <p className="text-muted-foreground">
                   We reserve the right to modify these terms at any time. We will notify users of
                   any material changes via email or through the service. Your continued use of
@@ -130,6 +161,12 @@ export default function TermsAndPrivacyPage() {
                   <li>Payment information (processed securely by our payment provider)</li>
                   <li>Usage data and preferences</li>
                 </ul>
+                <p className="text-muted-foreground">
+                  We collect strictly the minimum information necessary for the functional operation
+                  of the service and for no other purpose. We do not collect, request, or retain any
+                  data beyond that which is required to provide and maintain the features made
+                  available to you.
+                </p>
               </section>
 
               <section>
@@ -150,7 +187,10 @@ export default function TermsAndPrivacyPage() {
                   If you choose to use our email discovery feature, we will access your email to
                   detect subscription-related messages. This analysis is performed securely, and we
                   only extract subscription-related information. We do not read, store, or process
-                  any other email content. You can revoke email access at any time.
+                  any other email content. We do not maintain persistent connections to your email
+                  account and we do not store your email access tokens. The retrieval of specific
+                  emails occurs only once during each discovery process, after which access is not
+                  retained.
                 </p>
               </section>
 
@@ -198,7 +238,6 @@ export default function TermsAndPrivacyPage() {
                   <li>Correct inaccurate data</li>
                   <li>Request deletion of your data</li>
                   <li>Export your data</li>
-                  <li>Opt-out of certain data collection practices</li>
                 </ul>
               </section>
 
@@ -245,7 +284,6 @@ export default function TermsAndPrivacyPage() {
                   at:
                 </p>
                 <p className="text-muted-foreground ml-4">
-                  Email:{' '}
                   <a href="mailto:privacy@suprascribe.com" className="text-primary hover:underline">
                     privacy@suprascribe.com
                   </a>

@@ -307,7 +307,7 @@ function ReviewSubscriptionsView({
       <DialogHeader>
         <DialogTitle>Review Subscriptions</DialogTitle>
         <DialogDescription asChild>
-          <div className="space-y-2 my-4">
+          <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
               These subscriptions were identified by AI and may contain mistakes. Use the edit
               button to correct any details before importing and the X to mark false positives to
@@ -318,7 +318,7 @@ function ReviewSubscriptionsView({
       </DialogHeader>
 
       <div className="flex flex-col gap-2 py-2 overflow-y-auto flex-1 pr-2">
-        <div className="flex flex-col gap-2 mb-4">
+        <div className="flex flex-col gap-2 mb-2">
           {activeGroups.length > 0 && (
             <Badge variant="outline" className="text-xs font-medium">
               Active

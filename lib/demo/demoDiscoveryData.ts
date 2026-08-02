@@ -95,7 +95,7 @@ type ServiceTemplate = {
 }
 
 // Pool is restricted to services we ship a local SVG for (STATIC_LOGOS /
-// public/logos), so every discovered logo renders instantly and offline — the
+// public/logos), so every discovered logo renders instantly and offline - the
 // Brandfetch CDN path is rate-limited (429) and unreliable for screen
 // recordings. To add more brands, drop their SVG in public/logos, register the
 // domain in STATIC_LOGOS (lib/hooks/useLogo.ts), then add it here.

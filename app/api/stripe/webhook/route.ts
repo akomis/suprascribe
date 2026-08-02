@@ -14,86 +14,24 @@ function createSupabaseAdmin() {
   )
 }
 
-// Prefer client_reference_id (Supabase user ID passed from UpgradeButton) for a direct,
-// reliable lookup. Then check USER_TIERS.pending_upgrade_email. Fall back to email scan as last resort.
-async function resolveUserId(
-  supabase: SupabaseClient,
+// Every session we act on is created by /api/upgrade, which stamps user_id and
+// an optional referral_code into metadata. Anything without that metadata is not
+// ours to fulfil.
+function resolveUserId(
   session: Stripe.Checkout.Session,
-): Promise<{ userId: string; affiliateCode?: string } | NextResponse> {
-  const clientRefId = session.client_reference_id
-  const customerEmail = session.customer_email || session.customer_details?.email
+): { userId: string; affiliateCode?: string } | NextResponse {
+  const userId = session.metadata?.user_id
 
-  console.log(`[Webhook Debug] Session ${session.id}:`, {
-    client_reference_id: clientRefId,
-    customer_email: customerEmail,
-    payment_status: session.payment_status,
-    payment_intent: session.payment_intent,
-  })
-
-  if (clientRefId) {
-    const [userId, affiliateCode] = clientRefId.split(':')
-    console.log(
-      `[Webhook Debug] Using client_reference_id: ${userId}${affiliateCode ? ` (affiliate: ${affiliateCode})` : ''}`,
-    )
-    return { userId, affiliateCode }
-  }
-
-  if (!customerEmail) {
-    console.warn(`[Webhook Debug] No user found for session:`, {
-      session_id: session.id,
-      customer_email: customerEmail,
-    })
-    return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
-  }
-
-  const normalizedEmail = customerEmail.toLowerCase().trim()
-  console.log(`[Webhook Debug] Checking USER_TIERS.pending_upgrade_email for: ${normalizedEmail}`)
-
-  const { data: pendingTier } = await supabase
-    .from('USER_TIERS')
-    .select('user_id')
-    .eq('pending_upgrade_email', normalizedEmail)
-    .maybeSingle()
-  if (pendingTier?.user_id) {
-    console.log(
-      `[Webhook Debug] Found user ${pendingTier.user_id} in USER_TIERS.pending_upgrade_email`,
-    )
-    return { userId: pendingTier.user_id }
-  }
-
-  console.log(`[Webhook Debug] Falling back to auth user lookup`)
-  let page = 1
-  let totalUsersChecked = 0
-  let userId: string | undefined
-
-  while (!userId) {
-    const { data: authData, error: userError } = await supabase.auth.admin.listUsers({
-      page,
-      perPage: 100,
-    })
-    if (userError) {
-      console.error('[Webhook Debug] Failed to list users:', userError)
-      return NextResponse.json({ success: false, error: 'Failed to lookup user' }, { status: 500 })
-    }
-    if (authData.users.length === 0) break
-    totalUsersChecked += authData.users.length
-    const match = authData.users.find((u) => u.email?.toLowerCase().trim() === normalizedEmail)
-    if (match) {
-      userId = match.id
-      console.log(`[Webhook Debug] Found user ${userId} in auth on page ${page}`)
-    }
-    page++
-  }
-
-  console.log(`[Webhook Debug] Checked ${totalUsersChecked} auth users`)
   if (!userId) {
-    console.warn(`[Webhook Debug] No user found for session:`, {
-      session_id: session.id,
-      customer_email: customerEmail,
-    })
+    console.warn(`[Webhook] pro_upgrade session ${session.id} has no user_id metadata`)
     return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
   }
-  return { userId }
+
+  const affiliateCode = session.metadata?.referral_code || undefined
+  console.log(
+    `[Webhook] Resolved ${userId}${affiliateCode ? ` (affiliate: ${affiliateCode})` : ''} from session ${session.id}`,
+  )
+  return { userId, affiliateCode }
 }
 
 async function handleAffiliateConversion(
@@ -131,18 +69,20 @@ async function handleAffiliateConversion(
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<NextResponse> {
-  // One-time anonymous discovery payments are fulfilled synchronously at the
-  // success_url (see /api/discovery/once/verify). They have no user to upgrade,
-  // so skip the PRO-grant path entirely.
-  if (session.metadata?.purpose === 'one_time_discovery') {
-    console.log(`[Webhook] Ignoring one_time_discovery session ${session.id} (no PRO grant)`)
+  // Only sessions this app created for a PRO upgrade grant a tier. One-time
+  // discovery payments (fulfilled synchronously at their own success_url, see
+  // /api/discovery/once/verify) and anything else land here and are ignored.
+  if (session.metadata?.purpose !== 'pro_upgrade') {
+    console.log(
+      `[Webhook] Ignoring session ${session.id} (purpose: ${session.metadata?.purpose ?? 'none'})`,
+    )
     return NextResponse.json({ received: true })
   }
 
-  const supabase = createSupabaseAdmin()
-  const resolved = await resolveUserId(supabase, session)
+  const resolved = resolveUserId(session)
   if (resolved instanceof NextResponse) return resolved
 
+  const supabase = createSupabaseAdmin()
   const { userId, affiliateCode } = resolved
   const { error } = await supabase.from('USER_TIERS').upsert(
     {
@@ -150,7 +90,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
       tier: 'PRO',
       date_upgraded: new Date().toISOString(),
       stripe_payment_intent_id: (session.payment_intent as string) ?? null,
-      pending_upgrade_email: null,
     },
     { onConflict: 'user_id' },
   )

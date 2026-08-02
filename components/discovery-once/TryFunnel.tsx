@@ -5,6 +5,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { loadRuns, removeRun, saveRun, type SavedRun } from '@/lib/discovery/saved-runs'
 import type { DiscoveryResponse } from '@/lib/types/discovery'
 import type { DiscoveredSubscription } from '@/lib/types/forms'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { ConnectInbox } from './ConnectInbox'
@@ -155,6 +156,16 @@ export function TryFunnel() {
           emailScanned={emailScanned}
           discoveredAt={discoveredAt}
         />
+        {results.length > 0 && (
+          <p className="text-xs text-muted-foreground text-center max-w-sm">
+            <Link href="/login?tab=signup" className="underline hover:text-foreground">
+              Create a free account
+            </Link>{' '}
+            to import these into a dashboard - your scan stays on this device until you do. Renewal
+            reminders, search, sort &amp; group, and more automatic subscription discoveries come
+            with Pro.
+          </p>
+        )}
         <Button variant="outline" onClick={() => setStep('intro')}>
           Done
         </Button>

@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   formatDetection: { telephone: false },
   title: {
-    default: 'Suprascribe - Free Subscription Tracker & Manager',
+    default: 'Suprascribe - Subscription Tracker & Manager',
     template: '%s | Suprascribe',
   },
   description: siteDescription,
@@ -44,13 +44,13 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'Suprascribe',
     locale: 'en_US',
-    title: 'Suprascribe - Free Subscription Tracker & Manager',
+    title: 'Suprascribe - Subscription Tracker & Manager',
     description: siteDescription,
     url: 'https://www.suprascribe.com',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Suprascribe - Free Subscription Tracker & Manager',
+    title: 'Suprascribe - Subscription Tracker & Manager',
     description: siteDescription,
   },
 }

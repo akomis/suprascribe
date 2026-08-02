@@ -19,28 +19,28 @@ interface ShowcaseSection {
 const sections: ShowcaseSection[] = [
   {
     id: 'discovery',
-    title: 'Auto Discovery',
+    title: 'Track subscriptions without the work',
     description:
-      'Automatically detect subscriptions from your email inbox. Connect via Gmail, Outlook, iCloud or use IMAP for any email provider. Our system scans in a privacy-aware way for recurring charges, making it effortless to keep track of everything.',
+      'Automatically detect subscriptions from your email inbox. Connect via Gmail, Outlook, iCloud or use IMAP for any email provider. Our system scans in a privacy-aware way for recurring charges, making it effortless to keep track of everything. No manual labor and the possibility of uncovering potentially forgotten subscriptions.',
     component: DemoDiscovery,
   },
   {
     id: 'history',
-    title: 'History & Quick Unsubscribe',
+    title: 'Track & cancel effortlessly',
     description:
       'Keep a complete record of your subscription journey. Track when you started, paused, or cancelled services, review past spending patterns in one organized timeline, and quickly cancel any service you no longer need by getting to the unsubscribe pages instantly.',
     component: DemoHistory,
   },
   {
     id: 'reminders',
-    title: 'Renewal Reminders',
+    title: 'No more surprise charges',
     description:
-      'Never get caught off guard by an unexpected charge. Set up email reminders and choose exactly how many days before a renewal you want to be notified - giving you time to decide whether to keep, pause, or cancel before you are billed.',
+      'Set up email reminders and choose exactly how many days before a renewal you want to be notified - giving you time to decide whether to keep, pause, or cancel before you are billed.',
     component: DemoReminders,
   },
   {
     id: 'overview',
-    title: 'Complete Overview',
+    title: 'Understand where your money goes',
     description:
       'Get a comprehensive view of all your (active & past) subscriptions in one place. Track your monthly and annual spending (current & forecast), see upcoming renewals, and understand exactly where your money goes all in a clean and modern interface.',
     component: DemoOverview,
@@ -51,6 +51,10 @@ export function ScreenshotsShowcase() {
   return (
     <section className="py-12 sm:py-16 md:py-20 -mx-4 md:mx-0">
       <div className="mx-auto max-w-6xl px-4">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-8 sm:mb-12 text-left">
+          How Suprascribe helps
+        </h2>
+
         <div className="space-y-12 sm:space-y-16 md:space-y-20">
           {sections.map((section, index) => {
             const isComponentLeft = index % 2 === 0

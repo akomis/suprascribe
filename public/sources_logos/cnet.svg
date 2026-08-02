@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="1000"
+   height="225"
+   viewBox="0 0 1000 225"
+   xml:space="preserve"
+   id="svg4"
+   sodipodi:docname="CNET_(2022).svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+   id="namedview4"
+   pagecolor="#ffffff"
+   bordercolor="#000000"
+   borderopacity="0.25"
+   inkscape:showpageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1"
+   inkscape:zoom="0.70710678"
+   inkscape:cx="468.10469"
+   inkscape:cy="163.34167"
+   inkscape:window-width="1366"
+   inkscape:window-height="705"
+   inkscape:window-x="-8"
+   inkscape:window-y="-8"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="svg4"
+   showgrid="false"><inkscape:grid
+     id="grid4"
+     units="px"
+     originx="0"
+     originy="7.7300938e-06"
+     spacingx="1"
+     spacingy="1"
+     empcolor="#0099e5"
+     empopacity="0.30196078"
+     color="#0099e5"
+     opacity="0.14901961"
+     empspacing="5"
+     dotted="false"
+     gridanglex="30"
+     gridanglez="30"
+     visible="false" /></sodipodi:namedview>
+<desc
+   id="desc1">Created with Fabric.js 4.6.0</desc>
+<defs
+   id="defs1">
+
+
+
+		
+		
+		
+		
+
+
+
+
+
+
+
+
+</defs>
+<path
+   id="path1"
+   style="fill:#e71d1d;fill-rule:nonzero;stroke:none;stroke-width:0.631074;stroke-linecap:square;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0"
+   d="M 77.699219 0 C 27.301139 0 0 22.100285 0 65.902344 L 0 159.09766 C 0 202.89968 27.306942 225 77.705078 225 L 224.99414 225 L 224.99414 128.32617 L 212.94727 128.32617 C 207.62092 184.42137 182.89441 208.09961 134.29492 208.09961 L 103.86914 208.09961 C 80.191006 208.09961 68.693359 196.29885 68.693359 173 L 68.693359 52 C 68.693359 28.701166 80.197316 16.900391 103.86914 16.900391 L 134.27539 16.900391 C 183.60063 16.900391 207.87925 39.252639 212.95312 93.625 L 225 93.625 L 225 0 L 77.699219 0 z M 390.82422 0 L 390.82422 11.302734 C 443.20391 16.527788 467.10156 38.746847 467.10156 97.673828 L 467.10156 168.22461 L 328.90234 0.005859375 L 260 0.005859375 L 260 225 L 355.40039 225 L 355.40039 213.69727 C 301.69543 207.84746 277.89844 185.84993 277.89844 126.52539 L 277.89844 45.876953 L 425.09766 225 L 485 225 L 485 0.005859375 L 390.82422 0 z M 520 0 L 520 225 L 745 225 L 745 128.32617 L 732.95312 128.32617 C 727.62698 184.60432 702.90087 208.35156 654.30273 208.35156 L 586.60352 208.35156 L 586.60352 116.60156 L 609.5293 116.60156 C 647.87893 116.60156 664.10366 133.65333 667.95312 170.67773 L 680.20312 170.67773 L 680.20312 47.001953 L 667.95312 47.001953 C 664.07843 83.849667 647.80321 101.02734 609.5293 101.02734 L 586.60352 101.02734 L 586.60352 16.654297 L 654.27734 16.654297 C 703.60115 16.654297 727.85416 39.050753 732.95312 93.625 L 745 93.625 L 745 0 L 520 0 z M 775 0 L 775 93.621094 L 787.05273 93.621094 C 792.25271 42.11867 813.77924 18.193844 854.20508 13.845703 L 854.20508 172.07812 C 854.20508 199.58063 844.50554 210.57355 809.00195 212.87695 L 809.00195 225 L 965.99805 225 L 965.99805 212.87695 C 930.50078 210.57986 920.80078 199.58063 920.80078 172.07812 L 920.80078 13.851562 C 961.22662 18.199703 982.75319 42.124534 987.95312 93.626953 L 1000 93.626953 L 1000 0 L 775 0 z " />
+</svg>

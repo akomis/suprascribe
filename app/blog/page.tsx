@@ -3,7 +3,7 @@ import { SuprascribeLogo } from '@/components/landing/SuprascribeLogo'
 import { PageShell } from '@/components/shared/SEOPage'
 import { SiteFooter } from '@/components/shared/SiteFooter'
 import { Separator } from '@/components/ui/separator'
-import { blogPosts } from '@/lib/config/blog'
+import { getBlogPostsNewestFirst } from '@/lib/config/blog'
 import { ArrowRight, Clock } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -55,6 +55,8 @@ function formatDate(iso: string) {
 }
 
 export default function BlogIndexPage() {
+  const posts = getBlogPostsNewestFirst()
+
   return (
     <PageShell jsonLd={jsonLd}>
       <section className="container mx-auto px-4 py-12 sm:py-16 max-w-3xl text-center">
@@ -70,12 +72,12 @@ export default function BlogIndexPage() {
 
       <Separator className="data-[orientation=horizontal]:w-[40vw] mx-auto" />
 
-      <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">
-        <div className="space-y-6">
-          {blogPosts.map((post) => (
+      <section className="container mx-auto px-4 py-12 sm:py-20 max-w-6xl">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => (
             <article
               key={post.slug}
-              className="border rounded-lg p-6 space-y-3 hover:bg-muted/30 transition-colors"
+              className="flex flex-col border rounded-lg p-6 space-y-3 hover:bg-muted/30 transition-colors"
             >
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span>{formatDate(post.publishedAt)}</span>
@@ -87,11 +89,17 @@ export default function BlogIndexPage() {
               </div>
               <h2 className="text-xl font-semibold tracking-tight">{post.title}</h2>
               <p className="text-sm text-muted-foreground">{post.intro}</p>
-              <Link href={`/blog/${post.slug}`}>
-                <Button variant="ghost" size="sm" className="px-0 gap-1 hover:gap-2 transition-all">
-                  Read article <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              <div className="mt-auto flex justify-end pt-2">
+                <Link href={`/blog/${post.slug}`}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="px-0 gap-1 hover:gap-2 transition-all"
+                  >
+                    Read article <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </article>
           ))}
         </div>
