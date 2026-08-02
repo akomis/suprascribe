@@ -37,7 +37,7 @@ function hostnameFromUrl(url: string): string | undefined {
 // Derives an unsubscribe_url for a service from a curated sibling row sharing the same
 // domain, so tier/variant rows ("Spotify Premium Individual") inherit the canonical cancel
 // link. Returns undefined when the host is generic, unknown, or maps to more than one
-// distinct unsubscribe_url (ambiguous — e.g. amazon.com → Amazon Prime vs AWS).
+// distinct unsubscribe_url (ambiguous - e.g. amazon.com → Amazon Prime vs AWS).
 async function deriveUnsubscribeUrlByDomain(
   supabase: SupabaseClient,
   url: string | null | undefined,

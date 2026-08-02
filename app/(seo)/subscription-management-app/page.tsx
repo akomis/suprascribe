@@ -89,6 +89,7 @@ export default function SubscriptionManagementAppPage() {
       relatedPages={[
         { href: '/free-subscription-tracker', label: 'Track Subscriptions for Free' },
         { href: '/free-subscription-manager', label: 'Manage Subscriptions for Free' },
+        { href: '/subscription-cost-calculator', label: 'Subscription Cost Calculator' },
       ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">

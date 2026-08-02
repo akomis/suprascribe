@@ -57,7 +57,7 @@ export const Features = {
   auto_discovery: {
     key: 'auto_discovery',
     name: 'Auto Discovery',
-    description: `Discover active & past subscriptions automatically through Gmail, Outlook and iCloud or any other provider through IMAP`,
+    description: `Discover active & past subscriptions automatically through Gmail, Outlook and iCloud (or any other provider through IMAP)`,
     tier: TIER.PRO,
     enabled: true,
     moreInfoLink: {
@@ -68,14 +68,15 @@ export const Features = {
   quick_unsubscribe: {
     key: 'quick_unsubscribe',
     name: 'Quick Unsubscribe',
-    description: 'Quick unsubscribe',
+    description:
+      'Quickly unsubscribe by getting straight to the respective cancel page for each service',
     tier: TIER.PRO,
     enabled: true,
   },
   renewal_reminders: {
     key: 'renewal_reminders',
     name: 'Renewal Reminders',
-    description: 'Renewal email reminders',
+    description: 'Renewal email reminders before subscription billing',
     tier: TIER.PRO,
     enabled: true,
   },

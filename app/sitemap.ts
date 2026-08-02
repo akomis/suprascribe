@@ -30,6 +30,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date('2026-06-15'),
     },
     {
+      url: 'https://www.suprascribe.com/subscription-cost-calculator',
+      lastModified: new Date('2026-07-28'),
+    },
+    {
       url: 'https://www.suprascribe.com/free-subscription-tracker',
       lastModified: new Date('2026-05-27'),
     },
@@ -48,6 +52,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: 'https://www.suprascribe.com/rocket-money-alternative',
       lastModified: new Date('2026-05-27'),
+    },
+    {
+      url: 'https://www.suprascribe.com/subscription-tracker-without-bank-account',
+      lastModified: new Date('2026-07-26'),
+    },
+    {
+      url: 'https://www.suprascribe.com/open-source-subscription-tracker',
+      lastModified: new Date('2026-07-26'),
     },
     {
       url: 'https://www.suprascribe.com/compare',

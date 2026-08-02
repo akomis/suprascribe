@@ -120,7 +120,10 @@ export default function RocketMoneyAlternativePage() {
       relatedDescription="See how Suprascribe stacks up against Rocket Money, YNAB, Bobby, and every other subscription tracker in one place."
       relatedPages={[
         { href: '/compare/rocket-money', label: 'Suprascribe vs Rocket Money' },
-        { href: '/compare', label: 'All Comparisons' },
+        {
+          href: '/subscription-tracker-without-bank-account',
+          label: 'Tracker With No Bank Linking',
+        },
         { href: '/free-subscription-tracker', label: 'Track Subscriptions for Free' },
       ]}
     >

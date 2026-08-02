@@ -175,7 +175,7 @@ function SubscriptionEntry({
                   variant="ghost"
                   className="h-6 w-6"
                   aria-label="Edit subscription details"
-                  disabled={disabled}
+                  disabled={disabled || isSkipped}
                   onClick={() => onEdit(item.index)}
                 >
                   <Pencil className="size-3" />

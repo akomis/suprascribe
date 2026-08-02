@@ -28,7 +28,7 @@
 - **Database:** Supabase (PostgreSQL) with Row-Level Security
 - **Auth:** Supabase Auth - Google, Microsoft, Apple OAuth
 - **AI:** Vercel AI SDK with multi-provider support (OpenAI, Anthropic, Groq, etc.)
-- **Payments:** Stripe (one-time payment link)
+- **Payments:** Stripe (one-time Checkout Session, redirect-based)
 - **Styling:** Tailwind CSS v4 + shadcn/ui
 
 ## Getting Started
@@ -92,11 +92,11 @@ Alternatively, leave `MODEL_API_KEY` empty - users can bring their own key (BYOK
 
 ### 5. Optional services
 
-| Service                              | Variable(s)                                                                     | Purpose                      |
-| ------------------------------------ | ------------------------------------------------------------------------------- | ---------------------------- |
-| [Stripe](https://stripe.com)         | `NEXT_PUBLIC_STRIPE_PAYMENT_LINK`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | One-time Pro upgrade payment |
-| [Resend](https://resend.com)         | `RESEND_API_KEY`                                                                | Renewal reminder emails      |
-| [Brandfetch](https://brandfetch.com) | `BRANDFETCH_API_KEY`                                                            | Service logo fetching        |
+| Service                              | Variable(s)                                  | Purpose                      |
+| ------------------------------------ | -------------------------------------------- | ---------------------------- |
+| [Stripe](https://stripe.com)         | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | One-time Pro upgrade payment |
+| [Resend](https://resend.com)         | `RESEND_API_KEY`                             | Renewal reminder emails      |
+| [Brandfetch](https://brandfetch.com) | `BRANDFETCH_API_KEY`                         | Service logo fetching        |
 
 For local Stripe webhook testing, use the [Stripe CLI](https://stripe.com/docs/stripe-cli):
 
@@ -171,3 +171,9 @@ yarn build   # must pass
 ```
 
 Please keep changes focused - one feature or fix per PR.
+
+## License
+
+Suprascribe is open source under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0).
+
+This means you are free to use, study, modify, and redistribute the code. If you run a modified version as a network service, you must make your modified source code available to its users under the same license.

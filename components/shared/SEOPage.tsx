@@ -23,11 +23,12 @@ interface SEOPageProps {
   jsonLd: object
   title: string
   description: string
-  primaryCta: CTAButton
+  primaryCta?: CTAButton
   secondaryCta?: CTAButton
   faqItems?: FAQItem[]
   relatedPages?: RelatedPage[]
-  relatedHeading?: string
+  /** `null` renders the links without a heading. */
+  relatedHeading?: string | null
   relatedDescription?: string
   children?: ReactNode
 }
@@ -67,22 +68,29 @@ export function SEOPage({
 }: SEOPageProps) {
   return (
     <PageShell jsonLd={jsonLd}>
-      <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl text-center">
-        <div className="space-y-6">
+      <section className="container mx-auto px-4 py-6 sm:py-20 max-w-6xl text-center">
+        <div className="space-y-4">
           <SuprascribeLogo size={36} layout="column" />
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">{title}</h1>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto">
             {description}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <Link href={primaryCta.href}>
-              <Button size="lg" variant={primaryCta.variant ?? 'default'}>
-                {primaryCta.label}
+            {primaryCta && (
+              <Link href={primaryCta.href}>
+                <Button size="lg" variant={primaryCta.variant ?? 'default'}>
+                  {primaryCta.label}
+                </Button>
+              </Link>
+            )}
+            <Link href="/">
+              <Button size="lg" variant="outline">
+                Learn More
               </Button>
             </Link>
             {secondaryCta && (
               <Link href={secondaryCta.href}>
-                <Button size="lg" variant={secondaryCta.variant ?? 'outline'}>
+                <Button size="lg" variant={secondaryCta.variant ?? 'ghost'}>
                   {secondaryCta.label}
                 </Button>
               </Link>
@@ -113,22 +121,21 @@ export function SEOPage({
       )}
 
       {relatedPages && relatedPages.length > 0 && (
-        <>
-          <Separator className="data-[orientation=horizontal]:w-[40vw] mx-auto" />
-          <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl text-center">
-            <div className="space-y-4">
+        <section className="container mx-auto px-4 py-10 max-w-4xl text-center">
+          <div className="space-y-4">
+            {relatedHeading && (
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight">{relatedHeading}</h2>
-              {relatedDescription && <p className="text-muted-foreground">{relatedDescription}</p>}
-              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                {relatedPages.map((page) => (
-                  <Link key={page.href} href={page.href}>
-                    <Button variant="outline">{page.label}</Button>
-                  </Link>
-                ))}
-              </div>
+            )}
+            {relatedDescription && <p className="text-muted-foreground">{relatedDescription}</p>}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              {relatedPages.map((page) => (
+                <Link key={page.href} href={page.href}>
+                  <Button variant="outline">{page.label}</Button>
+                </Link>
+              ))}
             </div>
-          </section>
-        </>
+          </div>
+        </section>
       )}
 
       <Separator />

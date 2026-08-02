@@ -1,10 +1,12 @@
 import { SEOPage } from '@/components/shared/SEOPage'
 import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { faqItems } from '@/lib/config/faq'
-import { blogPosts, getBlogPost, type BlogSection } from '@/lib/config/blog'
-import { Clock } from 'lucide-react'
+import { blogPosts, getBlogPost, type BlogSection, type BlogSectionLink } from '@/lib/config/blog'
+import { Clock, ExternalLink } from 'lucide-react'
 import type { Metadata } from 'next'
+import type { ReactElement, ReactNode } from 'react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
@@ -37,31 +39,84 @@ function formatDate(iso: string) {
   })
 }
 
+const INLINE_LINK_CLASS = 'text-primary underline underline-offset-4 hover:no-underline'
+
+function inlineAnchor(link: BlogSectionLink, key: string) {
+  if (link.href.startsWith('http')) {
+    return (
+      <a
+        key={key}
+        href={link.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={INLINE_LINK_CLASS}
+      >
+        {link.text}
+      </a>
+    )
+  }
+  return (
+    <Link key={key} href={link.href} className={INLINE_LINK_CLASS}>
+      {link.text}
+    </Link>
+  )
+}
+
+/**
+ * Splices anchors into a plain string. Each link's phrase is replaced at its
+ * first occurrence only; phrases that are absent are left alone. Returns the
+ * original string untouched when there is nothing to link.
+ */
+function linkify(text: string, links?: BlogSectionLink[]): ReactNode {
+  if (!links?.length) return text
+
+  let nodes: (string | ReactElement)[] = [text]
+
+  links.forEach((link, linkIndex) => {
+    let done = false
+    nodes = nodes.flatMap((node, nodeIndex) => {
+      if (done || typeof node !== 'string') return [node]
+      const at = node.indexOf(link.text)
+      if (at === -1) return [node]
+      done = true
+      const before = node.slice(0, at)
+      const after = node.slice(at + link.text.length)
+      return [
+        ...(before ? [before] : []),
+        inlineAnchor(link, `link-${linkIndex}-${nodeIndex}`),
+        ...(after ? [after] : []),
+      ]
+    })
+  })
+
+  return nodes.length === 1 ? nodes[0] : nodes
+}
+
 function renderSection(section: BlogSection, index: number) {
   switch (section.type) {
     case 'h2':
       return (
         <h2 key={index} className="text-2xl sm:text-3xl font-bold tracking-tight pt-4">
-          {section.text}
+          {linkify(section.text ?? '', section.links)}
         </h2>
       )
     case 'h3':
       return (
         <h3 key={index} className="text-xl font-semibold pt-2">
-          {section.text}
+          {linkify(section.text ?? '', section.links)}
         </h3>
       )
     case 'p':
       return (
         <p key={index} className="text-muted-foreground leading-relaxed">
-          {section.text}
+          {linkify(section.text ?? '', section.links)}
         </p>
       )
     case 'ul':
       return (
         <ul key={index} className="list-disc list-inside space-y-2 text-muted-foreground">
           {section.items?.map((item, i) => (
-            <li key={i}>{item}</li>
+            <li key={i}>{linkify(item, section.links)}</li>
           ))}
         </ul>
       )
@@ -69,7 +124,7 @@ function renderSection(section: BlogSection, index: number) {
       return (
         <ol key={index} className="list-decimal list-inside space-y-2 text-muted-foreground">
           {section.items?.map((item, i) => (
-            <li key={i}>{item}</li>
+            <li key={i}>{linkify(item, section.links)}</li>
           ))}
         </ol>
       )
@@ -79,7 +134,7 @@ function renderSection(section: BlogSection, index: number) {
           key={index}
           className="border-l-4 border-primary/40 bg-muted/50 rounded-r-lg px-5 py-4 text-sm text-muted-foreground"
         >
-          {section.text}
+          {linkify(section.text ?? '', section.links)}
         </aside>
       )
     default:
@@ -95,6 +150,12 @@ export default async function BlogArticlePage({ params }: Props) {
   const postFaqItems = faqItems.filter((item) => post.faqQuestions.includes(item.question))
 
   const relatedPosts = blogPosts.filter((p) => post.relatedSlugs.includes(p.slug))
+
+  const relatedResources = [
+    { href: '/login?tab=signup', label: 'Start for Free' },
+    { href: '/demo', label: 'See the Demo' },
+    ...post.relatedPageLinks,
+  ]
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -168,21 +229,43 @@ export default async function BlogArticlePage({ params }: Props) {
       jsonLd={jsonLd}
       title={post.title}
       description={post.description}
-      primaryCta={{ href: '/login?tab=signup', label: 'Start for Free' }}
-      secondaryCta={{ href: '/demo', label: 'See the Demo' }}
       faqItems={postFaqItems.length > 0 ? postFaqItems : undefined}
-      relatedPages={post.relatedPageLinks}
-      relatedHeading="Related Resources"
+      relatedPages={relatedResources}
+      relatedHeading={null}
     >
       <section className="container mx-auto px-4 py-10 sm:py-16 max-w-3xl">
         <div className="space-y-6">
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span>{formatDate(post.publishedAt)}</span>
-            <span>·</span>
-            <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {post.readingTimeMin} min read
-            </span>
+          <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-3">
+              <span>{formatDate(post.publishedAt)}</span>
+              <span>|</span>
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {post.readingTimeMin} min read
+              </span>
+            </div>
+            {post.source &&
+              (post.sourceUrl ? (
+                <a
+                  href={post.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                >
+                  Read the original report on
+                  <Badge
+                    variant="secondary"
+                    className="rounded-none px-2 py-0.5 text-xs font-medium"
+                  >
+                    {post.source}
+                  </Badge>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : (
+                <Badge variant="secondary" className="rounded-none px-2 py-0.5 text-xs font-medium">
+                  {post.source}
+                </Badge>
+              ))}
           </div>
 
           <div className="space-y-5">
@@ -210,11 +293,13 @@ export default async function BlogArticlePage({ params }: Props) {
                     </p>
                     <h3 className="font-semibold">{related.title}</h3>
                     <p className="text-sm text-muted-foreground">{related.intro}</p>
-                    <Link href={`/blog/${related.slug}`}>
-                      <Button variant="ghost" size="sm" className="px-0 text-sm">
-                        Read →
-                      </Button>
-                    </Link>
+                    <div className="flex justify-end">
+                      <Link href={`/blog/${related.slug}`}>
+                        <Button variant="ghost" size="sm" className="px-0 text-sm">
+                          Read →
+                        </Button>
+                      </Link>
+                    </div>
                   </article>
                 ))}
               </div>

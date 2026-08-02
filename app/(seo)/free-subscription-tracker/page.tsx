@@ -64,6 +64,15 @@ export default function FreeSubscriptionTrackerPage() {
       faqItems={trackerFaqItems}
       relatedHeading="Also Looking For a Full Subscription Manager?"
       relatedDescription="Suprascribe tracks and manages - cancel, organize, set reminders, and view a spending calendar. All in one place."
+      relatedPages={[
+        {
+          href: '/subscription-tracker-without-bank-account',
+          label: 'Tracker With No Bank Linking',
+        },
+        { href: '/subscription-management-app', label: 'Full Subscription Manager' },
+        { href: '/rocket-money-alternative', label: 'Rocket Money Alternative' },
+        { href: '/subscription-cost-calculator', label: 'Subscription Cost Calculator' },
+      ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">
         <div className="space-y-8">

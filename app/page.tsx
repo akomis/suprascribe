@@ -5,7 +5,9 @@ import { FAQSection } from '@/components/landing/FAQSection'
 import { LandingCTA } from '@/components/landing/LandingCTA'
 import { ShinyText } from '@/components/landing/ShinyText'
 import { StaticGridBackground } from '@/components/landing/StaticGridBackground'
+import { WhySection } from '@/components/landing/WhySection'
 import { SiteFooter } from '@/components/shared/SiteFooter'
+import { formatProPrice, PRO_ORIGINAL_PRICE_DISPLAY } from '@/lib/config/stripe'
 import dynamic from 'next/dynamic'
 
 const FeatureCard = dynamic(() =>
@@ -87,22 +89,61 @@ export default function Home() {
           </h1>
 
           <div className="flex flex-col gap-4 z-10 mx-auto">
-            <p className="max-w-3xl text-base sm:text-lg md:text-xl text-muted-foreground px-2">
-              Suprascribe{' '}
+            <p className="max-w-4xl text-base sm:text-lg md:text-xl text-muted-foreground px-2">
+              Suprascribe is a subscription tracker that{' '}
               <ShinyText
-                text="automatically finds all your paying subscriptions"
+                text="automatically finds all your subscriptions"
                 speed={3}
                 className="[--shiny-text-color:#737373] dark:[--shiny-text-color:#B6B6B6]"
                 shineColor="#ffffff"
               />{' '}
-              through your inbox and then helps you manage, cancel, group them in less than a
-              minute.
+              through your inbox and then helps you audit, manage, cancel, group them in less than a
+              minute.{' '}
+              <Link
+                href="#pricing"
+                className="hover:underline underline-offset-4 hover:text-foreground transition-colors"
+              >
+                Fully-featured
+              </Link>
+              ,{' '}
+              <Link
+                href="/safety"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline underline-offset-4 hover:text-foreground transition-colors"
+              >
+                private
+              </Link>
+              ,{' '}
+              <Link
+                href={GITHUB_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline underline-offset-4 hover:text-foreground transition-colors"
+              >
+                open source
+              </Link>
+              ,{' '}
+              <Link
+                href="#pricing"
+                className="hover:underline underline-offset-4 hover:text-foreground transition-colors"
+              >
+                one-time upgrade
+              </Link>{' '}
+              - not another subscription.
             </p>
-            <div className="flex flex-col-reverse sm:flex-row items-center justify-center gap-2 sm:gap-4">
+
+            <p className="text-muted-foreground"></p>
+            <div className="mt-16 flex flex-col-reverse sm:flex-row items-center justify-center gap-2 sm:gap-4">
               <LandingCTA />
             </div>
           </div>
         </section>
+
+        <Separator className="data-[orientation=horizontal]:w-[50vw] mx-auto" />
+
+        {/* Why Section */}
+        <WhySection />
 
         <ScreenshotsShowcase />
 
@@ -158,10 +199,10 @@ export default function Home() {
               <TierCard
                 name="PRO"
                 description="For power users who want more"
-                price="€9"
-                originalPrice="€20"
-                earlyBirdLabel="55% OFF - Launch Offer"
-                period="once, forever"
+                price={formatProPrice()}
+                originalPrice={PRO_ORIGINAL_PRICE_DISPLAY}
+                earlyBirdLabel="50% - Limited Time Offer"
+                period="once and forever"
                 features={proFeatures}
                 buttonText="Upgrade to Pro"
                 buttonVariant="default"

@@ -89,6 +89,36 @@ export const faqItems: FAQItem[] = [
     answer:
       'Yes - Suprascribe. Most subscription detection tools like Rocket Money or PocketGuard require connecting your bank account via Plaid. Suprascribe finds subscriptions by scanning your email inbox instead, which means your financial accounts are never touched.',
   },
+  {
+    question: 'How do I calculate my total monthly subscription cost?',
+    answer:
+      'Normalise every subscription to the same billing period, then add them up. Divide a yearly price by 12, divide a quarterly price by 3, and multiply a weekly price by 52/12 (about 4.33). A €120/year plan is €10/month, a €30/quarter plan is €10/month, and a €5/week plan is €21.67/month. Multiply the monthly total by 12 for the yearly figure.',
+  },
+  {
+    question: 'How much does the average person spend on subscriptions?',
+    answer:
+      'Most people underestimate their subscription spend by a wide margin, because the small recurring charges are the easiest to forget. The number that matters is your own: total up the ones you remember, then scan your inbox for the ones you do not. Forgotten trials, annual renewals, and app subscriptions are where the surprises usually hide.',
+  },
+  {
+    question: 'Do I need an account to use the subscription calculator?',
+    answer:
+      'No. The calculator is free and runs entirely in your browser - nothing is sent to a server and nothing is stored. You only need an account if you want to save your subscriptions, get renewal reminders, or have Suprascribe scan your inbox to find the ones you forgot.',
+  },
+  {
+    question: 'How do I cancel a subscription on my iPhone?',
+    answer:
+      'Open Settings, tap your name at the top, tap Subscriptions, select the subscription, and tap Cancel Subscription. If there is no Cancel button, it is already cancelled. Note that this screen only lists subscriptions billed through Apple - anything charged directly to your card by the company never appears there, which is where most forgotten subscriptions hide.',
+  },
+  {
+    question: 'How do I cancel a subscription on Android?',
+    answer:
+      'Open the Play Store, go to Subscriptions, select the subscription, and tap Cancel subscription. Uninstalling the app does not cancel anything. Google Play also lets you pause payments for one week to three months instead of cancelling outright. As with Apple, this only covers subscriptions billed through Google Play - direct merchant charges are not listed.',
+  },
+  {
+    question: 'What is the fastest way to cut my monthly spending?',
+    answer:
+      'Audit your recurring payments first. Unlike cutting discretionary spending, cancelling an unused subscription costs you nothing in quality of life and the saving repeats every month without further effort. Build one list of every recurring charge from your app stores, PayPal, and three months of bank statements, then cancel anything you have not used in the last month.',
+  },
 ]
 
 export const featuredFaqItems = faqItems.slice(0, 5)

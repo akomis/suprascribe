@@ -117,13 +117,6 @@ const _DATA_CLASSIFICATION = {
     protectionMechanism: 'Filtered by user_id; tier field gated behind server-side auth checks',
   },
 
-  STRIPE_WEBHOOK_EVENTS: {
-    level: DataProtectionLevel.MEDIUM,
-    description: 'Stripe event IDs and customer email used for idempotent tier upgrades',
-    storageLocation: 'stripe_webhook_events table',
-    protectionMechanism: 'Written only after HMAC-SHA256 signature verification passes',
-  },
-
   DISCOVERY_RUN_AUDIT: {
     level: DataProtectionLevel.LOW,
     description:

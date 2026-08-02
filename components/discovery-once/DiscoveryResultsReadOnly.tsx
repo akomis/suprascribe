@@ -6,7 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import type { CurrencyCode } from '@/lib/hooks/useCurrency'
 import type { BillingPeriod, DiscoveredSubscription } from '@/lib/types/forms'
-import { cn, isSubscriptionActive } from '@/lib/utils'
+import {
+  cn,
+  formatDateRangeWithDuration,
+  formatLocalizedDate,
+  isSubscriptionActive,
+} from '@/lib/utils'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
 import { ChevronDown, ExternalLink } from 'lucide-react'
 import { useState } from 'react'
@@ -57,6 +62,10 @@ function ServiceRow({ group }: { group: ServiceGroup }) {
   const { latest } = group
   const cancelUrl = group.unsubscribeUrl ?? group.serviceUrl
   const periodSuffix = latest.period ? PERIOD_SUFFIX[latest.period] : ''
+  const isOneTimePayment = latest.start_date === latest.end_date || !latest.end_date
+  const dateLabel = isOneTimePayment
+    ? formatLocalizedDate(latest.start_date)
+    : formatDateRangeWithDuration(latest.start_date, latest.end_date)
 
   return (
     <div className="flex items-center gap-3 rounded-lg border p-3">
@@ -78,6 +87,7 @@ function ServiceRow({ group }: { group: ServiceGroup }) {
             {periodSuffix}
           </span>
         )}
+        <span className="text-xs text-muted-foreground truncate">{dateLabel}</span>
       </div>
       {group.active &&
         (cancelUrl ? (
@@ -135,8 +145,14 @@ export function DiscoveryResultsReadOnly({
         <h2 className="text-xl font-semibold">
           We found {groups.length} subscription{groups.length !== 1 ? 's' : ''}
         </h2>
+        {emailScanned && (
+          <div className="flex justify-center pt-1">
+            <Badge variant="secondary" className="font-normal">
+              {emailScanned}
+            </Badge>
+          </div>
+        )}
         <p className="text-sm text-muted-foreground">
-          {emailScanned ? `Scanned ${emailScanned}. ` : ''}
           Use the unsubscribe links to cancel the ones you no longer want.
         </p>
         {discoveredAt && (
