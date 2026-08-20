@@ -4,16 +4,15 @@ import { Separator } from '@/components/ui/separator'
 import { faqItems } from '@/lib/config/faq'
 import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Free Subscription Tracker - Find Every Subscription Automatically',
   description:
     'Track all your subscriptions for free. Suprascribe scans Gmail, Outlook, and iCloud to find subscriptions you forgot about - no bank access, no recurring fees.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/free-subscription-tracker',
-  },
-}
+  path: '/free-subscription-tracker',
+})
 
 const trackerFaqItems = faqItems.filter((item) =>
   [
@@ -58,7 +57,7 @@ export default function FreeSubscriptionTrackerPage() {
     <SEOPage
       jsonLd={jsonLd}
       title="The Free Subscription Tracker That Finds Subscriptions For You"
-      description="Suprascribe scans your Gmail, Outlook, or iCloud inbox to surface every recurring charge - streaming services, SaaS tools, memberships - without touching your bank account. The core tracker is free, forever."
+      description="Suprascribe is a free subscription tracker that scans your Gmail, Outlook, or iCloud inbox to surface every recurring charge - streaming services, SaaS tools, memberships - without touching your bank account. The core tracker is free, forever."
       primaryCta={{ href: '/login?tab=signup', label: 'Start Tracking for Free' }}
       secondaryCta={{ href: '/demo', label: 'See the Demo' }}
       faqItems={trackerFaqItems}
@@ -72,6 +71,7 @@ export default function FreeSubscriptionTrackerPage() {
         { href: '/subscription-management-app', label: 'Full Subscription Manager' },
         { href: '/rocket-money-alternative', label: 'Rocket Money Alternative' },
         { href: '/subscription-cost-calculator', label: 'Subscription Cost Calculator' },
+        { href: '/subscription-tracking-for-families', label: 'Tracking for Families' },
       ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">

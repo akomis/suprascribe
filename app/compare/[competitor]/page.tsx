@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator'
 import { competitors } from '@/lib/config/comparisons'
 import { ArrowLeft, Check, X } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
@@ -21,13 +22,14 @@ export async function generateMetadata({
   const competitor = competitors.find((c) => c.slug === slug)
   if (!competitor) return {}
 
-  return {
-    title: `Suprascribe vs ${competitor.name} - Free Subscription Tracker Comparison`,
+  // absoluteTitle: the title already leads with the brand, so the root template's
+  // "| Suprascribe" suffix would render it twice.
+  return buildMetadata({
+    title: `Suprascribe vs ${competitor.name}`,
+    absoluteTitle: `Suprascribe vs ${competitor.name} - Subscription Tracker Comparison`,
     description: competitor.metaDescription,
-    alternates: {
-      canonical: `https://www.suprascribe.com/compare/${slug}`,
-    },
-  }
+    path: `/compare/${slug}`,
+  })
 }
 
 export default async function CompetitorPage({

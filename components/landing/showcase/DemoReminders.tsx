@@ -1,7 +1,6 @@
 'use client'
 
 import { ServiceLogo } from '@/components/shared/ServiceLogo'
-import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { Bell } from 'lucide-react'
 import * as React from 'react'
@@ -47,12 +46,16 @@ export default function DemoReminders() {
       {/* Days slider */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label className="text-xs text-muted-foreground">Days before renewal</Label>
-          <span className="text-xs font-semibold tabular-nums">
-            {daysBefore} {daysBefore === 1 ? 'day' : 'days'}
-          </span>
+          <p className="text-[11px] text-muted-foreground">
+            Get notified{' '}
+            <span className="text-xs font-bold">
+              {daysBefore} {daysBefore === 1 ? 'day' : 'days'}
+            </span>{' '}
+            before each renewal.
+          </p>
         </div>
         <Slider
+          aria-label="Days before renewal"
           value={[daysBefore]}
           onValueChange={(v) => setDaysBefore(v[0])}
           min={1}
@@ -60,9 +63,6 @@ export default function DemoReminders() {
           step={1}
           className="w-full"
         />
-        <p className="text-[11px] text-muted-foreground">
-          Get notified {daysBefore} {daysBefore === 1 ? 'day' : 'days'} before each renewal.
-        </p>
       </div>
     </div>
   )

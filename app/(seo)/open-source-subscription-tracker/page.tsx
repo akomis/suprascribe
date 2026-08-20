@@ -4,16 +4,15 @@ import { faqItems } from '@/lib/config/faq'
 import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
 import { Check, X } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Open Source Subscription Tracker - Auditable, Self-Hostable, One-Time',
   description:
     'An open source subscription tracker you can audit and self-host. Suprascribe finds subscriptions by scanning email - no bank access, no recurring fee, full source code on GitHub.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/open-source-subscription-tracker',
-  },
-}
+  path: '/open-source-subscription-tracker',
+})
 
 const pageFaqItems = faqItems.filter((item) =>
   [
@@ -105,7 +104,7 @@ export default function OpenSourceSubscriptionTrackerPage() {
     <SEOPage
       jsonLd={jsonLd}
       title="Open Source Subscription Tracker"
-      description="Most subscription trackers ask you to trust a closed-source app with your financial data. Suprascribe publishes its full source code on GitHub, finds subscriptions by scanning email instead of your bank, and charges once - not every month. Self-host it if you want total control."
+      description="Most subscription trackers ask you to trust a closed-source app with your financial data. Suprascribe is an open source subscription tracker: the full source code is on GitHub, subscriptions are found by scanning email instead of your bank, and you pay once - not every month. Self-host it if you want total control."
       primaryCta={{ href: '/login?tab=signup', label: 'Try Suprascribe Free' }}
       secondaryCta={{ href: '/demo', label: 'See the Demo' }}
       faqItems={pageFaqItems}
@@ -118,6 +117,7 @@ export default function OpenSourceSubscriptionTrackerPage() {
         },
         { href: '/rocket-money-alternative', label: 'Rocket Money Alternative' },
         { href: '/compare', label: 'All Comparisons' },
+        { href: '/subscription-tracking-for-startups', label: 'Tracking for Startups' },
       ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">

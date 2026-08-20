@@ -13,6 +13,7 @@ import {
   isSubscriptionActive,
 } from '@/lib/utils'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
+import { isOneTimePayment } from '@/lib/utils/subscription-period-extension'
 import { ChevronDown, ExternalLink } from 'lucide-react'
 import { useState } from 'react'
 
@@ -62,8 +63,8 @@ function ServiceRow({ group }: { group: ServiceGroup }) {
   const { latest } = group
   const cancelUrl = group.unsubscribeUrl ?? group.serviceUrl
   const periodSuffix = latest.period ? PERIOD_SUFFIX[latest.period] : ''
-  const isOneTimePayment = latest.start_date === latest.end_date || !latest.end_date
-  const dateLabel = isOneTimePayment
+  const oneTime = isOneTimePayment(latest)
+  const dateLabel = oneTime
     ? formatLocalizedDate(latest.start_date)
     : formatDateRangeWithDuration(latest.start_date, latest.end_date)
 
@@ -75,10 +76,16 @@ function ServiceRow({ group }: { group: ServiceGroup }) {
       <div className="flex flex-1 flex-col min-w-0">
         <div className="flex items-center gap-2 min-w-0">
           <span className="font-medium truncate">{group.serviceName}</span>
-          {!group.active && (
+          {oneTime ? (
             <Badge variant="outline" className="text-[10px] shrink-0">
-              Past
+              One-time
             </Badge>
+          ) : (
+            !group.active && (
+              <Badge variant="outline" className="text-[10px] shrink-0">
+                Past
+              </Badge>
+            )
           )}
         </div>
         {latest.price > 0 && (

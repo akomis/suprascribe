@@ -6,16 +6,15 @@ import { Separator } from '@/components/ui/separator'
 import { getBlogPostsNewestFirst } from '@/lib/config/blog'
 import { ArrowRight, Clock } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Blog - Subscription Tips, Privacy Guides & More',
   description:
     'Practical guides on managing subscriptions, cancelling services you forgot about, and choosing a subscription tracker that respects your privacy.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/blog',
-  },
-}
+  path: '/blog',
+})
 
 const jsonLd = {
   '@context': 'https://schema.org',

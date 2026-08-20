@@ -4,16 +4,15 @@ import { faqItems } from '@/lib/config/faq'
 import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
 import { ArrowLeft } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Frequently Asked Questions',
   description:
     'Answers to common questions about Suprascribe - how subscription tracking works, privacy, email scanning, pricing, and more.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/faq',
-  },
-}
+  path: '/faq',
+})
 
 const faqJsonLd = {
   '@context': 'https://schema.org',

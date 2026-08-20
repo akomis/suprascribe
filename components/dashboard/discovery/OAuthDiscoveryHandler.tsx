@@ -17,6 +17,7 @@ export function OAuthDiscoveryHandler({ provider }: { provider: OAuthProvider })
     discoveredSubscriptions,
     teaser,
     emailCount,
+    runId,
     error,
     warning,
     clearDiscovery,
@@ -39,6 +40,7 @@ export function OAuthDiscoveryHandler({ provider }: { provider: OAuthProvider })
       aiModel={aiModel}
       isLoadingAI={isLoadingAI}
       isByok={isByok}
+      runId={runId}
     />
   )
 }

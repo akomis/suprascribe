@@ -101,7 +101,9 @@ export function useBYOKSettings() {
   return {
     keys: keysQuery.data?.keys || [],
     activeKeyId: keysQuery.data?.activeKeyId || null,
-    isLoading: keysQuery.isLoading,
+    // isPending, not isLoading: during SSR the query never fetches, so isLoading
+    // is false on the server and true on the client's first render.
+    isLoading: keysQuery.isPending,
     saveKey: async (params: { provider: LLMProvider; model: string; apiKey: string }) => {
       try {
         await saveMutation.mutateAsync(params)

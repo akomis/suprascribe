@@ -94,9 +94,9 @@ function ResetDataDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Reset account data?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action is permanent and cannot be undone. All current and past subscriptions, as
-            well as your discovery history, will be permanently deleted. Type <strong>RESET</strong>{' '}
-            to confirm.
+            This action is permanent and cannot be undone. All current and past subscriptions will
+            be permanently deleted. Your discovery history and scan allowance are not affected. Type{' '}
+            <strong>RESET</strong> to confirm.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <Input

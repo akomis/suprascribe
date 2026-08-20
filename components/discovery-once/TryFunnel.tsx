@@ -10,10 +10,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { ConnectInbox } from './ConnectInbox'
 import { DiscoveryResultsReadOnly } from './DiscoveryResultsReadOnly'
-import { PayCta } from './PayCta'
+import { useOnceStep } from './OnceStepContext'
 import { SavedRunsList } from './SavedRunsList'
-
-type Step = 'intro' | 'verifying' | 'connect' | 'discovering' | 'results' | 'error'
 
 // Survives a mid-funnel page refresh (the entitlement cookie is still valid) so
 // the user resumes at "connect" instead of being sent back to pay again.
@@ -33,7 +31,7 @@ const OAUTH_ERRORS: Record<string, string> = {
 export function TryFunnel() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [step, setStep] = useState<Step>('intro')
+  const { step, setStep } = useOnceStep()
   const [results, setResults] = useState<DiscoveredSubscription[] | null>(null)
   const [emailScanned, setEmailScanned] = useState<string | null>(null)
   const [discoveredAt, setDiscoveredAt] = useState<string | null>(null)
@@ -191,23 +189,10 @@ export function TryFunnel() {
     )
   }
 
-  // intro
+  // intro - the headline, copy and pay button are server-rendered in the page so they
+  // reach crawlers; only the saved-runs list (localStorage) belongs here.
   return (
-    <div className="flex flex-col items-center gap-6 text-center max-w-lg">
-      <div className="space-y-2">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-          Find your subscriptions for €1
-        </h1>
-        <p className="text-muted-foreground">
-          A one-time scan of a single inbox. We reveal every subscription we find, each with an
-          unsubscribe link. No account, no sign-up, nothing stored on our servers.
-        </p>
-      </div>
-      <PayCta />
-      <ul className="text-sm text-muted-foreground space-y-1">
-        <li>Connect one Gmail or Outlook inbox</li>
-        <li>See your subscriptions with cancel links</li>
-      </ul>
+    <div className="flex flex-col items-center gap-6 text-center max-w-3xl">
       <SavedRunsList runs={savedRuns} onView={viewRun} onRemove={handleRemoveRun} />
     </div>
   )

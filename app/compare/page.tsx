@@ -6,16 +6,15 @@ import { Separator } from '@/components/ui/separator'
 import { competitors } from '@/lib/config/comparisons'
 import { ArrowRight } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Suprascribe vs. Alternatives - Subscription Tracker Comparison',
   description:
     'Compare Suprascribe to popular subscription trackers and managers. See how we stack up against ReSubs, Bobby, Rocket Money, YNAB, and more on price, features, and privacy.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/compare',
-  },
-}
+  path: '/compare',
+})
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -52,7 +51,7 @@ export default function ComparePage() {
         <div className="space-y-6">
           <SuprascribeLogo size={36} layout="column" />
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
-            Suprascribe vs. The Alternatives
+            Suprascribe vs. other Trackers
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
             Most subscription trackers either charge a monthly fee, cap the free tier, require bank

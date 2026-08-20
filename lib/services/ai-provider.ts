@@ -74,7 +74,16 @@ export function createModel(config: ProviderConfig): LanguageModel {
           'X-Title': 'Suprascribe',
         },
       })
-      return openrouter(config.model)
+      return openrouter.chat(config.model, {
+        // Without this, a mid-stream provider cutoff reports zero tokens.
+        usage: { include: true },
+        // Only route to upstreams that honour every parameter we send
+        // (max_tokens, seed) rather than silently dropping them.
+        provider: { require_parameters: true },
+        // Deliberately NOT strict: the analysis schema relies on optional
+        // fields being omitted (an absent end_date means "one-time, do not
+        // extend"), and strict mode forces every property to be emitted.
+      })
     }
     default:
       throw new Error(`Unsupported provider: ${config.provider}`)

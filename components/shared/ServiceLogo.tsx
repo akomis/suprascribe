@@ -1,6 +1,6 @@
 'use client'
 
-import { Spinner } from '@/components/ui/spinner'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useLogo } from '@/lib/hooks/useLogo'
 import { cn } from '@/lib/utils'
 import { Box } from 'lucide-react'
@@ -28,64 +28,74 @@ export function ServiceLogo({
   className,
   fallbackClassName,
 }: ServiceLogoProps) {
-  const fetchedLogoUrl = useLogo(
-    resolvedLogoUrl !== undefined ? undefined : name,
-    resolvedLogoUrl !== undefined ? undefined : serviceUrl,
-  )
-  const logoUrl = resolvedLogoUrl !== undefined ? resolvedLogoUrl : fetchedLogoUrl
-  const [logoError, setLogoError] = React.useState(false)
-  const [isLoaded, setIsLoaded] = React.useState(false)
+  const isPreResolved = resolvedLogoUrl !== undefined
+  const fetched = useLogo(isPreResolved ? undefined : name, isPreResolved ? undefined : serviceUrl)
+
+  const [preResolvedError, setPreResolvedError] = React.useState(false)
+  const [preResolvedLoaded, setPreResolvedLoaded] = React.useState(false)
 
   React.useEffect(() => {
-    setIsLoaded(false)
-    setLogoError(false)
-  }, [logoUrl])
+    setPreResolvedError(false)
+    setPreResolvedLoaded(false)
+  }, [resolvedLogoUrl])
 
-  if (logoUrl && !logoError) {
+  const src = isPreResolved ? (preResolvedError ? null : (resolvedLogoUrl ?? null)) : fetched.src
+  const isLoading = isPreResolved
+    ? Boolean(resolvedLogoUrl) && !preResolvedLoaded && !preResolvedError
+    : fetched.isLoading
+  const handleLoad = isPreResolved ? () => setPreResolvedLoaded(true) : fetched.onLoad
+  const handleError = isPreResolved ? () => setPreResolvedError(true) : fetched.onError
+
+  // Callers that pass a className own the sizing; otherwise size the box inline.
+  const boxStyle = className ? undefined : { width: size, height: size }
+
+  if (src) {
     if (naturalSize) {
       return (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={logoUrl}
+          src={src}
           alt={`${name} logo`}
           loading="lazy"
           style={{ maxWidth: size, maxHeight: size, width: 'auto', height: 'auto' }}
           className={cn('object-contain', className)}
-          onError={() => setLogoError(true)}
+          onLoad={handleLoad}
+          onError={handleError}
         />
       )
     }
+
     return (
       <span
         className={cn('relative inline-flex items-center justify-center', className)}
-        style={className ? undefined : { width: size, height: size }}
+        style={boxStyle}
       >
-        {!isLoaded && (
-          <Spinner
-            className="absolute size-auto text-muted-foreground"
-            style={{ width: '60%', height: '60%' }}
-          />
-        )}
+        {isLoading && <Skeleton className="absolute inset-0 size-full rounded" />}
         <Image
-          src={logoUrl}
+          src={src}
           alt={`${name} logo`}
           width={size}
           height={size}
           className={cn('h-full w-full object-contain transition-opacity', {
-            'opacity-0': !isLoaded,
+            'opacity-0': isLoading,
           })}
           unoptimized
-          onLoad={() => setIsLoaded(true)}
-          onError={() => setLogoError(true)}
+          onLoad={handleLoad}
+          onError={handleError}
         />
       </span>
     )
   }
 
+  // No candidate to render yet: still resolving, so hold the space with a skeleton.
+  if (isLoading) {
+    return <Skeleton className={cn('rounded', className)} style={boxStyle} />
+  }
+
   return (
     <Box
       className={cn('text-muted-foreground', fallbackClassName)}
-      style={{ width: size, height: size }}
+      style={fallbackClassName ? undefined : { width: size, height: size }}
       aria-hidden="true"
     />
   )

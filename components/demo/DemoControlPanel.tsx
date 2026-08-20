@@ -2,8 +2,10 @@
 
 import { DemoSignUpPromptDialog } from '@/components/demo/DemoSignUpPromptDialog'
 import { CurrencySelector } from '@/components/dashboard/settings/CurrencySelector'
+import { PWAInstallRow } from '@/components/dashboard/settings/PWAInstallRow'
 import { ThemePicker } from '@/components/dashboard/settings/ThemePicker'
 import { Button } from '@/components/ui/button'
+import { isFeatureEnabled } from '@/lib/config/features'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +63,7 @@ export function DemoControlPanel() {
             <Bell className="h-4 w-4" />
             Renewal Reminders
           </Button>
+          {isFeatureEnabled('pwa_install') && <PWAInstallRow />}
         </DropdownMenuContent>
       </DropdownMenu>
       <DemoSignUpPromptDialog

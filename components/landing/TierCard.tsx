@@ -17,15 +17,25 @@ const UpgradeButton = dynamic(
   { ssr: false },
 )
 import { FeatureDefinition } from '@/lib/config/features'
+import { formatDiscountLabel, getDiscountStatus, type DiscountStatus } from '@/lib/config/discount'
+import { PRO_DISCOUNT_PERCENT } from '@/lib/config/stripe'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 interface TierCardProps {
   name: string
   description: string
+  /** Full price. Shown as-is, or struck through next to `discountPrice` while the discount runs. */
   price: string
-  originalPrice?: string
-  earlyBirdLabel?: string
+  /** Discounted price. Only used while the discount is active - pass together with `discount`. */
+  discountPrice?: string
+  /**
+   * Discount state as resolved on the server. The card re-resolves it after mount and
+   * every minute after that, so a page cached from before the deadline still drops
+   * the badge and the discount for the visitor.
+   */
+  discount?: DiscountStatus
   period: string
   features: FeatureDefinition[]
   buttonText: string
@@ -38,12 +48,32 @@ interface TierCardProps {
   additionalNote?: string
 }
 
+/**
+ * Keeps the discount countdown honest on the client. Starts from the server-resolved
+ * status so hydration matches the cached HTML, then re-resolves against the
+ * visitor's own clock on mount and once a minute.
+ */
+function useLiveDiscountStatus(initial: DiscountStatus | undefined) {
+  const [status, setStatus] = useState(initial)
+
+  useEffect(() => {
+    if (!initial) return
+
+    const update = () => setStatus(getDiscountStatus())
+    update()
+    const interval = setInterval(update, 60 * 1000)
+    return () => clearInterval(interval)
+  }, [initial])
+
+  return status
+}
+
 export function TierCard({
   name,
   description,
   price,
-  originalPrice,
-  earlyBirdLabel,
+  discountPrice,
+  discount,
   period,
   features,
   buttonText,
@@ -55,6 +85,12 @@ export function TierCard({
   checkmarkColor = 'text-muted-foreground',
   additionalNote,
 }: TierCardProps) {
+  const status = useLiveDiscountStatus(discount)
+  const discountActive = Boolean(status?.active && discountPrice)
+  const discountLabel = status ? formatDiscountLabel(status, PRO_DISCOUNT_PERCENT) : null
+  const displayPrice = discountActive ? discountPrice! : price
+  const struckPrice = discountActive ? price : null
+
   return (
     <Card className={cn('relative h-full', highlighted && 'border-primary')}>
       {badge && (
@@ -65,20 +101,20 @@ export function TierCard({
         </div>
       )}
       <CardHeader>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <CardTitle className="text-2xl">{name}</CardTitle>
-          {earlyBirdLabel && (
-            <Badge variant="outline">
-              <ShinyText text={earlyBirdLabel} speed={3} color="#888888" shineColor="#ffffff" />
+          {discountLabel && discountActive && (
+            <Badge variant="outline" className="whitespace-nowrap">
+              <ShinyText text={discountLabel} speed={3} color="#888888" shineColor="#ffffff" />
             </Badge>
           )}
         </div>
         <CardDescription>{description}</CardDescription>
         <div className="mt-4 flex items-baseline gap-2">
-          {originalPrice && (
-            <span className="text-xl text-muted-foreground line-through">{originalPrice}</span>
+          {struckPrice && (
+            <span className="text-xl text-muted-foreground line-through">{struckPrice}</span>
           )}
-          <span className="text-4xl font-bold">{price}</span>
+          <span className="text-4xl font-bold">{displayPrice}</span>
           <span className="text-muted-foreground">{period}</span>
         </div>
       </CardHeader>

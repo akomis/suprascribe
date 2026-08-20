@@ -3,16 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { ArrowLeft } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Terms of Service & Privacy Policy',
   description:
     'Read the Suprascribe Terms of Service and Privacy Policy. We do not sell your data, do not store email content, and give you full control over your data at all times.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/terms-and-privacy',
-  },
-}
+  path: '/terms-and-privacy',
+})
 
 export default function TermsAndPrivacyPage() {
   return (

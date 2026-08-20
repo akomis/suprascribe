@@ -4,6 +4,7 @@ import AccountSettings from '@/components/dashboard/settings/AccountSettings'
 import { BYOKDialog } from '@/components/dashboard/settings/BYOKDialog'
 import { CurrencySelector } from '@/components/dashboard/settings/CurrencySelector'
 import LogoutButton from '@/components/dashboard/settings/LogoutButton'
+import { PWAInstallRow } from '@/components/dashboard/settings/PWAInstallRow'
 import { RemindersDialog } from '@/components/dashboard/settings/RemindersDialog'
 import { ThemePicker } from '@/components/dashboard/settings/ThemePicker'
 import { ClientOnly } from '@/components/shared/ClientOnly'
@@ -14,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { isFeatureEnabled } from '@/lib/config/features'
 import { useFeatureAccess } from '@/lib/hooks/useFeatureAccess'
 import { createClient } from '@/lib/supabase/client'
 import { SupportButton } from '@/components/shared/SupportButton'
@@ -121,6 +123,7 @@ function ControlPanelInner() {
               Renewal Reminders
             </Button>
           )}
+          {isFeatureEnabled('pwa_install') && <PWAInstallRow />}
           <Button
             variant="outline"
             type="button"

@@ -69,6 +69,15 @@ const nextConfig = {
         ],
       },
       {
+        source: '/sw.js',
+        headers: [
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+          // Never cache the worker script itself, or clients pin a stale SW
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self'" },
+        ],
+      },
+      {
         source: '/robots.txt',
         headers: [
           { key: 'Content-Type', value: 'text/plain; charset=utf-8' },

@@ -1,15 +1,14 @@
 import { PublicContactForm } from '@/components/contact/PublicContactForm'
 import { SuprascribeLogo } from '@/components/landing/SuprascribeLogo'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Contact Us',
   description:
     'Get in touch with the Suprascribe team. We read every message and respond to questions, feedback, and support requests.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/contact',
-  },
-}
+  path: '/contact',
+})
 
 export default function ContactPage() {
   return (

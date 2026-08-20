@@ -2,22 +2,22 @@ import { SubscriptionCalculator } from '@/components/calculator/SubscriptionCalc
 import { SEOPage } from '@/components/shared/SEOPage'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { ProPrice } from '@/components/landing/ProPrice'
 import { faqItems } from '@/lib/config/faq'
-import { PRO_ORIGINAL_PRICE_DISPLAY, formatProPrice } from '@/lib/config/stripe'
+import { getDiscountStatus } from '@/lib/config/discount'
+import { buildMetadata } from '@/lib/utils/metadata'
 import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
 const CANONICAL = 'https://www.suprascribe.com/subscription-cost-calculator'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Subscription Cost Calculator - See What You Really Spend',
   description:
     'Free subscription cost calculator. Add your subscriptions, mix monthly, yearly, quarterly, and weekly billing, and get your true monthly and yearly total. No signup, nothing stored.',
-  alternates: {
-    canonical: CANONICAL,
-  },
-}
+  path: '/subscription-cost-calculator',
+})
 
 const calculatorFaqItems = faqItems.filter((item) =>
   [
@@ -63,7 +63,7 @@ export default function SubscriptionCostCalculatorPage() {
     <SEOPage
       jsonLd={jsonLd}
       title="Subscription Cost Calculator"
-      description="Add up every subscription you pay for - monthly, yearly, quarterly, or weekly - and see what it actually costs you per month and per year. Free, no signup, nothing stored."
+      description="This free subscription cost calculator adds up every subscription you pay for - monthly, yearly, quarterly, or weekly - and shows what it actually costs you per month and per year. No signup, nothing stored."
       primaryCta={{ href: '/login?tab=signup', label: 'Find the Ones You Forgot' }}
       faqItems={calculatorFaqItems}
       relatedHeading="Tired of Doing This by Hand?"
@@ -119,12 +119,11 @@ export default function SubscriptionCostCalculatorPage() {
 
           <div className="flex flex-col items-center gap-6 rounded-xl border p-6 text-center sm:flex-row sm:items-center sm:text-left">
             <div className="flex shrink-0 flex-col items-center gap-3">
-              <p className="text-3xl font-bold tracking-tight">
-                {formatProPrice()}{' '}
-                <span className="text-lg font-normal text-muted-foreground line-through">
-                  {PRO_ORIGINAL_PRICE_DISPLAY}
-                </span>
-              </p>
+              <ProPrice
+                discount={getDiscountStatus()}
+                className="text-3xl font-bold tracking-tight"
+                strikeClassName="text-lg font-normal text-muted-foreground"
+              />
               <Button size="lg" asChild>
                 <Link href="/login?tab=signup">Find My Forgotten Subscriptions</Link>
               </Button>

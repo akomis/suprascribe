@@ -145,6 +145,7 @@ export function EmailProviderSelection() {
     discoveredSubscriptions,
     teaser,
     emailCount,
+    runId,
     error,
     warning,
     clearDiscovery,
@@ -258,6 +259,7 @@ export function EmailProviderSelection() {
         aiModel={aiModel}
         isLoadingAI={isLoadingAI}
         isByok={hasByokActive}
+        runId={runId}
       />
     </div>
   )

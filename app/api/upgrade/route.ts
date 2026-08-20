@@ -1,6 +1,6 @@
 import {
+  getProPriceCents,
   PRO_CURRENCY,
-  PRO_PRICE_CENTS,
   PRO_PRODUCT_IMAGE_URL,
   STRIPE_API_VERSION,
 } from '@/lib/config/stripe'
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
         {
           price_data: {
             currency: PRO_CURRENCY,
-            unit_amount: PRO_PRICE_CENTS,
+            unit_amount: getProPriceCents(),
             product_data: {
               name: 'Suprascribe PRO',
               description:

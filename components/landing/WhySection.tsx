@@ -19,7 +19,7 @@ export function WhySection() {
           </p>
         </div>
 
-        <div className="grid gap-4 sm:gap-6 md:gap-8 md:grid-cols-1 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 md:gap-8 grid-cols-1 lg:grid-cols-3">
           {posts.map((post) => (
             <FeatureCard
               key={post.slug}

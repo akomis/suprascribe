@@ -4,15 +4,14 @@ import { faqItems } from '@/lib/config/faq'
 import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
 import { Mail, Search, Shield, Zap } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Gmail Subscription Tracker - Find All Subscriptions in Your Inbox',
   description:
     'Automatically find every subscription buried in your Gmail. Suprascribe scans Gmail via OAuth to surface recurring payments - no bank access, no password shared, free forever.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/gmail-subscription-tracker',
-  },
-}
+  path: '/gmail-subscription-tracker',
+})
 
 const gmailFaqItems = faqItems.filter((item) =>
   [
@@ -83,8 +82,8 @@ export default function GmailSubscriptionTrackerPage() {
   return (
     <SEOPage
       jsonLd={jsonLd}
-      title="Find Every Subscription Hidden in Your Gmail"
-      description="Years of receipts, billing confirmations, and renewal notices are sitting in your Gmail right now. Suprascribe scans them automatically via OAuth and builds your complete subscription list - for free, with no bank access required."
+      title="Gmail Subscription Tracker: Find Every Subscription Hidden in Your Inbox"
+      description="Suprascribe is a Gmail subscription tracker that reads the receipts, billing confirmations, and renewal notices already sitting in your inbox. It connects via OAuth and builds your complete subscription list - for free, with no bank access required."
       primaryCta={{ href: '/login?tab=signup', label: 'Connect Gmail for Free' }}
       secondaryCta={{ href: '/demo', label: 'See the Demo' }}
       faqItems={gmailFaqItems}

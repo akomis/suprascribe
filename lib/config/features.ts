@@ -68,8 +68,7 @@ export const Features = {
   quick_unsubscribe: {
     key: 'quick_unsubscribe',
     name: 'Quick Unsubscribe',
-    description:
-      'Quickly unsubscribe by getting straight to the respective cancel page for each service',
+    description: 'Quickly unsubscribe by getting straight to the cancel page',
     tier: TIER.PRO,
     enabled: true,
   },
@@ -90,7 +89,7 @@ export const Features = {
   calendar_view: {
     key: 'calendar_view',
     name: 'Calendar View',
-    description: 'Subscription calendar view',
+    description: 'Calendar view',
     tier: TIER.PRO,
     enabled: true,
   },

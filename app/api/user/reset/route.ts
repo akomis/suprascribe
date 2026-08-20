@@ -2,20 +2,11 @@ import { withAuth } from '@/lib/api/withAuth'
 import { captureEvent } from '@/lib/posthog-server'
 import { NextResponse } from 'next/server'
 
+// Resets subscription data only. Discovery history is deliberately kept: it is
+// the record of a user's scan quota, so clearing it would hand out a fresh
+// allowance on every reset.
 export const DELETE = withAuth(async (_req, { user, supabase }) => {
   try {
-    const { error: discoveryError } = await supabase
-      .from('DISCOVERY_RUNS')
-      .delete()
-      .eq('user_id', user.id)
-
-    if (discoveryError) {
-      return NextResponse.json(
-        { error: `Error deleting discovery history: ${discoveryError.message}` },
-        { status: 500 },
-      )
-    }
-
     const { error: subscriptionsError } = await supabase
       .from('USER_SUBSCRIPTIONS')
       .delete()

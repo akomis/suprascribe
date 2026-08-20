@@ -3,17 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ExternalLink } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'IMAP Setup Guide - Connect Any Email Provider',
   description:
     'Step-by-step guide to configure IMAP access for Gmail, Outlook, iCloud, and other email providers. Learn how to generate app-specific passwords for secure email discovery.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/imap',
-  },
-}
+  path: '/imap',
+})
 
 interface ImapProviderTabProps {
   value: string

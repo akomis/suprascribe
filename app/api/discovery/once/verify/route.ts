@@ -50,13 +50,23 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceClient()
 
-    // Atomic claim at the primary key: insert if new, no-op if it already exists.
-    await supabase.from('ONE_TIME_DISCOVERIES').insert({
-      stripe_payment_intent_id: paymentIntentId,
-      stripe_session_id: session.id,
-      payer_email: payerEmail,
-      status: 'paid',
-    })
+    // Atomic claim at the primary key: insert if new, ignore if it already
+    // exists. A repeat verify of the same payment must not overwrite the row -
+    // in particular it must not reset a 'discovered' status back to 'paid'.
+    const { error: claimError } = await supabase.from('ONE_TIME_DISCOVERIES').upsert(
+      {
+        stripe_payment_intent_id: paymentIntentId,
+        stripe_session_id: session.id,
+        payer_email: payerEmail,
+        status: 'paid',
+      },
+      { onConflict: 'stripe_payment_intent_id', ignoreDuplicates: true },
+    )
+
+    if (claimError) {
+      console.error('[OnceDiscovery] claim error:', claimError)
+      return NextResponse.json({ ok: false, error: 'Verification failed' }, { status: 500 })
+    }
 
     const { data: row } = await supabase
       .from('ONE_TIME_DISCOVERIES')

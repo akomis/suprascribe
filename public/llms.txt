@@ -19,6 +19,11 @@
 - [Free Subscription Tracker](https://www.suprascribe.com/free-subscription-tracker): Track subscriptions for free - no bank access needed, works with Gmail, Outlook, iCloud
 - [Free Subscription Manager](https://www.suprascribe.com/free-subscription-manager): Manage, cancel, and set reminders for all subscriptions - free forever
 - [Subscription Management App](https://www.suprascribe.com/subscription-management-app): Web-based app supporting Gmail, Outlook, iCloud, and any IMAP inbox
+- [Subscription Tracking for Business](https://www.suprascribe.com/subscription-tracking-for-business): Track recurring software spend for a business by scanning the billing inbox - group by category, payment method, or source inbox, no bank access
+- [Subscription Tracking for Startups](https://www.suprascribe.com/subscription-tracking-for-startups): Find converted trials, forgotten annual plans, and unused tools in an early-stage SaaS stack - renewal reminders, multi-currency, no bank linking
+- [Subscription Tracking for Freelancers](https://www.suprascribe.com/subscription-tracking-for-freelancers): Keep business subscriptions separate from personal ones by grouping on source inbox, category, or payment method - complete record for tax time
+- [Subscription Tracking for Families](https://www.suprascribe.com/subscription-tracking-for-families): One list for household subscriptions across multiple inboxes and app stores - spot duplicate streaming, music, and storage plans
+- [Subscription Tracking for Students](https://www.suprascribe.com/subscription-tracking-for-students): Track student subscriptions across personal and university inboxes - catch student discounts and trials before they convert to full price, no bank access
 - [Compare Alternatives](https://www.suprascribe.com/compare): Side-by-side comparison with ReSubs, Bobby, Rocket Money, YNAB, Subby, Tilla, SubX, PocketGuard, SubChecks
 - [Safety](https://www.suprascribe.com/safety): How email discovery works, what data is accessed, privacy guarantees
 - [Limits](https://www.suprascribe.com/limits): Discovery limits per tier and how to use your own AI API key (BYOK)
@@ -86,7 +91,7 @@ Suprascribe offers the most generous free tier among subscription trackers: unli
 Connect your email inbox (Gmail, Outlook, or iCloud) to Suprascribe via OAuth. The scanner identifies subscription receipts and renewal notices and builds your subscription list automatically. No bank account access is required at any tier.
 
 **Is there an open source subscription tracker?**
-Yes. Suprascribe is fully open source under the GNU AGPL v3 license. Source code is available at https://github.com/akomis/suprascribe - the privacy claims are verifiable by anyone.
+Yes. Suprascribe is open source under the GNU AGPL v3 license. Source code is available at https://github.com/akomis/suprascribe - the privacy claims are verifiable by anyone.
 
 **What makes Suprascribe different from Rocket Money?**
 Rocket Money requires connecting your bank account via Plaid and charges a monthly subscription fee ($4–$12/month). Suprascribe discovers subscriptions through email scanning (no bank access) and charges a one-time Pro upgrade with no recurring fees.
@@ -104,5 +109,5 @@ Subscription fatigue is the financial and mental drain of paying for more recurr
 
 - Built with Next.js (App Router), Supabase (PostgreSQL), and the Vercel AI SDK
 - Supports 11+ AI providers via BYOK (Bring Your Own Key): OpenAI, Anthropic, Google, Groq, OpenRouter, and more
-- Fully open source under the GNU AGPL v3 license
+- open source under the GNU AGPL v3 license
 - Email scanning uses read-only OAuth scopes; no email content is stored

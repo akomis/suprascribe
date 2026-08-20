@@ -98,11 +98,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 
-  await captureEvent(userId, 'pro_upgrade_completed', {
-    stripe_session_id: session.id,
-    amount_total: session.amount_total,
-    currency: session.currency,
-  })
   if (affiliateCode) await handleAffiliateConversion(supabase, userId, session, affiliateCode)
 
   console.log(`✅ User ${userId} upgraded to PRO via session ${session.id}`)

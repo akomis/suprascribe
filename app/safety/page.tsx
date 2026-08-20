@@ -5,15 +5,14 @@ import { EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
 import { GITHUB_URL } from '@/lib/config/urls'
 import { capitalize } from '@/lib/utils'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Privacy & Safety - How Email Discovery Works',
   description:
     'Learn exactly how Suprascribe accesses your email to find subscriptions. We use read-only OAuth 2.0, never store email content, and ignore everything unrelated to recurring billing.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/safety',
-  },
-}
+  path: '/safety',
+})
 import { ArrowLeft, Database, Eye, Lock, Mail, Shield } from 'lucide-react'
 import Link from 'next/link'
 
@@ -188,7 +187,7 @@ export default function SafetyPage() {
                   <div>
                     <h3 className="font-semibold text-foreground">Open Source</h3>
                     <p className="text-muted-foreground text-sm">
-                      Suprascribe is fully open source. You can inspect the code, verify our privacy
+                      Suprascribe is open source. You can inspect the code, verify our privacy
                       claims, and contribute on{' '}
                       <Link
                         href={GITHUB_URL}

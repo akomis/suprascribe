@@ -120,9 +120,28 @@ const _DATA_CLASSIFICATION = {
   DISCOVERY_RUN_AUDIT: {
     level: DataProtectionLevel.LOW,
     description:
-      'Audit log of discovery runs: timestamp, provider, email address scanned, subscription count',
+      'Audit log of successful discovery runs: timestamp, provider, email address scanned, subscription count',
     storageLocation: 'DISCOVERY_RUNS table',
-    protectionMechanism: 'Filtered by user_id; no email body or token data retained',
+    protectionMechanism:
+      'RLS restricts select/insert/update to the owning user; no email body or token data retained',
+  },
+
+  DISCOVERY_TEASER_PAYLOAD: {
+    level: DataProtectionLevel.HIGH,
+    description:
+      "A Basic user's full set of discovered subscriptions, held server-side until they upgrade and claim it",
+    storageLocation: 'DISCOVERY_TEASERS.payload_encrypted column',
+    protectionMechanism:
+      'Encrypted at rest with ENCRYPTION_SECRET; RLS enabled with no policies, so only the service role can read it; decrypted server-side only after a Pro tier check; expires 30 days after creation',
+  },
+
+  DISCOVERY_COST_TELEMETRY: {
+    level: DataProtectionLevel.MEDIUM,
+    description:
+      'Per-scan cost, token counts, duration, model, and provider error messages across all three discovery funnels. Commercially sensitive unit economics; one-time funnel rows are anonymous and carry no user_id',
+    storageLocation: 'DISCOVERY_ANALYTICS table',
+    protectionMechanism:
+      'RLS enabled with no policies and select revoked from anon/authenticated, so cost data is unreadable by users; written only via the service role',
   },
 
   SUBSCRIPTION_SERVICES_CATALOG: {

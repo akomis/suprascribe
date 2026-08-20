@@ -123,10 +123,13 @@ export function SEOPage({
       {relatedPages && relatedPages.length > 0 && (
         <section className="container mx-auto px-4 py-10 max-w-4xl text-center">
           <div className="space-y-4">
-            {relatedHeading && (
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight">{relatedHeading}</h2>
-            )}
-            {relatedDescription && <p className="text-muted-foreground">{relatedDescription}</p>}
+            <div>
+              {relatedHeading && (
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">{relatedHeading}</h2>
+              )}
+              {relatedDescription && <p className="text-muted-foreground">{relatedDescription}</p>}
+            </div>
+
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               {relatedPages.map((page) => (
                 <Link key={page.href} href={page.href}>

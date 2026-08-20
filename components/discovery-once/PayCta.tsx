@@ -26,7 +26,7 @@ export function PayCta() {
 
   return (
     <Button size="lg" onClick={onClick} disabled={loading} className="min-w-[220px]">
-      {loading ? <Spinner /> : 'Scan one inbox for €1'}
+      {loading ? <Spinner /> : 'Scan 1 inbox for €1'}
     </Button>
   )
 }

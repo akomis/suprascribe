@@ -12,6 +12,7 @@ interface UseOAuthDiscoveryReturn {
   teaser: DiscoveryTeaser | null
   emailCount: number | null
   scannedEmail: string | null
+  runId: string | null
   error: string | null
   warning: string | null
   clearDiscovery: () => void
@@ -28,12 +29,13 @@ export function useOAuthDiscovery(provider: 'google' | 'microsoft'): UseOAuthDis
     teaser,
     emailCount,
     scannedEmail,
+    runId,
     error,
     warning,
     runDiscovery,
     retry,
     clearDiscovery: clearCore,
-  } = useDiscoveryCore(provider)
+  } = useDiscoveryCore()
   const hasCalledWebhook = useRef(false)
 
   const callDiscoveryApi = useCallback(
@@ -81,6 +83,7 @@ export function useOAuthDiscovery(provider: 'google' | 'microsoft'): UseOAuthDis
     teaser,
     emailCount,
     scannedEmail,
+    runId,
     error,
     warning,
     clearDiscovery,

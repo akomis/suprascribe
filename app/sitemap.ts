@@ -62,6 +62,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date('2026-07-26'),
     },
     {
+      url: 'https://www.suprascribe.com/subscription-tracking-for-business',
+      lastModified: new Date('2026-08-04'),
+    },
+    {
+      url: 'https://www.suprascribe.com/subscription-tracking-for-startups',
+      lastModified: new Date('2026-08-04'),
+    },
+    {
+      url: 'https://www.suprascribe.com/subscription-tracking-for-freelancers',
+      lastModified: new Date('2026-08-04'),
+    },
+    {
+      url: 'https://www.suprascribe.com/subscription-tracking-for-families',
+      lastModified: new Date('2026-08-04'),
+    },
+    {
+      url: 'https://www.suprascribe.com/subscription-tracking-for-students',
+      lastModified: new Date('2026-08-04'),
+    },
+    {
       url: 'https://www.suprascribe.com/compare',
       lastModified: new Date('2026-05-27'),
     },
