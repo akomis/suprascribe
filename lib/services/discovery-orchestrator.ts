@@ -1,7 +1,7 @@
 import { EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
 import { hasFeatureAccess } from '@/lib/config/features'
-import { getPostHogClient } from '@/lib/posthog-server'
 import type { ProviderConfig } from '@/lib/services/ai-provider'
+import { estimateCostUsd, recordAnalytics } from '@/lib/services/discovery-analytics'
 import { getBYOKConfig } from '@/lib/services/byok'
 import { discover, type ImapCredentials } from '@/lib/services/subscription-discovery'
 import { getUserTier } from '@/lib/supabase/tier'
@@ -10,12 +10,6 @@ import { TEASER_PREVIEW_COUNT } from '@/lib/types/discovery'
 import { checkRateLimit } from '@/lib/utils/discovery-rate-limit'
 import { encryptApiKey } from '@/lib/utils/server-crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
-
-function trackDiscovery(userId: string, event: string, properties: Record<string, unknown>): void {
-  const posthog = getPostHogClient()
-  posthog.capture({ distinctId: userId, event, properties })
-  void posthog.shutdown()
-}
 
 export type OrchestratorInput =
   | { provider: 'google' | 'microsoft'; token: string }
@@ -66,6 +60,12 @@ async function checkDiscoveryPolicy(
       }
 
       if (existingTeaser) {
+        await recordAnalytics(supabase, 'rate_limited', {
+          userId,
+          provider,
+          mode: 'teaser',
+          isByok: false,
+        })
         return {
           ok: false,
           kind: 'rate_limited',
@@ -89,9 +89,11 @@ async function checkDiscoveryPolicy(
 
     const rateLimitCheck = checkRateLimit(existingRuns || [])
     if (!rateLimitCheck.canDiscover) {
-      trackDiscovery(userId, 'discovery_rate_limit_hit', {
+      await recordAnalytics(supabase, 'rate_limited', {
+        userId,
         provider,
-        reason: rateLimitCheck.reason,
+        mode: 'full',
+        isByok: false,
       })
       return {
         ok: false,
@@ -116,8 +118,6 @@ export async function runDiscovery(
 
   const { mode, isByokMode, byokConfig } = policy
 
-  trackDiscovery(userId, 'discovery_started', { provider, is_byok: isByokMode, mode })
-
   const startTime = Date.now()
   let result: Awaited<ReturnType<typeof discover>>
 
@@ -130,10 +130,20 @@ export async function runDiscovery(
     result = await discover(discoveryInput)
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Discovery failed'
-    trackDiscovery(userId, 'discovery_failed', {
+    await recordAnalytics(supabase, 'failed', {
+      userId,
       provider,
-      error: errorMessage,
-      is_byok: isByokMode,
+      mode,
+      isByok: isByokMode,
+      errorMessage,
+      metrics: {
+        emailsScanned: 0,
+        durationMs: Date.now() - startTime,
+        inputTokens: 0,
+        outputTokens: 0,
+        costUsd: 0,
+        model: isByokMode ? (byokConfig?.model ?? null) : null,
+      },
     })
     return { success: false, kind: 'provider_error', error: errorMessage }
   }
@@ -141,11 +151,8 @@ export async function runDiscovery(
   const { subscriptions, emailCount, email, usage } = result
   const duration = Date.now() - startTime
 
-  const { inputCostPerMillion, outputCostPerMillion, modelName } =
-    EMAIL_DISCOVERY_CONFIG.analysisModel
-  const totalCost =
-    (usage.inputTokens / 1_000_000) * inputCostPerMillion +
-    (usage.outputTokens / 1_000_000) * outputCostPerMillion
+  const { modelName } = EMAIL_DISCOVERY_CONFIG.analysisModel
+  const totalCost = estimateCostUsd(usage)
 
   console.log(
     `[Discovery] ${provider} (${mode}, ${isByokMode ? 'BYOK' : 'default'}) | ✓ ${subscriptions.length}/${emailCount} subs | ${(duration / 1000).toFixed(1)}s | $${totalCost.toFixed(4)}`,
@@ -153,25 +160,50 @@ export async function runDiscovery(
 
   if (mode === 'teaser') {
     // Persist the full result encrypted server-side; send only a count + preview to the client.
-    const { error: teaserInsertError } = await supabase.from('DISCOVERY_TEASERS').insert({
-      user_id: userId,
-      provider,
-      email_address: email,
-      subscriptions_found: subscriptions.length,
-      payload_encrypted: encryptApiKey(JSON.stringify(subscriptions)),
-    })
+    const { data: teaserRow, error: teaserInsertError } = await supabase
+      .from('DISCOVERY_TEASERS')
+      .insert({
+        user_id: userId,
+        provider,
+        email_address: email,
+        subscriptions_found: subscriptions.length,
+        payload_encrypted: encryptApiKey(JSON.stringify(subscriptions)),
+      })
+      .select('id')
+      .single()
+
+    // Teasers always run on the default model, never BYOK.
+    const teaserMetrics = {
+      emailsScanned: emailCount,
+      durationMs: duration,
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+      costUsd: totalCost,
+      model: modelName,
+    }
 
     if (teaserInsertError) {
       console.error('[Discovery] Error storing teaser:', teaserInsertError)
+      // The scan already ran and cost money, so log the spend even though there
+      // is no parent row to attach it to.
+      await recordAnalytics(supabase, 'failed', {
+        userId,
+        provider,
+        mode: 'teaser',
+        isByok: false,
+        errorMessage: `Failed to store teaser: ${teaserInsertError.message}`,
+        metrics: teaserMetrics,
+      })
       return { success: false, kind: 'unknown', error: 'Failed to store discovery results' }
     }
 
-    trackDiscovery(userId, 'discovery_teaser_stored', {
+    await recordAnalytics(supabase, 'completed', {
+      userId,
       provider,
-      emails_scanned: emailCount,
-      subscriptions_found: subscriptions.length,
-      duration_ms: duration,
-      cost_usd: parseFloat(totalCost.toFixed(6)),
+      mode: 'teaser',
+      isByok: false,
+      parent: { teaserId: teaserRow.id },
+      metrics: teaserMetrics,
     })
 
     return {
@@ -184,30 +216,50 @@ export async function runDiscovery(
     }
   }
 
-  const { error: insertError } = await supabase.from('DISCOVERY_RUNS').insert({
-    user_id: userId,
-    email_address: email,
-    provider,
-    discovered_at: new Date().toISOString(),
-    subscriptions_found: subscriptions.length,
-    is_byok: isByokMode,
-  })
+  const { data: runRow, error: insertError } = await supabase
+    .from('DISCOVERY_RUNS')
+    .insert({
+      user_id: userId,
+      email_address: email,
+      provider,
+      discovered_at: new Date().toISOString(),
+      subscriptions_found: subscriptions.length,
+      is_byok: isByokMode,
+    })
+    .select('id')
+    .single()
 
-  if (insertError) {
-    console.error('[Discovery] Error recording discovery run:', insertError)
+  const runMetrics = {
+    emailsScanned: emailCount,
+    durationMs: duration,
+    inputTokens: usage.inputTokens,
+    outputTokens: usage.outputTokens,
+    costUsd: totalCost,
+    model: isByokMode ? (byokConfig?.model ?? null) : modelName,
   }
 
-  trackDiscovery(userId, 'discovery_completed', {
-    provider,
-    is_byok: isByokMode,
-    emails_scanned: emailCount,
-    subscriptions_found: subscriptions.length,
-    duration_ms: duration,
-    input_tokens: usage.inputTokens,
-    output_tokens: usage.outputTokens,
-    cost_usd: parseFloat(totalCost.toFixed(6)),
-    model: isByokMode ? byokConfig?.model : modelName,
-  })
+  if (runRow) {
+    await recordAnalytics(supabase, 'completed', {
+      userId,
+      provider,
+      mode: 'full',
+      isByok: isByokMode,
+      parent: { runId: runRow.id },
+      metrics: runMetrics,
+    })
+  } else {
+    console.error('[Discovery] Error recording discovery run:', insertError)
+    // The scan already ran and cost money. Record the spend unparented rather
+    // than losing it, since the run row this would have pointed at never landed.
+    await recordAnalytics(supabase, 'failed', {
+      userId,
+      provider,
+      mode: 'full',
+      isByok: isByokMode,
+      errorMessage: `Failed to record discovery run: ${insertError?.message ?? 'unknown error'}`,
+      metrics: runMetrics,
+    })
+  }
 
-  return { success: true, subscriptions, emailCount, email }
+  return { success: true, subscriptions, emailCount, email, runId: runRow?.id }
 }

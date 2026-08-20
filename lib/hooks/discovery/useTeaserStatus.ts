@@ -23,7 +23,9 @@ export function useTeaserStatus() {
 
   return {
     status: query.data,
-    isLoading: query.isLoading,
+    // isPending, not isLoading: during SSR the query never fetches, so isLoading
+    // is false on the server and true on the client's first render.
+    isLoading: query.isPending,
     refetch: query.refetch,
   }
 }

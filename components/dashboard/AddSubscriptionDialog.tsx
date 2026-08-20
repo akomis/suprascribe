@@ -93,7 +93,7 @@ export function AddSubscriptionDialogBase({
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent className="max-w-lg">
+      <DialogContent className="w-full sm:w-fit sm:min-w-md max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-none sm:max-h-none md:max-h-none lg:max-h-none overflow-visible">
         <DialogHeader className="hidden">
           <DialogTitle>Add Subscription</DialogTitle>
         </DialogHeader>

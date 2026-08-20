@@ -7,17 +7,16 @@ import { GITHUB_URL } from '@/lib/config/urls'
 import { faqItems } from '@/lib/config/faq'
 import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import { Check } from 'lucide-react'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Subscription Management App - Gmail, Outlook & iCloud',
   description:
     'Suprascribe is a subscription management app that scans your inbox to find every recurring charge. Works with Gmail, Outlook, iCloud, and any IMAP email. Free tier available.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/subscription-management-app',
-  },
-}
+  path: '/subscription-management-app',
+})
 
 const appFaqItems = faqItems.filter((item) =>
   [
@@ -80,7 +79,7 @@ export default function SubscriptionManagementAppPage() {
     <SEOPage
       jsonLd={jsonLd}
       title="The Subscription Management App Built Around Your Inbox"
-      description="Suprascribe connects to Gmail, Outlook, iCloud, or any IMAP inbox and automatically identifies every recurring payment. No bank linking. No manual digging through receipts. A complete subscription list in minutes."
+      description="Suprascribe is a subscription management app that connects to Gmail, Outlook, iCloud, or any IMAP inbox and automatically identifies every recurring payment. No bank linking. No manual digging through receipts. A complete subscription list in minutes."
       primaryCta={{ href: '/login?tab=signup', label: 'Get Started Free' }}
       secondaryCta={{ href: '/demo', label: 'Try the Demo' }}
       faqItems={appFaqItems}
@@ -90,6 +89,7 @@ export default function SubscriptionManagementAppPage() {
         { href: '/free-subscription-tracker', label: 'Track Subscriptions for Free' },
         { href: '/free-subscription-manager', label: 'Manage Subscriptions for Free' },
         { href: '/subscription-cost-calculator', label: 'Subscription Cost Calculator' },
+        { href: '/subscription-tracking-for-business', label: 'Tracking for Business' },
       ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">
@@ -192,8 +192,8 @@ export default function SubscriptionManagementAppPage() {
               After a scan completes, only the extracted subscription data is saved to your account.
             </p>
             <p>
-              The codebase is fully open source. You can read exactly how email scanning works, what
-              data is stored, and how it is protected - on GitHub, right now.
+              The codebase is open source. You can read exactly how email scanning works, what data
+              is stored, and how it is protected - on GitHub, right now.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">

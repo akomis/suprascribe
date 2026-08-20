@@ -2,6 +2,7 @@
 
 import { DiscoveredSubscriptionGroupCard } from '@/components/dashboard/discovery/DiscoveredSubscriptionGroupCard'
 import { DiscoveryEditDialog } from '@/components/dashboard/discovery/DiscoveryEditDialog'
+import { DiscoveryRatingRow } from '@/components/dashboard/discovery/DiscoveryRatingRow'
 import { SupportButton } from '@/components/shared/SupportButton'
 import {
   AlertDialog,
@@ -41,8 +42,19 @@ import { ServiceLogo } from '@/components/shared/ServiceLogo'
 import { UpgradeButton } from '@/components/UpgradeButton'
 import { useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, Lock } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+
+// Loaded lazily to break the import cycle: this dialog opens the add dialog, whose
+// auto-discover view renders EmailProviderSelection, which renders a DiscoveryDialog.
+const AddSubscriptionDialog = dynamic(
+  () => import('@/components/dashboard/AddSubscriptionDialog'),
+  { ssr: false },
+)
+
+// What happens once the selected subscriptions are committed.
+type ImportOutcome = 'close' | 'scan-another'
 
 type GroupedItem = { sub: DiscoveredSubscription; index: number }
 type SubscriptionGroup = { serviceName: string; serviceUrl?: string; items: GroupedItem[] }
@@ -276,8 +288,9 @@ function ReviewSubscriptionsView({
   checkIfDuplicate,
   onToggle,
   onEdit,
-  onCancel,
   onSave,
+  onScanAnother,
+  ratingSlot,
 }: {
   discoveredSubscriptions: DiscoveredSubscription[]
   selectedSubscriptions: Set<number>
@@ -287,8 +300,9 @@ function ReviewSubscriptionsView({
   checkIfDuplicate: (index: number) => boolean
   onToggle: (index: number, checked: boolean) => void
   onEdit: (index: number) => void
-  onCancel: () => void
   onSave: () => void
+  onScanAnother?: () => void
+  ratingSlot?: React.ReactNode
 }) {
   const allSubs = discoveredSubscriptions.map((sub, index) => ({ sub, index }))
   const nonDuplicates = allSubs.filter(({ index }) => !checkIfDuplicate(index))
@@ -319,11 +333,6 @@ function ReviewSubscriptionsView({
 
       <div className="flex flex-col gap-2 py-2 overflow-y-auto flex-1 pr-2">
         <div className="flex flex-col gap-2 mb-2">
-          {activeGroups.length > 0 && (
-            <Badge variant="outline" className="text-xs font-medium">
-              Active
-            </Badge>
-          )}
           <DiscoveryGroupList
             groups={activeGroups}
             selectedSubscriptions={selectedSubscriptions}
@@ -374,10 +383,13 @@ function ReviewSubscriptionsView({
         )}
       </div>
 
-      <DialogFooter>
-        <Button variant="outline" onClick={onCancel} disabled={isSaving}>
-          Cancel
-        </Button>
+      <DialogFooter className="flex flex-wrap justify-center items-center pt-4">
+        {ratingSlot}
+        {onScanAnother && (
+          <Button variant="secondary" onClick={onScanAnother} disabled={isSaving}>
+            Scan Another Inbox
+          </Button>
+        )}
         <Button onClick={onSave} disabled={isSaving}>
           {isSaving ? <Spinner /> : 'Done'}
         </Button>
@@ -509,6 +521,8 @@ interface DiscoveryDialogProps {
   isLoadingAI?: boolean
   isByok?: boolean
   onImport?: (entries: CreateSubscriptionFormData[]) => Promise<void>
+  /** Id of the DISCOVERY_RUNS row this scan created. Present only for full (Pro/BYOK) scans. */
+  runId?: string | null
 }
 
 export function DiscoveryDialog({
@@ -526,6 +540,7 @@ export function DiscoveryDialog({
   isLoadingAI,
   isByok,
   onImport,
+  runId,
 }: DiscoveryDialogProps) {
   const queryClient = useQueryClient()
   const { data: existingSubscriptions = [] } = useSubscriptions({ skipStale: true })
@@ -537,12 +552,17 @@ export function DiscoveryDialog({
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [showDuplicates, setShowDuplicates] = useState(false)
   const [showExitWarning, setShowExitWarning] = useState(false)
+  const [showProviderDialog, setShowProviderDialog] = useState(false)
   const hasStartedDiscovery = useRef(false)
   const [finalElapsedTime, setFinalElapsedTime] = useState<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
+  // Indices the user explicitly included/skipped. The default-selection effect below reruns on
+  // every edit and on every existing-subscriptions refetch, so it must not overwrite these.
+  const manuallyToggled = useRef<Set<number>>(new Set())
 
   // Keep a local, editable copy of the discovered list so edits live in the data itself.
   useEffect(() => {
+    manuallyToggled.current = new Set()
     setEditedSubscriptions(discoveredSubscriptions)
   }, [discoveredSubscriptions])
 
@@ -614,12 +634,20 @@ export function DiscoveryDialog({
 
   useEffect(() => {
     if (editedSubscriptions.length > 0) {
-      const nonDuplicateIndices = editedSubscriptions
+      const defaultSelectedIndices = editedSubscriptions
         .map((_, index) => index)
         .filter((index) => !checkIfDuplicate(index))
       // Use setTimeout to avoid synchronous setState during effect
       const timer = setTimeout(() => {
-        setSelectedSubscriptions(new Set(nonDuplicateIndices))
+        setSelectedSubscriptions((prev) => {
+          const next = new Set(defaultSelectedIndices)
+          // Anything the user decided on wins over the default.
+          manuallyToggled.current.forEach((index) => {
+            if (prev.has(index)) next.add(index)
+            else next.delete(index)
+          })
+          return next
+        })
       }, 0)
       return () => clearTimeout(timer)
     }
@@ -628,6 +656,7 @@ export function DiscoveryDialog({
   const handleClose = () => {
     setShowDialog(false)
     setSelectedSubscriptions(new Set())
+    manuallyToggled.current = new Set()
     setEditedSubscriptions([])
     setEditingIndex(null)
     hasStartedDiscovery.current = false
@@ -644,6 +673,7 @@ export function DiscoveryDialog({
   }
 
   const handleToggleSubscription = (index: number, checked: boolean) => {
+    manuallyToggled.current.add(index)
     setSelectedSubscriptions((prev) => {
       const newSet = new Set(prev)
       if (checked) {
@@ -655,7 +685,14 @@ export function DiscoveryDialog({
     })
   }
 
-  const handleSaveSelected = async () => {
+  // Runs once the import commits. "Scan Another Inbox" closes this dialog and hands off to
+  // the existing add dialog on its email-provider view; everything else just closes.
+  const finishImport = (next: ImportOutcome) => {
+    handleClose()
+    if (next === 'scan-another') setShowProviderDialog(true)
+  }
+
+  const handleSaveSelected = async (next: ImportOutcome = 'close') => {
     setIsSaving(true)
 
     const subscriptionsToAdd = editedSubscriptions
@@ -675,7 +712,7 @@ export function DiscoveryDialog({
         })
       }
       setIsSaving(false)
-      handleClose()
+      finishImport(next)
       return
     }
 
@@ -717,13 +754,21 @@ export function DiscoveryDialog({
       })
     }
 
-    if (successCount >= 0) {
-      handleClose()
-      await queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
-    }
+    await queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+    finishImport(next)
   }
 
-  if (!showDialog) return null
+  // Stay mounted while the handed-off provider dialog is open, then unmount with it.
+  if (!showDialog) {
+    return showProviderDialog ? (
+      <AddSubscriptionDialog
+        externalOpen={showProviderDialog}
+        onExternalOpenChange={setShowProviderDialog}
+        initialView="auto-discover"
+        hideTrigger
+      />
+    ) : null
+  }
 
   return (
     <>
@@ -775,8 +820,9 @@ export function DiscoveryDialog({
               checkIfDuplicate={checkIfDuplicate}
               onToggle={handleToggleSubscription}
               onEdit={setEditingIndex}
-              onCancel={handleClose}
-              onSave={handleSaveSelected}
+              onSave={() => handleSaveSelected('close')}
+              onScanAnother={() => handleSaveSelected('scan-another')}
+              ratingSlot={runId ? <DiscoveryRatingRow runId={runId} /> : null}
             />
           ) : warning ? (
             <WarningView warning={warning} onClose={handleClose} />

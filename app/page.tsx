@@ -7,7 +7,8 @@ import { ShinyText } from '@/components/landing/ShinyText'
 import { StaticGridBackground } from '@/components/landing/StaticGridBackground'
 import { WhySection } from '@/components/landing/WhySection'
 import { SiteFooter } from '@/components/shared/SiteFooter'
-import { formatProPrice, PRO_ORIGINAL_PRICE_DISPLAY } from '@/lib/config/stripe'
+import { getDiscountStatus } from '@/lib/config/discount'
+import { PRO_FULL_PRICE_DISPLAY, PRO_DISCOUNT_PRICE_DISPLAY } from '@/lib/config/stripe'
 import dynamic from 'next/dynamic'
 
 const FeatureCard = dynamic(() =>
@@ -28,17 +29,16 @@ import { getEnabledFeaturesByTier } from '@/lib/config/features'
 import { GITHUB_URL } from '@/lib/config/urls'
 import { Github, Lock, ShieldCheck, User } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import Image from 'next/image'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Suprascribe - Free Subscription Tracker & Manager',
   description:
     'Stop losing money on forgotten subscriptions. Suprascribe auto-scans Gmail, Outlook & iCloud to find every recurring payment. Free forever.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com',
-  },
-}
+  path: '',
+})
 
 const homepageFaqJsonLd = {
   '@context': 'https://schema.org',
@@ -89,7 +89,7 @@ export default function Home() {
           </h1>
 
           <div className="flex flex-col gap-4 z-10 mx-auto">
-            <p className="max-w-4xl text-base sm:text-lg md:text-xl text-muted-foreground px-2">
+            <p className="max-w-[870px] text-base sm:text-lg md:text-xl text-muted-foreground px-2">
               Suprascribe is a subscription tracker that{' '}
               <ShinyText
                 text="automatically finds all your subscriptions"
@@ -154,13 +154,13 @@ export default function Home() {
               <FeatureCard
                 icon={<Lock className="h-8 w-8" />}
                 title="Safe & Private"
-                description="Your data stays yours. We never read unrelated emails or store them in any way. Your inbox, your privacy."
+                description="Your data stays yours. We never read unrelated emails or store them in any way. Your inbox, your subscriptions, your privacy."
                 actionComponent={<DiscoveryLearnMoreButton />}
               />
               <FeatureCard
                 icon={<User className="h-8 w-8" />}
                 title="User Centric"
-                description="Our goal is to help you clear up your subscriptions with ease and peace of mind-not keep you in the app. A few times a year is all you need."
+                description="Our goal is to help you clear up your subscriptions with ease and provide peace of mind - not keep you in the app. A few times a year is all you need."
               />
               <FeatureCard
                 icon={<ShieldCheck className="h-8 w-8" />}
@@ -199,9 +199,9 @@ export default function Home() {
               <TierCard
                 name="PRO"
                 description="For power users who want more"
-                price={formatProPrice()}
-                originalPrice={PRO_ORIGINAL_PRICE_DISPLAY}
-                earlyBirdLabel="50% - Limited Time Offer"
+                price={PRO_FULL_PRICE_DISPLAY}
+                discountPrice={PRO_DISCOUNT_PRICE_DISPLAY}
+                discount={getDiscountStatus()}
                 period="once and forever"
                 features={proFeatures}
                 buttonText="Upgrade to Pro"
@@ -236,7 +236,7 @@ export default function Home() {
           <div className="mx-auto max-w-2xl space-y-8 sm:space-y-12">
             <div className="text-center space-y-3">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
-                Suprascribe vs. The Alternatives
+                Suprascribe vs. other Trackers
               </h2>
               <p className="text-base sm:text-lg text-muted-foreground">
                 See why Suprascribe outperforms every other subscription management app in both
@@ -283,15 +283,61 @@ export default function Home() {
               <p>
                 Suprascribe was born from a simple observation: in today&apos;s world, we&apos;re
                 all drowning in subscriptions. From streaming services to cloud storage, from gym
-                memberships to software tools-it&apos;s easy to lose track of what you&apos;re
+                memberships to software tools - it&apos;s easy to lose track of what you&apos;re
                 paying for and how much it all costs. We believe that managing your finances
                 shouldn&apos;t require spreadsheets, manual tracking, or surprise charges. We are
                 commited to never becoming just another subscription you need to manage. The
                 platform will always offer a robust free tier and pro features tailored around the
-                users.
+                users. Subscription management is not just for the average individual - see how
+                Suprascribe works for{' '}
+                <Link
+                  href="/subscription-tracking-for-students"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-4 hover:text-foreground transition-colors"
+                >
+                  students
+                </Link>
+                ,{' '}
+                <Link
+                  href="/subscription-tracking-for-freelancers"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-4 hover:text-foreground transition-colors"
+                >
+                  freelancers
+                </Link>
+                ,{' '}
+                <Link
+                  href="/subscription-tracking-for-families"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-4 hover:text-foreground transition-colors"
+                >
+                  families
+                </Link>
+                ,{' '}
+                <Link
+                  href="/subscription-tracking-for-business"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-4 hover:text-foreground transition-colors"
+                >
+                  businesses
+                </Link>
+                /
+                <Link
+                  href="/subscription-tracking-for-startups"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-4 hover:text-foreground transition-colors"
+                >
+                  startups
+                </Link>
+                .
               </p>
               <p>
-                Suprascribe is fully open source. You can inspect the code, verify how your data is
+                Suprascribe is open source. You can inspect the code, verify how your data is
                 handled, and contribute.
               </p>
             </div>

@@ -13,6 +13,7 @@ import {
   isSubscriptionActive,
 } from '@/lib/utils'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
+import { isOneTimePayment } from '@/lib/utils/subscription-period-extension'
 import { Pencil, Plus, X } from 'lucide-react'
 
 type SubscriptionItem = {
@@ -44,6 +45,11 @@ export function DiscoveredSubscriptionGroupCard({
   const nonDuplicateItems = items.filter((item) => !item.isDuplicate)
   const allNonDuplicateSelected = nonDuplicateItems.every((item) => item.isSelected)
 
+  // With a single entry the edit action is unambiguous, so it sits in the header next to the
+  // include/skip toggle. Groups with several entries keep a pencil per row - one header button
+  // could not say which entry it edits.
+  const soleItem = items.length === 1 && !items[0].isDuplicate ? items[0] : null
+
   const handleCardToggle = () => {
     const newSelected = !allNonDuplicateSelected
     nonDuplicateItems.forEach((item) => onToggle(item.index, newSelected))
@@ -51,8 +57,8 @@ export function DiscoveredSubscriptionGroupCard({
 
   return (
     <Card className={cn('border gap-0', { 'opacity-50': allSkippedOrDuplicate })}>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between gap-3">
+      <CardHeader className="">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-lg overflow-hidden flex-shrink-0">
               <ServiceLogo
@@ -60,12 +66,32 @@ export function DiscoveredSubscriptionGroupCard({
                 serviceUrl={serviceUrl}
                 size={64}
                 className="size-full rounded-lg"
-                fallbackClassName="size-5"
+                fallbackClassName="size-5 sm:size-8"
               />
             </div>
             <CardTitle className="text-base break-words">{serviceName}</CardTitle>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {soleItem && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      aria-label="Edit subscription details"
+                      disabled={disabled || !soleItem.isSelected}
+                      onClick={() => onEdit(soleItem.index)}
+                    >
+                      <Pencil className="size-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left">Edit subscription details</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
             {nonDuplicateItems.length > 0 && (
               <TooltipProvider>
                 <Tooltip>
@@ -102,7 +128,13 @@ export function DiscoveredSubscriptionGroupCard({
       </CardHeader>
       <CardContent className="flex flex-col gap-0 pt-0">
         {items.map((item) => (
-          <SubscriptionEntry key={item.index} item={item} disabled={disabled} onEdit={onEdit} />
+          <SubscriptionEntry
+            key={item.index}
+            item={item}
+            disabled={disabled}
+            onEdit={onEdit}
+            showEdit={soleItem === null}
+          />
         ))}
       </CardContent>
     </Card>
@@ -113,17 +145,18 @@ function SubscriptionEntry({
   item,
   disabled,
   onEdit,
+  showEdit,
 }: {
   item: SubscriptionItem
   disabled: boolean
   onEdit: (index: number) => void
+  showEdit: boolean
 }) {
   const { subscription, isSelected, isDuplicate } = item
   const currency = (subscription.currency || 'USD') as CurrencyCode
   const isSkipped = !isSelected && !isDuplicate
 
-  const isOneTimePayment =
-    subscription.start_date === subscription.end_date || !subscription.end_date
+  const oneTime = isOneTimePayment(subscription)
   const isPast = !isSubscriptionActive(subscription.start_date, subscription.end_date)
 
   return (
@@ -133,7 +166,7 @@ function SubscriptionEntry({
       })}
     >
       <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-        {isOneTimePayment ? (
+        {oneTime ? (
           <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 whitespace-nowrap">
             One-time
           </span>
@@ -147,7 +180,7 @@ function SubscriptionEntry({
           </span>
         )}
         <span className="text-xs text-muted-foreground">
-          {isOneTimePayment
+          {oneTime
             ? formatLocalizedDate(subscription.start_date)
             : formatDateRangeWithDuration(subscription.start_date, subscription.end_date)}
         </span>
@@ -166,24 +199,26 @@ function SubscriptionEntry({
             Duplicate
           </Button>
         ) : (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6"
-                  aria-label="Edit subscription details"
-                  disabled={disabled || isSkipped}
-                  onClick={() => onEdit(item.index)}
-                >
-                  <Pencil className="size-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">Edit subscription details</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          showEdit && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6"
+                    aria-label="Edit subscription details"
+                    disabled={disabled || isSkipped}
+                    onClick={() => onEdit(item.index)}
+                  >
+                    <Pencil className="size-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left">Edit subscription details</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )
         )}
       </div>
     </div>

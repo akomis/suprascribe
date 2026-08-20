@@ -1,10 +1,7 @@
+import { ServiceLogo } from '@/components/shared/ServiceLogo'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useLogo } from '@/lib/hooks/useLogo'
 import { cn } from '@/lib/utils'
-import { Box } from 'lucide-react'
-import Image from 'next/image'
-import * as React from 'react'
 
 interface SubscriptionBadgeProps {
   name: string
@@ -23,9 +20,6 @@ export function SubscriptionBadge({
   daysUntilRenewal,
   onClick,
 }: SubscriptionBadgeProps) {
-  const logoUrl = useLogo(name, url)
-  const [logoError, setLogoError] = React.useState(false)
-
   const sizeClasses = {
     sm: {
       badge: showLabel
@@ -61,31 +55,20 @@ export function SubscriptionBadge({
       )}
       onClick={onClick}
     >
-      {logoUrl && (
-        <div
-          className={cn(
-            'flex items-center justify-center rounded overflow-hidden flex-shrink-0',
-            currentSize.logo,
-          )}
-        >
-          {!logoError ? (
-            <Image
-              src={logoUrl}
-              alt={`${name} logo`}
-              className="size-full object-contain"
-              onError={() => setLogoError(true)}
-              width={size === 'lg' ? 32 : 24}
-              height={size === 'lg' ? 32 : 24}
-              unoptimized
-            />
-          ) : (
-            <Box
-              className={cn('text-muted-foreground', currentSize.iconFallback)}
-              aria-hidden="true"
-            />
-          )}
-        </div>
-      )}
+      <div
+        className={cn(
+          'flex items-center justify-center rounded overflow-hidden shrink-0',
+          currentSize.logo,
+        )}
+      >
+        <ServiceLogo
+          name={name}
+          serviceUrl={url}
+          size={size === 'lg' ? 32 : 24}
+          className="size-full"
+          fallbackClassName={currentSize.iconFallback}
+        />
+      </div>
       {showLabel && <span className="truncate">{name}</span>}
     </Badge>
   )

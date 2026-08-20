@@ -12,7 +12,9 @@ export type CreateSubscriptionFormData = {
   autoRenew: boolean
   price: number
   currency: Database['public']['Enums']['CURRENCY_CODE']
-  period: BillingPeriod
+  // Omitted for one-time payments: its absence is what marks an entry as
+  // non-recurring. The database column falls back to its own default.
+  period?: BillingPeriod
   paymentMethod?: string
   sourceEmail?: string
 }

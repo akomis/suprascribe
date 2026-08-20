@@ -13,7 +13,7 @@ export const EMAIL_DISCOVERY_CONFIG = {
     'order confirmation',
   ],
 
-  maxEmailsPerProvider: 300,
+  maxEmailsPerProvider: 500,
 
   analysisModel: {
     provider: 'OpenRouter',
@@ -21,11 +21,19 @@ export const EMAIL_DISCOVERY_CONFIG = {
     temperature: 0,
     inputCostPerMillion: 0.1,
     outputCostPerMillion: 0.4,
+    // This model's documented output ceiling. Keep in step with modelName:
+    // set too low it truncates mid-JSON, and a provider rejects it if too high.
+    maxOutputTokens: 65_536,
   },
 
   batch: {
-    maxEmailsPerBatch: 100,
-    maxBodyTokensPerEmail: 300,
+    // Chunking exists only to stay inside the model's context window. Sender
+    // groups are never split, so a single oversized sender may exceed this.
+    maxInputTokensPerChunk: 100_000,
+    // Token budget for a single email body, or null to send bodies in full.
+    // Trimming risks cutting the billing details out of a long receipt; not
+    // trimming means far more input tokens and more chunks per scan.
+    maxBodyTokensPerEmail: null as number | null,
   },
 } as const
 

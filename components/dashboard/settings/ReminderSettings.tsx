@@ -77,6 +77,7 @@ export function ReminderSettings() {
             </span>
           </div>
           <Slider
+            aria-label="Days before renewal"
             value={[daysBefore]}
             onValueChange={handleDaysChange}
             onValueCommit={handleDaysCommit}

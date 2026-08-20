@@ -13,15 +13,23 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: 'portrait',
     icons: [
       {
-        src: '/logo.jpg',
-        sizes: '1000x1000',
-        type: 'image/jpeg',
+        src: '/icons/icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/logo.jpg',
-        sizes: '1000x1000',
-        type: 'image/jpeg',
+        src: '/icons/icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        // Opaque black bleed; the mark sits inside the 80% safe zone so
+        // Android's adaptive-icon mask can't clip it.
+        src: '/icons/icon-maskable-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
         purpose: 'maskable',
       },
     ],

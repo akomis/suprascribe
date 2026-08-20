@@ -1,4 +1,6 @@
+import { EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
 import { ENTITLEMENT_COOKIE, readEntitlement } from '@/lib/discovery/entitlement'
+import { estimateCostUsd, recordAnalytics } from '@/lib/services/discovery-analytics'
 import { discover } from '@/lib/services/subscription-discovery'
 import { createServiceClient } from '@/lib/supabase/server'
 import type { DiscoveryResponse } from '@/lib/types/discovery'
@@ -55,6 +57,11 @@ export async function POST(
     })
   }
   if (row.status === 'discovered') {
+    await recordAnalytics(supabase, 'rate_limited', {
+      provider,
+      mode: 'one_time',
+      isByok: false,
+    })
     return NextResponse.json({
       success: false,
       kind: 'rate_limited',
@@ -62,16 +69,32 @@ export async function POST(
     })
   }
 
+  const startTime = Date.now()
   let result: Awaited<ReturnType<typeof discover>>
   try {
     result = await discover({ provider, credentials: { token } })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Discovery failed'
     console.error('[OnceDiscovery] discover error:', message)
+    await recordAnalytics(supabase, 'failed', {
+      provider,
+      mode: 'one_time',
+      isByok: false,
+      errorMessage: message,
+      metrics: {
+        emailsScanned: 0,
+        durationMs: Date.now() - startTime,
+        inputTokens: 0,
+        outputTokens: 0,
+        costUsd: 0,
+        model: null,
+      },
+    })
     return NextResponse.json({ success: false, kind: 'provider_error', error: message })
   }
 
-  const { subscriptions, emailCount, email } = result
+  const { subscriptions, emailCount, email, usage } = result
+  const duration = Date.now() - startTime
 
   // Consume the payment so it cannot be redeemed again. Store counts only.
   await supabase
@@ -83,6 +106,22 @@ export async function POST(
       subscriptions_found: subscriptions.length,
     })
     .eq('stripe_payment_intent_id', entitlement.pi)
+
+  // One-time scans always use the default model - there is no BYOK path here.
+  await recordAnalytics(supabase, 'completed', {
+    provider,
+    mode: 'one_time',
+    isByok: false,
+    parent: { oneTimeId: entitlement.pi },
+    metrics: {
+      emailsScanned: emailCount,
+      durationMs: duration,
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+      costUsd: estimateCostUsd(usage),
+      model: EMAIL_DISCOVERY_CONFIG.analysisModel.modelName,
+    },
+  })
 
   const response = NextResponse.json<DiscoveryResponse>({
     success: true,

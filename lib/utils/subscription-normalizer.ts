@@ -57,9 +57,23 @@ const STANDALONE_TIER_WORDS = [
   'student',
 ]
 
+// Credit and token top-ups are single charges, but the model keeps labelling
+// them MONTHLY because repeat purchases from one company look like a cadence.
+// A name carrying one of these words is treated as a one-off unless the email
+// explicitly said it auto-renews, which is how a genuine "monthly credits
+// allowance" plan keeps its billing period.
+// Kept deliberately narrow. "Pack" and "Bundle" are excluded despite reading as
+// one-off wording, because real recurring plans are named that way ("Disney
+// Bundle", "Family Pack") and a false positive here silently drops a
+// subscription's billing period.
+const ONE_TIME_NAME_PATTERN = /\b(credits?|tokens?|top[\s-]?ups?|recharges?|refills?)\b/i
+
+function looksLikeOneTimePurchase(name: string): boolean {
+  return ONE_TIME_NAME_PATTERN.test(name)
+}
+
 export type NormalizationResult =
-  | { ok: true; subscription: DiscoveredSubscription }
-  | { ok: false; field: string; reason: string }
+  { ok: true; subscription: DiscoveredSubscription } | { ok: false; field: string; reason: string }
 
 interface ValidationResult {
   valid: boolean
@@ -182,21 +196,21 @@ function cleanServiceName(name: string): string {
       }
     }
   }
-  if (STANDALONE_TIER_WORDS.includes(cleaned.toLowerCase())) {
-    console.warn(
-      `[cleanServiceName] Result "${cleaned}" is a standalone tier word, keeping original: "${original}"`,
-    )
-    return original
-  }
+  // Stripping the suffix left only a tier word ("Pro", "Max"), which is not a
+  // usable service name - keep what we started with.
+  if (STANDALONE_TIER_WORDS.includes(cleaned.toLowerCase())) return original
   return cleaned
 }
 
-function toBillingPeriodEnum(raw?: string | null): BillingPeriod {
+// Absence is meaningful: the model is told to omit billing_period for one-time
+// purchases and credits, so an undefined result marks a non-recurring charge.
+// Defaulting it to MONTHLY here would make every one-off look like a plan.
+function toBillingPeriodEnum(raw?: string | null): BillingPeriod | undefined {
   const upper = (raw ?? '').toUpperCase()
   if (upper === 'WEEKLY' || upper === 'MONTHLY' || upper === 'QUARTERLY' || upper === 'YEARLY') {
     return upper as BillingPeriod
   }
-  return 'MONTHLY'
+  return undefined
 }
 
 function isStoreUrl(url: string): boolean {
@@ -226,7 +240,11 @@ export function normalizeDiscoveredSubscription(raw: {
     return { ok: false, field: 'price', reason: 'Missing or zero price' }
   if (!raw.start_date) return { ok: false, field: 'start_date', reason: 'Missing start date' }
 
-  const endDate = raw.end_date || raw.start_date
+  const isOneTime = looksLikeOneTimePurchase(raw.service_name) && raw.auto_renew !== true
+
+  // A one-off charge covers no span, so any end_date the model attached - often
+  // the date of a later, separate top-up - is dropped along with the period.
+  const endDate = isOneTime ? raw.start_date : raw.end_date || raw.start_date
   let autoRenew = raw.auto_renew ?? false
 
   if (endDate === raw.start_date) autoRenew = false
@@ -237,7 +255,7 @@ export function normalizeDiscoveredSubscription(raw: {
       ? (raw.category as SubscriptionCategory)
       : undefined
 
-  const period = toBillingPeriodEnum(raw.billing_period)
+  const period = isOneTime ? undefined : toBillingPeriodEnum(raw.billing_period)
 
   const candidate = {
     service_name: cleanServiceName(raw.service_name),
@@ -256,50 +274,44 @@ export function normalizeDiscoveredSubscription(raw: {
   return sanitize(candidate)
 }
 
-function earlierDate(a: string, b: string): string {
-  return a && b ? (a < b ? a : b) : a || b
-}
-
-function laterDate(a: string, b: string): string {
-  return a && b ? (a > b ? a : b) : a || b
-}
-
-// Groups by name key + price bucket; merges date ranges within each bucket.
-// Single pass replaces the previous two-step dedup → merge sequence.
+// Collapses entries describing the exact same billing period, which happens
+// when one service's receipts reach the model in more than one chunk. Date
+// ranges are deliberately NOT merged here: joining two ranges into one span
+// would erase any gap between them, and consolidateSubscriptionPeriods needs
+// those gaps to tell a continuous subscription from a lapsed-then-restarted
+// one. Only metadata is filled in across the duplicates.
 export function deduplicateAndMerge(
   subscriptions: DiscoveredSubscription[],
 ): DiscoveredSubscription[] {
-  const acc: Record<string, DiscoveredSubscription> = {}
+  const acc = new Map<string, DiscoveredSubscription>()
 
   for (const sub of subscriptions) {
-    const nameKey = sub.service_name.toLowerCase().trim()
-    const subPeriod = sub.period ?? 'MONTHLY'
-    const directKey = `${nameKey}_${sub.price}_${subPeriod}`
-    const key =
-      Object.keys(acc).find(
-        (k) =>
-          acc[k].service_name.toLowerCase().trim() === nameKey &&
-          acc[k].price === sub.price &&
-          (acc[k].period ?? 'MONTHLY') === subPeriod,
-      ) ?? directKey
+    const endDate = sub.end_date || sub.start_date
+    const key = [
+      sub.service_name.toLowerCase().trim(),
+      sub.price,
+      sub.period ?? 'MONTHLY',
+      sub.start_date,
+      endDate,
+    ].join('_')
 
-    if (!acc[key]) {
-      acc[key] = { ...sub, end_date: sub.end_date || '' }
-    } else {
-      const e = acc[key]
-      acc[key] = {
-        ...e,
-        start_date: earlierDate(e.start_date, sub.start_date),
-        end_date: laterDate(e.end_date, sub.end_date),
-        category: e.category || sub.category,
-        currency: e.currency || sub.currency,
-        service_url: e.service_url || sub.service_url,
-        unsubscribe_url: e.unsubscribe_url || sub.unsubscribe_url,
-        payment_method: e.payment_method || sub.payment_method,
-        auto_renew: e.auto_renew || sub.auto_renew,
-      }
+    const existing = acc.get(key)
+
+    if (!existing) {
+      acc.set(key, { ...sub, end_date: endDate })
+      continue
     }
+
+    acc.set(key, {
+      ...existing,
+      category: existing.category || sub.category,
+      currency: existing.currency || sub.currency,
+      service_url: existing.service_url || sub.service_url,
+      unsubscribe_url: existing.unsubscribe_url || sub.unsubscribe_url,
+      payment_method: existing.payment_method || sub.payment_method,
+      auto_renew: existing.auto_renew || sub.auto_renew,
+    })
   }
 
-  return Object.values(acc)
+  return Array.from(acc.values())
 }

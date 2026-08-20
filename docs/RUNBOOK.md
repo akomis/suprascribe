@@ -184,7 +184,7 @@ supabase functions invoke send-renewal-reminders --no-verify-jwt
    - `charge.failed`
 4. Copy the **Signing secret** → set as `STRIPE_WEBHOOK_SECRET`
 
-Success and cancel URLs are set in code by `app/api/upgrade/route.ts` and derived from `NEXT_PUBLIC_BASE_URL`. That variable must be correct in production — if it is wrong, users are redirected to the wrong host after paying.
+Success and cancel URLs are set in code by `app/api/upgrade/route.ts` and derived from `NEXT_PUBLIC_BASE_URL`. That variable must be correct in production - if it is wrong, users are redirected to the wrong host after paying.
 
 Replay safety: the `USER_TIERS` upsert is idempotent, so re-delivering a `checkout.session.completed` is harmless. Affiliate conversions rely on a unique constraint in `AFFILIATE_CONVERSIONS` (the insert swallows Postgres `23505`).
 

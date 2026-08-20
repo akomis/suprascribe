@@ -21,7 +21,9 @@ export interface FeatureAccessResult {
 }
 
 export function useFeatureAccess(feature: Feature | FeatureKey): FeatureAccessResult {
-  const { data: tier, isLoading, error } = useAccountTier()
+  // isPending, not isLoading: during SSR the query never fetches, so isLoading
+  // is false on the server and true on the client's first render.
+  const { data: tier, isPending: isLoading, error } = useAccountTier()
 
   const featureKey = feature as FeatureKey
 

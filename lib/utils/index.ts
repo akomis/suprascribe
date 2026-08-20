@@ -39,7 +39,12 @@ export function transformFormToDatabaseInserts(
       auto_renew: formData.autoRenew,
       price: formData.price,
       currency: formData.currency,
-      period: formData.period,
+      // The column cannot express "no period", so a one-time payment is stored
+      // as a single MONTHLY row that ends the day it starts - which is also what
+      // keeps its cost counted once by the monthly analytics. Writing it
+      // explicitly matters on update: omitting the field would leave a
+      // previously yearly row claiming a recurrence it no longer has.
+      period: formData.period ?? 'MONTHLY',
       ...(formData.paymentMethod && { payment_method: formData.paymentMethod }),
       ...(formData.sourceEmail && { source_email: formData.sourceEmail }),
     },

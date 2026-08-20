@@ -4,16 +4,15 @@ import { faqItems } from '@/lib/config/faq'
 import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
 import { Check, X } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Subscription Tracker Without a Bank Account - No Plaid, No Linking',
   description:
     'A subscription tracker that never asks for your bank account. Suprascribe finds subscriptions by scanning your email instead of linking to Plaid - free, private, one-time Pro upgrade.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/subscription-tracker-without-bank-account',
-  },
-}
+  path: '/subscription-tracker-without-bank-account',
+})
 
 const pageFaqItems = faqItems.filter((item) =>
   [
@@ -111,8 +110,8 @@ export default function SubscriptionTrackerWithoutBankAccountPage() {
   return (
     <SEOPage
       jsonLd={jsonLd}
-      title="A Subscription Tracker That Never Asks for Your Bank Account"
-      description="Most subscription trackers only work if you hand over your bank login through Plaid. Suprascribe finds the same subscriptions by scanning your email - no bank access, no financial data exposure, no monthly fee. And you can skip email entirely and add them by hand."
+      title="A Subscription Tracker Without Bank Account Access, Ever"
+      description="Most subscription trackers only work if you hand over your bank login through Plaid. Suprascribe is a subscription tracker without bank account access of any kind - it finds the same subscriptions by scanning your email. No financial data exposure, no monthly fee. And you can skip email entirely and add them by hand."
       primaryCta={{ href: '/login?tab=signup', label: 'Try Suprascribe Free' }}
       secondaryCta={{ href: '/demo', label: 'See the Demo' }}
       faqItems={pageFaqItems}

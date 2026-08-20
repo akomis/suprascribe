@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { STORE_URL_HOSTNAMES } from '@/lib/config/urls'
+import { useCallback, useEffect, useState } from 'react'
+import { PAYMENT_PROCESSOR_HOSTNAMES, STORE_URL_HOSTNAMES } from '@/lib/config/urls'
 
 const STATIC_LOGOS: Record<string, string> = {
   'netflix.com': '/logos/netflix.svg',
@@ -19,48 +19,62 @@ const STATIC_LOGOS: Record<string, string> = {
   'namecheap.com': '/logos/namecheap.svg',
 }
 
-const logoCache = new Map<string, string | null>()
-const inflight = new Map<string, Promise<string | null>>()
+/** A logo request that never settles must not leave the UI stuck on a skeleton. */
+const LOGO_LOAD_TIMEOUT_MS = 8000
 
-async function fetchLogoByQuery(query: string): Promise<string | null> {
-  if (logoCache.has(query)) return logoCache.get(query)!
+const candidateCache = new Map<string, string[]>()
+const inflight = new Map<string, Promise<string[]>>()
 
-  if (!inflight.has(query)) {
-    const promise = fetch(`/api/logo?q=${encodeURIComponent(query)}`)
+async function fetchCandidates(queries: string[]): Promise<string[]> {
+  const cacheKey = queries.join('|')
+  const cached = candidateCache.get(cacheKey)
+  if (cached) return cached
+
+  let promise = inflight.get(cacheKey)
+
+  if (!promise) {
+    const params = new URLSearchParams()
+    queries.forEach((query) => params.append('q', query))
+
+    promise = fetch(`/api/logo?${params.toString()}`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => (data?.logoUrl as string | null) ?? null)
-      .catch(() => null)
-      .finally(() => inflight.delete(query))
+      .then((data) => (Array.isArray(data?.logoUrls) ? (data.logoUrls as string[]) : []))
+      .catch(() => [])
+      .finally(() => inflight.delete(cacheKey))
 
-    promise.then((result) => logoCache.set(query, result))
-    inflight.set(query, promise)
+    promise.then((result) => candidateCache.set(cacheKey, result))
+    inflight.set(cacheKey, promise)
   }
 
-  return inflight.get(query)!
+  return promise
 }
 
 function buildQueries(serviceName?: string, serviceUrl?: string): string[] {
   const queriesToTry: string[] = []
+  let processorHostname: string | null = null
 
   if (serviceUrl) {
     try {
       const url = new URL(serviceUrl.startsWith('http') ? serviceUrl : `https://${serviceUrl}`)
       const hostname = url.hostname.replace('www.', '')
-      if (!STORE_URL_HOSTNAMES.has(hostname)) {
+      if (PAYMENT_PROCESSOR_HOSTNAMES.has(hostname)) {
+        processorHostname = hostname
+      } else if (!STORE_URL_HOSTNAMES.has(hostname)) {
         queriesToTry.push(hostname)
       }
     } catch {}
   }
 
   if (serviceName) {
-    const baseName = serviceName.trim().split(' ')[0].toLowerCase()
-    const domainGuess = `${baseName}.com`
+    const domainGuess = `${serviceName.trim().split(' ')[0].toLowerCase()}.com`
     if (!queriesToTry.includes(domainGuess)) {
       queriesToTry.push(domainGuess)
     }
-    if (!queriesToTry.includes(baseName)) {
-      queriesToTry.push(baseName)
-    }
+  }
+
+  // Last resort only: the processor's own logo beats no logo, but never the service's.
+  if (processorHostname && !queriesToTry.includes(processorHostname)) {
+    queriesToTry.push(processorHostname)
   }
 
   return queriesToTry
@@ -82,31 +96,45 @@ function getStaticLogo(serviceName?: string, serviceUrl?: string): string | null
   return null
 }
 
-async function resolveLogoUrl(serviceName?: string, serviceUrl?: string): Promise<string | null> {
-  const staticPath = getStaticLogo(serviceName, serviceUrl)
-  if (staticPath) return staticPath
-
-  const queriesToTry = buildQueries(serviceName, serviceUrl)
-  if (queriesToTry.length === 0) return null
-
-  for (const query of queriesToTry) {
-    const result = await fetchLogoByQuery(query)
-    if (result) return result
-  }
-
-  return null
+export type LogoState = {
+  /** Current candidate to render, or null once every candidate has failed. */
+  src: string | null
+  /** True while candidates are being resolved or the current one is still loading. */
+  isLoading: boolean
+  onLoad: () => void
+  /** Advances to the next candidate; exhausting them settles `src` at null. */
+  onError: () => void
 }
 
-export function useLogo(serviceName?: string, serviceUrl?: string): string | null {
-  const [logoUrl, setLogoUrl] = useState<string | null>(() =>
-    getStaticLogo(serviceName, serviceUrl),
-  )
+export function useLogo(serviceName?: string, serviceUrl?: string): LogoState {
+  const [candidates, setCandidates] = useState<string[] | null>(() => {
+    const staticPath = getStaticLogo(serviceName, serviceUrl)
+    return staticPath ? [staticPath] : null
+  })
+  const [index, setIndex] = useState(0)
+  const [isImageLoaded, setIsImageLoaded] = useState(false)
 
   useEffect(() => {
-    let isMounted = true
+    setIndex(0)
+    setIsImageLoaded(false)
 
-    resolveLogoUrl(serviceName, serviceUrl).then((result) => {
-      if (isMounted) setLogoUrl(result)
+    const staticPath = getStaticLogo(serviceName, serviceUrl)
+    if (staticPath) {
+      setCandidates([staticPath])
+      return
+    }
+
+    const queries = buildQueries(serviceName, serviceUrl)
+    if (queries.length === 0) {
+      setCandidates([])
+      return
+    }
+
+    setCandidates(null)
+
+    let isMounted = true
+    fetchCandidates(queries).then((result) => {
+      if (isMounted) setCandidates(result)
     })
 
     return () => {
@@ -114,5 +142,26 @@ export function useLogo(serviceName?: string, serviceUrl?: string): string | nul
     }
   }, [serviceName, serviceUrl])
 
-  return logoUrl
+  const onLoad = useCallback(() => setIsImageLoaded(true), [])
+  const onError = useCallback(() => {
+    setIsImageLoaded(false)
+    setIndex((current) => current + 1)
+  }, [])
+
+  const src = candidates && index < candidates.length ? candidates[index] : null
+  const isExhausted = candidates !== null && index >= candidates.length
+
+  useEffect(() => {
+    if (!src || isImageLoaded) return
+
+    const timer = setTimeout(() => setIndex((current) => current + 1), LOGO_LOAD_TIMEOUT_MS)
+    return () => clearTimeout(timer)
+  }, [src, isImageLoaded])
+
+  return {
+    src,
+    isLoading: !isExhausted && !isImageLoaded,
+    onLoad,
+    onError,
+  }
 }

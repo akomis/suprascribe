@@ -45,7 +45,8 @@ function DeleteConfirmDialog({
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
             Are you sure you want to delete all {count} billing {count === 1 ? 'period' : 'periods'}{' '}
-            for {serviceName}? This action cannot be undone.
+            for {serviceName}? This only removes it from your dashboard - it does not cancel or
+            unsubscribe you from the service. This action cannot be undone.
           </p>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
@@ -383,7 +384,9 @@ export function SubscriptionDetailsDialogBase({
   const handleOpenUnsubscribeUrl = () => {
     const unsubscribeUrl =
       subscription.subscription_service?.unsubscribe_url ||
-      `https://justdeleteme.xyz/#${encodeURIComponent((subscription.subscription_service?.name ?? '').toLowerCase().replace(/\s+/g, ''))}`
+      // /en instead of / because the root page redirects to a language subpage,
+      // which drops the hash the search field reads from
+      `https://justdeleteme.xyz/en#${encodeURIComponent((subscription.subscription_service?.name ?? '').trim().toLowerCase())}`
     openExternalUrl(unsubscribeUrl)
     setShowUnsubscribeConfirm(true)
   }
@@ -407,6 +410,7 @@ export function SubscriptionDetailsDialogBase({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
+          'max-h-[85vh] overflow-y-auto',
           !hasSubscriptionHistory && 'sm:max-w-[550px]',
           hasSubscriptionHistory &&
             'w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] md:min-w-[80vw] md:max-w-[80vw] xl:min-w-[60vw] xl:max-w-[60vw]',

@@ -75,6 +75,11 @@ export const faqItems: FAQItem[] = [
       'Suprascribe is a web-first app that works in any modern browser on any device - iPhone, Android, desktop, or tablet. There is no app download required. You can also install it as a PWA (Progressive Web App) from your browser for a native-like experience.',
   },
   {
+    question: 'Is Suprascribe on the App Store or Google Play?',
+    answer:
+      'No. Suprascribe is a web app, so there is nothing to download from the App Store or Google Play. Open it in your browser and install it to your home screen or desktop - on iPhone use Share then Add to Home Screen, on Android or desktop Chrome use the install prompt in the address bar. Installed, it runs in its own window with an app icon and gives you exactly the same experience as a store-downloaded app, while updating automatically with no store approval delays. Staying off the stores also avoids their commission on every purchase, which is a cost that would otherwise be passed on to you - it is part of how Pro stays a low one-time payment.',
+  },
+  {
     question: 'How do I cancel a subscription I forgot about?',
     answer:
       "Once Suprascribe discovers or you add a subscription, you can view the service name and billing details. Pro users get access to quick unsubscribe assistance to help navigate cancellation. For many services, going directly to the provider's account settings is the fastest route - Suprascribe gives you the information you need to do that.",
@@ -118,6 +123,66 @@ export const faqItems: FAQItem[] = [
     question: 'What is the fastest way to cut my monthly spending?',
     answer:
       'Audit your recurring payments first. Unlike cutting discretionary spending, cancelling an unused subscription costs you nothing in quality of life and the saving repeats every month without further effort. Build one list of every recurring charge from your app stores, PayPal, and three months of bank statements, then cancel anything you have not used in the last month.',
+  },
+  {
+    question: 'Can I use Suprascribe to track business subscriptions?',
+    answer:
+      'Yes. Connect the inbox that receives your vendor invoices - typically the owner or billing address - and Suprascribe builds a list of every recurring tool you pay for. Subscriptions can be grouped by category, payment method, or the inbox they were found in, and multi-currency support handles USD-billed software charged to a EUR account. Suprascribe is a single-account tool: one person holds the list, rather than a shared team workspace.',
+  },
+  {
+    question: 'How do I keep track of SaaS renewals so they do not auto-renew?',
+    answer:
+      'Annual plans are the ones that catch people out, because the renewal arrives eleven months after anyone last thought about the tool. Put every subscription into one list with its renewal date, then set a renewal reminder a few days ahead so the decision to keep or cancel happens before the charge, not after. Suprascribe Pro sends those reminders by email and shows all renewal dates on a calendar.',
+  },
+  {
+    question: 'How do I track software spend at an early-stage startup?',
+    answer:
+      'Scan the inbox that receives your billing receipts rather than reconstructing spend from a bank statement, because most developer tools bill through Stripe or an app store under names that do not match the product. Once every tool is in one list you can see the real monthly total, spot trials that converted into paid plans, and cancel what the team stopped using. No bank or card connection is required.',
+  },
+  {
+    question: 'How do I stop free trials from turning into paid subscriptions?',
+    answer:
+      'Record the trial the day you start it, with the date it converts. Trials rarely send a warning before the first charge, but they almost always send a signup confirmation, which is why an inbox scan catches them. Suprascribe Pro can set a reminder before the conversion date so you decide deliberately instead of discovering the charge a month later.',
+  },
+  {
+    question: 'How do I separate business and personal subscriptions?',
+    answer:
+      'Group them. Suprascribe lets you group your subscriptions by category, by payment method, or by the inbox each one was discovered in - so if your work receipts go to one address and personal ones to another, the split is automatic. If you use one inbox for everything, categorise each subscription once and the totals stay separated from then on.',
+  },
+  {
+    question: 'Can freelancers use Suprascribe to track deductible subscriptions?',
+    answer:
+      'Yes. Suprascribe gives you a complete list of your recurring tools with amounts, currencies, and billing frequencies, grouped however you need - which is the record you want when working out which software costs are business expenses. It is a tracker rather than accounting software: it will not file anything for you, but it makes sure nothing is missing from the list you hand to your accountant.',
+  },
+  {
+    question: "Can I track my family's subscriptions in one place?",
+    answer:
+      'Yes. Household subscriptions are usually spread across several inboxes and app store accounts, so run discovery on each inbox that receives receipts - Suprascribe tags every subscription with the inbox it came from and you can group by that, by payment method, or by category. Everything lives in one account, which in practice means whoever manages the household bills keeps the list.',
+  },
+  {
+    question: 'How do I find duplicate subscriptions in my household?',
+    answer:
+      'Duplicates happen when two people in the same home pay for the same service separately, or when an individual plan keeps billing after someone joins a family plan. Put every household subscription into one list and sort by service - overlapping streaming, music, and cloud storage plans become obvious immediately, and family tiers are usually cheaper than two individual ones.',
+  },
+  {
+    question: 'How can students keep track of subscriptions on a small budget?',
+    answer:
+      'Start from your inbox rather than your bank app, because most student subscriptions bill through an app store or PayPal under a merchant name that tells you nothing. Scan the address you signed up with - usually a personal Gmail plus a university address - and you get one list with the real monthly total. Suprascribe tracks unlimited subscriptions for free, and Pro is a one-time payment rather than another recurring charge.',
+  },
+  {
+    question: 'What happens to my student discount when I graduate?',
+    answer:
+      'Student pricing is time-limited and verification-based. When the discount period ends or re-verification fails, the plan usually converts to the full adult price automatically and the first full-price charge is the only notice you get. Record each student plan with the date its discount expires and set a reminder ahead of it, so you decide whether the full price is worth it before it is charged. Suprascribe Pro sends those reminders by email and shows every renewal on a calendar.',
+  },
+  {
+    question: 'What is the best open source personal finance app?',
+    answer:
+      'There is no single best one, because the good open source finance apps each do one job. Actual Budget is the strongest envelope-budgeting tool, Firefly III is the most complete self-hosted ledger, Ghostfolio handles investments, GnuCash covers desktop double-entry accounting with no server, and Suprascribe tracks recurring subscriptions from your inbox. Most individuals need two: one for day-to-day spending and one for subscriptions.',
+  },
+  {
+    question: 'Can I self-host my own subscription tracker?',
+    answer:
+      'Yes. Suprascribe is AGPL-3.0 licensed with the full source on GitHub, so you can run it on your own infrastructure instead of using the hosted version. Wallos is another self-hosted option, though it relies on entering every subscription manually - which only captures the ones you already remember.',
   },
 ]
 

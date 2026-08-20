@@ -3,6 +3,7 @@ import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { CurrencyProvider } from '@/lib/hooks/useCurrency'
+import { PWAInstallProvider } from '@/providers/PWAInstallProvider'
 import { cn } from '@/lib/utils'
 import localFont from 'next/font/local'
 import { Suspense } from 'react'
@@ -122,12 +123,14 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <TooltipProvider>
             <CurrencyProvider>
-              <main>{children}</main>
-              <Suspense fallback={null}>
-                <AffiliateTracker />
-              </Suspense>
-              <Toaster />
-              <ServiceWorkerRegistration />
+              <PWAInstallProvider>
+                <main>{children}</main>
+                <Suspense fallback={null}>
+                  <AffiliateTracker />
+                </Suspense>
+                <Toaster />
+                <ServiceWorkerRegistration />
+              </PWAInstallProvider>
             </CurrencyProvider>
           </TooltipProvider>
         </ThemeProvider>

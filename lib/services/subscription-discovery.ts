@@ -1,6 +1,6 @@
 import { EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
 import type { DiscoveredSubscription } from '@/lib/types/forms'
-import { extendAutoRenewingSubscriptions } from '@/lib/utils/subscription-period-extension'
+import { consolidateSubscriptionPeriods } from '@/lib/utils/subscription-period-extension'
 import type { ProviderConfig } from './ai-provider'
 import { analyzeEmailsBatch, type TokenUsage } from './email-analyzer'
 import {
@@ -72,8 +72,6 @@ export async function discover(input: DiscoveryInput): Promise<DiscoveryResult> 
     rawEmails = await fetchOutlookEmails(input.credentials.token, keywords)
   }
 
-  console.log(`[Discovery] ${input.provider} | Fetched ${rawEmails.length} emails`)
-
   if (rawEmails.length === 0) {
     return { subscriptions: [], emailCount: 0, email, usage: { inputTokens: 0, outputTokens: 0 } }
   }
@@ -83,8 +81,8 @@ export async function discover(input: DiscoveryInput): Promise<DiscoveryResult> 
     input.byokConfig ? { byokConfig: input.byokConfig } : undefined,
   )
 
-  const extended = extendAutoRenewingSubscriptions(discovered)
-  const sorted = extended.sort((a, b) => {
+  const consolidated = consolidateSubscriptionPeriods(discovered)
+  const sorted = consolidated.sort((a, b) => {
     const nameCompare = a.service_name.localeCompare(b.service_name)
     return nameCompare !== 0 ? nameCompare : a.price - b.price
   })

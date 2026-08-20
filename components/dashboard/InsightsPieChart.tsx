@@ -78,6 +78,7 @@ export default function InsightsPieChart({
       aria-label={`Subscription spending breakdown: ${formatCurrency(totalMonthly)} per month, ${formatCurrency(yearly)} ${tab === 'past' ? `in ${year}` : mode === 'spent' ? 'year to date' : 'per year'}`}
     >
       <ChartContainer
+        aria-hidden="true"
         id="insights-pie-chart"
         config={{}}
         className="mx-auto h-50 sm:h-62.5 w-full min-w-0 max-w-full aspect-auto"

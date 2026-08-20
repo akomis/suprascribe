@@ -122,7 +122,7 @@ function DemoItemCard({ item }: { item: DemoItem }) {
   return (
     <Card className="border gap-0">
       <CardHeader className="pb-2 px-3 sm:px-6">
-        <div className="flex items-center justify-between gap-2 sm:gap-3">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="flex size-8 sm:size-10 items-center justify-center rounded-lg overflow-hidden shrink-0">
               <ServiceLogo
@@ -141,7 +141,7 @@ function DemoItemCard({ item }: { item: DemoItem }) {
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-0 pt-0 px-3 sm:px-6">
-        <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-1.5 sm:gap-3 py-1.5">
+        <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-1.5 sm:gap-3">
           <span className="text-[10px] sm:text-xs text-muted-foreground truncate max-w-30 sm:max-w-none flex-1 min-w-0">
             {formatDateRangeWithDuration(item.start_date, item.end_date)}
           </span>

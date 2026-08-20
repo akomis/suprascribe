@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suprascribe-v1'
+const CACHE_NAME = 'suprascribe-v2'
 
 const STATIC_ASSETS = [
   '/icons/icon-192x192.png',

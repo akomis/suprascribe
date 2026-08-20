@@ -2,7 +2,6 @@
 
 import type { DiscoveredSubscription } from '@/lib/types/forms'
 import type { DiscoveryResponse } from '@/lib/types/discovery'
-import posthog from 'posthog-js'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useInvalidateDiscoveryRuns } from './useDiscoveryRuns'
@@ -20,6 +19,7 @@ export interface DiscoveryCoreReturn {
   teaser: DiscoveryTeaser | null
   emailCount: number | null
   scannedEmail: string | null
+  runId: string | null
   error: string | null
   warning: string | null
   runDiscovery: (fetchFn: () => Promise<DiscoveryResponse>) => Promise<void>
@@ -27,7 +27,7 @@ export interface DiscoveryCoreReturn {
   clearDiscovery: () => void
 }
 
-export function useDiscoveryCore(provider: string): DiscoveryCoreReturn {
+export function useDiscoveryCore(): DiscoveryCoreReturn {
   const invalidateDiscoveryRuns = useInvalidateDiscoveryRuns()
   const [isDiscovering, setIsDiscovering] = useState(false)
   const [discoveredSubscriptions, setDiscoveredSubscriptions] = useState<DiscoveredSubscription[]>(
@@ -36,6 +36,7 @@ export function useDiscoveryCore(provider: string): DiscoveryCoreReturn {
   const [teaser, setTeaser] = useState<DiscoveryTeaser | null>(null)
   const [emailCount, setEmailCount] = useState<number | null>(null)
   const [scannedEmail, setScannedEmail] = useState<string | null>(null)
+  const [runId, setRunId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
   const lastFetchFnRef = useRef<(() => Promise<DiscoveryResponse>) | null>(null)
@@ -70,12 +71,6 @@ export function useDiscoveryCore(provider: string): DiscoveryCoreReturn {
         })
         setEmailCount(data.emailCount)
         setScannedEmail(data.email)
-
-        posthog.capture('discovery_teaser_shown', {
-          provider,
-          subscriptions_found: data.subscriptionsFound,
-          emails_scanned: data.emailCount,
-        })
         return
       }
 
@@ -84,15 +79,10 @@ export function useDiscoveryCore(provider: string): DiscoveryCoreReturn {
       )
       setEmailCount(data.emailCount)
       setScannedEmail(data.email)
+      setRunId(data.runId ?? null)
       invalidateDiscoveryRuns()
 
       const serviceCount = new Set(data.subscriptions.map((s) => s.service_name)).size
-      posthog.capture('subscription_discovery_completed', {
-        provider,
-        subscriptions_found: data.subscriptions.length,
-        services_found: serviceCount,
-        emails_scanned: data.emailCount,
-      })
 
       if (data.subscriptions.length > 0) {
         toast.success('Discovery Completed', {
@@ -122,6 +112,7 @@ export function useDiscoveryCore(provider: string): DiscoveryCoreReturn {
     setTeaser(null)
     setEmailCount(null)
     setScannedEmail(null)
+    setRunId(null)
     setError(null)
     setWarning(null)
     lastFetchFnRef.current = null
@@ -133,6 +124,7 @@ export function useDiscoveryCore(provider: string): DiscoveryCoreReturn {
     teaser,
     emailCount,
     scannedEmail,
+    runId,
     error,
     warning,
     runDiscovery,

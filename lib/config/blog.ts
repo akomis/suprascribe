@@ -49,7 +49,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'how-to-cancel-subscriptions',
     title: 'Cancel Subscriptions You Forgot You Had: The Full Playbook',
     description:
-      'A step-by-step guide to finding and cancelling forgotten subscriptions - before the next charge hits your account.',
+      'How to cancel subscriptions you forgot you had - find every recurring charge and shut it down before the next payment hits your account.',
     publishedAt: '2026-05-16',
     updatedAt: '2026-07-29',
     readingTimeMin: 5,
@@ -155,7 +155,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'how-to-find-all-your-subscriptions',
     title: 'How to find all your subscriptions in one place',
     description:
-      'Four methods to uncover every active subscription - from manual email searches to automatic inbox scanning - so nothing slips through.',
+      'Four methods to find all your subscriptions - from manual email searches to automatic inbox scanning - so nothing slips through.',
     publishedAt: '2026-04-28',
     updatedAt: '2026-05-27',
     readingTimeMin: 4,
@@ -346,7 +346,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'best-free-subscription-manager',
     title: 'The best free subscription manager in 2026',
     description:
-      'What to look for in a free subscription manager in 2026 - and why the best options do not require a bank connection or a recurring fee.',
+      'What the best free subscription manager in 2026 looks like - and why the strongest options do not require a bank connection or a recurring fee.',
     publishedAt: '2026-05-01',
     updatedAt: '2026-05-27',
     readingTimeMin: 5,
@@ -363,7 +363,7 @@ export const blogPosts: BlogPost[] = [
       'how-to-find-all-your-subscriptions',
     ],
     relatedPageLinks: [
-      { href: '/compare', label: 'Suprascribe vs the Alternatives' },
+      { href: '/compare', label: 'Suprascribe vs other Trackers' },
       {
         href: '/subscription-tracker-without-bank-account',
         label: 'Tracker With No Bank Linking',
@@ -441,9 +441,9 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: 'how-to-cancel-netflix-subscription',
-    title: 'Cancel Netflix in 2026 (Web, App, Apple, Google, PayPal)',
+    title: 'Cancel a Netflix Subscription in 2026 (Web, App, Apple, Google, PayPal)',
     description:
-      'Cancel Netflix on the web, in the mobile app, or through Apple, Google, or PayPal billing - and keep watching until your paid period ends.',
+      'Cancel a Netflix subscription on the web, in the mobile app, or through Apple, Google, or PayPal billing - and keep watching until your paid period ends.',
     publishedAt: '2026-06-22',
     updatedAt: '2026-07-29',
     readingTimeMin: 5,
@@ -553,7 +553,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'how-to-cancel-amazon-prime',
     title: 'Cancel Amazon Prime (And Get a Refund If Eligible)',
     description:
-      'A step-by-step guide to cancelling Amazon Prime, skipping the retention screens, and knowing when you qualify for a refund on unused benefits.',
+      'How to cancel Amazon Prime step by step, skip the retention screens, and know when you qualify for a refund on unused benefits.',
     publishedAt: '2026-06-22',
     updatedAt: '2026-07-29',
     readingTimeMin: 5,
@@ -661,7 +661,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'how-to-cancel-free-trial-before-charged',
     title: 'Cancel a Free Trial Before You Get Charged',
     description:
-      'How to cancel a free trial in time, keep access until it ends, avoid the auto-renewal charge - and what to do if you get billed anyway.',
+      'How to cancel a free trial in time, keep access until it ends, avoid being charged by the auto-renewal - and what to do if you get billed anyway.',
     publishedAt: '2026-06-22',
     updatedAt: '2026-07-29',
     readingTimeMin: 6,
@@ -778,12 +778,12 @@ export const blogPosts: BlogPost[] = [
     slug: 'how-much-americans-spend-on-subscriptions',
     title: 'How much do Americans spend on subscriptions? (2025 survey)',
     description:
-      'A 2025 CNET survey found the average American spends about $1,080 a year on subscriptions - and wastes roughly $200 of it on services they barely use.',
+      'How much do Americans spend on subscriptions? A 2025 CNET survey puts it at about $1,080 a year - with roughly $200 of that wasted on services they barely use.',
     publishedAt: '2026-06-24',
     subscriptionEra: true,
     landingTitle: 'People waste ~$200/yr on subscriptions they never use',
     landingBlurb:
-      'Based on a CNET survey, the average American spends $1,080 a year on subscriptions and barely touches $200 of it.',
+      'Based on a survey, the average American spends $1,080 a year on subscriptions and barely touches $200 of it.',
     source: 'CNET',
     sourceLogo: '/sources_logos/cnet.svg',
     sourceUrl: 'https://www.cnet.com/tech/services-and-software/subscription-survey-2025/',
@@ -892,9 +892,9 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: 'car-feature-subscriptions',
-    title: 'Your car is becoming a subscription: BMW dropped the heated seat fee, not the model',
+    title: 'Car feature subscriptions: BMW dropped the heated seat fee, not the model',
     description:
-      'BMW charged £15 a month to switch on heated seats already fitted to your car. It backed down on that one - and stayed committed to selling car features after you have bought the car.',
+      'Car feature subscriptions arrived when BMW charged £15 a month to switch on heated seats already fitted to your car. It backed down on that one - and stayed committed to selling car features after you have bought the car.',
     publishedAt: '2026-07-16',
     updatedAt: '2026-07-23',
     subscriptionEra: true,
@@ -1020,9 +1020,9 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: 'netflix-price-increase-2026',
-    title: 'Netflix raised every plan again - the price you signed up for was never the price',
+    title: 'The Netflix price increase in 2026: every plan went up again',
     description:
-      'Netflix increased the cost of every US plan in March 2026, the second hike in under two years. Here are the new prices and what repricing means for your subscription total.',
+      'The Netflix price increase of March 2026 raised every US plan, the second hike in under two years. Here are the new prices and what repricing means for your subscription total.',
     publishedAt: '2026-07-16',
     subscriptionEra: true,
     landingTitle: 'The price you signed up for was never the price',
@@ -1140,9 +1140,9 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: 'how-to-cancel-disney-plus',
-    title: 'Cancel Disney+ in 2026 (Web, App, and Bundle)',
+    title: 'Cancel Disney Plus (Disney+) in 2026: Web, App, and Bundle',
     description:
-      'Cancel Disney+ whether you are billed directly or through Apple, Google, Amazon, or a cable provider - plus what the Hulu merger means for your bundle.',
+      'Cancel Disney Plus whether you are billed directly or through Apple, Google, Amazon, or a cable provider - plus what the Hulu merger means for your bundle.',
     publishedAt: '2026-07-26',
     updatedAt: '2026-07-29',
     readingTimeMin: 5,
@@ -1347,7 +1347,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'how-to-cancel-adobe',
     title: 'Cancel Adobe Creative Cloud Without the Cancellation Fee',
     description:
-      'Cancel an Adobe Creative Cloud plan and avoid the early-termination fee - the annual-plan trap, the 14-day refund window, the App Store exception, and what happens to your files afterwards.',
+      'How to cancel Adobe Creative Cloud and avoid the early-termination fee - the annual-plan trap, the 14-day refund window, the App Store exception, and what happens to your files afterwards.',
     publishedAt: '2026-07-26',
     updatedAt: '2026-07-29',
     readingTimeMin: 7,
@@ -1501,7 +1501,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'how-to-cancel-planet-fitness',
     title: 'Cancel Planet Fitness (And Beat the Cancellation Runaround)',
     description:
-      'Planet Fitness makes you cancel in person or by certified letter. Here is the exact process, a cancellation-letter template, and how to stop the annual fee.',
+      'How to cancel Planet Fitness when it makes you do it in person or by certified letter - the exact process, a cancellation-letter template, and how to stop the annual fee.',
     publishedAt: '2026-07-26',
     updatedAt: '2026-07-29',
     readingTimeMin: 6,
@@ -1702,7 +1702,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'how-to-find-hidden-subscriptions-bank-statement',
     title: 'How to find hidden subscriptions on your bank statement',
     description:
-      'A 30-minute audit to uncover every hidden recurring charge - how to read a statement, decode cryptic labels like APPLE.COM/BILL and GOOGLE *, and check every app store.',
+      'How to find hidden subscriptions on your bank statement in a 30-minute audit - reading a statement, decoding cryptic labels like APPLE.COM/BILL and GOOGLE *, and checking every app store.',
     publishedAt: '2026-07-26',
     readingTimeMin: 6,
     intro:
@@ -1978,7 +1978,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'subscription-tracker-spreadsheet-template',
     title: 'A free subscription tracker spreadsheet template (and when to upgrade)',
     description:
-      'A ready-to-copy subscription tracker spreadsheet layout for Google Sheets or Excel - the exact columns to use, how to total annual cost, and the point where an app saves you the upkeep.',
+      'A ready-to-copy subscription tracker spreadsheet template for Google Sheets or Excel - the exact columns to use, how to total annual cost, and the point where an app saves you the upkeep.',
     publishedAt: '2026-07-26',
     readingTimeMin: 6,
     intro:
@@ -2090,7 +2090,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'how-to-track-company-software-subscriptions',
     title: "How to track your company's software subscriptions in 2026",
     description:
-      "A practical way to track your company's SaaS and software subscriptions - surface shadow IT, kill duplicate tools, and catch renewals, using an open source tool with no bank access and a one-time cost instead of a per-seat SaaS bill.",
+      "A practical way to track your company's software subscriptions - surface shadow IT, kill duplicate tools, and catch renewals, using an open source tool with no bank access and a one-time cost instead of a per-seat SaaS bill.",
     publishedAt: '2026-07-26',
     readingTimeMin: 7,
     intro:
@@ -2216,7 +2216,7 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: 'cancel-chatgpt-subscription',
-    title: 'Cancel ChatGPT: Plus, Pro, and Go on Web, iPhone, and Android',
+    title: 'Cancel a ChatGPT Subscription: Plus, Pro, and Go on Web, iPhone, and Android',
     description:
       'Cancel a ChatGPT subscription on the platform you actually subscribed on - chatgpt.com, Apple, or Google Play - keep access until the period ends, and know when a refund is possible.',
     publishedAt: '2026-07-29',
@@ -2367,7 +2367,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'cancel-subscriptions-iphone',
     title: 'Cancel Subscriptions on iPhone: Every App Store Subscription in One Place',
     description:
-      'Find and cancel every App Store subscription on your iPhone, plus the ones Apple never shows you - the recurring charges billed outside the App Store entirely.',
+      'How to cancel subscriptions on iPhone - every App Store subscription in Settings, plus the ones Apple never shows you because they are billed outside the App Store entirely.',
     publishedAt: '2026-07-29',
     readingTimeMin: 6,
     intro:
@@ -2502,7 +2502,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'cancel-subscriptions-android',
     title: 'Cancel Subscriptions on Android: Google Play and Everything It Misses',
     description:
-      'Cancel, pause, or restore any Google Play subscription on Android or the web - and find the recurring charges Google Play never lists.',
+      'How to cancel subscriptions on Android - cancel, pause, or restore any Google Play subscription from the app or the web, and find the recurring charges Google Play never lists.',
     publishedAt: '2026-07-29',
     readingTimeMin: 6,
     intro:
@@ -2645,7 +2645,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'how-to-save-money-fast',
     title: 'How to Save Money Fast: 5 Things That Actually Work This Month',
     description:
-      'Five practical ways to cut spending starting today - beginning with the recurring charges quietly leaving your account every month.',
+      'How to save money fast: five practical ways to cut spending starting today - beginning with the recurring charges quietly leaving your account every month.',
     publishedAt: '2026-07-29',
     readingTimeMin: 7,
     intro:
@@ -2804,6 +2804,216 @@ export const blogPosts: BlogPost[] = [
       {
         type: 'callout',
         text: 'Suprascribe is free for manual subscription tracking - no bank access required. Pro scans your inbox to surface the recurring charges you have forgotten and emails you before each renewal, as a one-time payment. Paying a monthly fee to control your monthly fees was never going to work.',
+      },
+    ],
+  },
+  {
+    slug: 'open-source-personal-finance-tools',
+    title: '5 Open Source Tools to Help You Tidy Up Your Finances and Save Money',
+    description:
+      'Five open source personal finance tools you can audit or self-host - budgeting, a full ledger, subscription tracking, investments, and desktop accounting - and what each one is actually good at.',
+    publishedAt: '2026-08-20',
+    readingTimeMin: 8,
+    intro:
+      'Open source finance apps give you two things the mainstream ones do not: you can read the code that touches your money data, and you can run it yourself. These five cover the jobs an individual actually needs - budgeting, a ledger, recurring charges, investments, and long-term records.',
+    faqQuestions: [
+      'What is the best open source personal finance app?',
+      'Can I self-host my own subscription tracker?',
+      'Is Suprascribe open source?',
+      'Is there a subscription tracker that does not require bank access?',
+    ],
+    relatedSlugs: [
+      'best-free-subscription-manager',
+      'best-subscription-tracker-app',
+      'how-to-save-money-fast',
+      'subscription-tracker-spreadsheet-template',
+    ],
+    relatedPageLinks: [
+      { href: '/open-source-subscription-tracker', label: 'Open Source Subscription Tracker' },
+      { href: '/subscription-cost-calculator', label: 'Subscription Cost Calculator' },
+    ],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: Actual Budget for envelope budgeting, Firefly III for a full self-hosted ledger, Suprascribe for the recurring charges nothing else catches, Ghostfolio for investments, and GnuCash if you want a desktop app with no server at all. Every one of them is free, and every one of them lets you read the source before you hand over your financial data.',
+      },
+      {
+        type: 'p',
+        text: 'Personal finance software has a trust problem. The popular apps want a connection to your bank, charge a monthly fee for the privilege, and give you no way to check what happens to the data once it arrives. Open source alternatives fix the second half of that by default and, in most cases, the first half too - you can host them yourself and the data never leaves a machine you control.',
+      },
+      {
+        type: 'p',
+        text: 'This list is for individuals rather than businesses. Each tool below does one job properly instead of half a dozen badly, which is why running two or three of them together works better than looking for a single app that claims to do everything.',
+      },
+      {
+        type: 'h2',
+        text: 'Why Open Source Matters More for Money Than for Anything Else',
+      },
+      {
+        type: 'p',
+        text: 'Financial data is the most sensitive category most people hold. It shows where you live, what you buy, who you pay, and how much is left at the end of the month. When the code is published, that claim on the marketing page about privacy becomes something anyone can verify rather than something you have to believe.',
+      },
+      {
+        type: 'p',
+        text: 'The second advantage is durability. Closed finance apps get acquired and shut down - Mint is the obvious example, and it took its users’ histories with it. An open source project can be forked, self-hosted, and kept running by anyone who cares enough, and your data sits in a database or a plain text file you can export at any time.',
+      },
+      {
+        type: 'h2',
+        text: '1. Actual Budget - Envelope Budgeting That Works Offline',
+      },
+      {
+        type: 'p',
+        text: 'Actual Budget is a zero-based, envelope-style budgeting app in the tradition of YNAB: every unit of income gets assigned a job before you spend it. It is local-first, so the app works offline and syncs through a server you run, with optional end-to-end encryption.',
+        links: [{ text: 'Actual Budget', href: 'https://actualbudget.org' }],
+      },
+      {
+        type: 'p',
+        text: 'It is released under the MIT licence and the sync server ships as a single Docker container small enough for the cheapest VPS or a Raspberry Pi. Bank syncing is optional and handled through third-party providers - GoCardless covers EU and UK banks at no cost, while SimpleFIN handles US and Canadian banks for a small monthly fee. Importing statements manually costs nothing and keeps the bank out of it entirely.',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Best for: people who want to plan spending forward rather than review it afterwards',
+          'Licence: MIT - permissive, no copyleft obligations if you fork it',
+          'Runs as: web app, desktop app, or offline PWA, with a self-hosted sync server',
+          'Weak spot: it is a budgeting tool, not a record-keeping one - it will not track investments',
+        ],
+      },
+      {
+        type: 'h2',
+        text: '2. Firefly III - The Full Personal Ledger',
+      },
+      {
+        type: 'p',
+        text: 'Firefly III is the serious option: a self-hosted personal finance manager built on double-entry bookkeeping, with budgets, categories, tags, rule-based auto-categorisation, recurring transactions, savings goals, and reports. It is AGPL-3.0 licensed and written in PHP, deployable by Docker on a NAS, a VPS, or a Raspberry Pi.',
+        links: [{ text: 'Firefly III', href: 'https://www.firefly-iii.org' }],
+      },
+      {
+        type: 'p',
+        text: 'The strength and the cost are the same thing. Double-entry means the numbers always reconcile and the reports are trustworthy, but it also means a real setup session and a habit of importing transactions. If you have tried a budgeting app and found it too shallow, this is the step up. If you have never kept accounts before, start with Actual Budget instead.',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Best for: people who want one authoritative record of every account and transaction',
+          'Licence: AGPL-3.0 - self-host freely, network-served modifications must be published',
+          'Runs as: self-hosted web app, no official cloud version',
+          'Weak spot: the steepest learning curve on this list, and there is no hosted option to fall back on',
+        ],
+      },
+      {
+        type: 'h2',
+        text: '3. Suprascribe - Automatic Subscription Tracker',
+      },
+      {
+        type: 'p',
+        text: 'Budgeting apps and ledgers both assume you already know what you are paying for. Subscriptions are the category where that assumption fails: they bill under merchant names that match nothing, through app stores and PayPal, on dates nobody remembers, and they keep working after you stop using the service. That is a separate job from budgeting, which is why it needs a separate tool.',
+      },
+      {
+        type: 'p',
+        text: 'Suprascribe is an open source subscription tracker under the AGPL-3.0 licence, with the full source on GitHub for you to audit or self-host. It works from your inbox rather than your bank - receipts and renewal notices name the service, the amount, and the billing period, which is exactly the information a bank feed strips out. Manual tracking is free and unlimited, and Pro, which adds inbox discovery and renewal reminders, is a one-time payment rather than another monthly charge.',
+        links: [
+          { text: 'open source subscription tracker', href: '/open-source-subscription-tracker' },
+          { text: 'GitHub', href: 'https://github.com/akomis/suprascribe' },
+        ],
+      },
+      {
+        type: 'ul',
+        items: [
+          'Best for: finding recurring charges you have forgotten and stopping them before the next renewal',
+          'Licence: AGPL-3.0 - readable, auditable, self-hostable',
+          'Runs as: hosted web app and PWA, or self-hosted from source',
+          'Weak spot: it tracks subscriptions, not your whole financial picture - pair it with a budgeting tool',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'If you would rather run everything on your own hardware, Wallos is a GPL-3.0 self-hosted subscription tracker where you enter each subscription by hand. The trade-off is the one that matters here: manual entry only finds the subscriptions you already remember, and forgotten charges are the expensive ones.',
+        links: [{ text: 'Wallos', href: 'https://github.com/ellite/Wallos' }],
+      },
+      {
+        type: 'h2',
+        text: '4. Ghostfolio - Investments and Net Worth in One Dashboard',
+      },
+      {
+        type: 'p',
+        text: 'Ghostfolio tracks investments across accounts and asset classes - stocks, ETFs, crypto, cash - and turns them into a single view of allocation, performance, and net worth. It is AGPL-3.0 licensed, self-hostable with Docker, and there is a paid hosted plan if you would rather not run a server.',
+        links: [{ text: 'Ghostfolio', href: 'https://ghostfol.io' }],
+      },
+      {
+        type: 'p',
+        text: 'This is the tidiest fit for anyone whose money is spread across a broker, a pension, and an exchange. Self-hosting keeps your holdings and net worth off a third-party service, which is the part most portfolio trackers cannot offer at any price.',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Best for: tracking a portfolio spread across several brokers or exchanges',
+          'Licence: AGPL-3.0',
+          'Runs as: self-hosted Docker deployment, or a paid hosted plan',
+          'Weak spot: it does not do budgeting or day-to-day spending at all',
+        ],
+      },
+      {
+        type: 'h2',
+        text: '5. GnuCash - Desktop Double-Entry With No Server At All',
+      },
+      {
+        type: 'p',
+        text: 'GnuCash has been in development for over two decades and remains the most credible option for people who want proper accounting without hosting anything. It is a free desktop application for Windows, macOS, and Linux under the GNU GPL, with double-entry bookkeeping, bank reconciliation, multi-currency support, stock tracking, invoicing, and a large set of reports.',
+        links: [{ text: 'GnuCash', href: 'https://www.gnucash.org' }],
+      },
+      {
+        type: 'p',
+        text: 'Your file lives on your own disk, which makes backups your responsibility and syncing between devices awkward. In exchange there is no server to maintain, no container to update, and no account anywhere. For long-term records that need to outlive any particular web app, that is a reasonable trade.',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Best for: long-term personal records, and anyone who does not want to run a server',
+          'Licence: GNU GPL',
+          'Runs as: desktop application on Windows, macOS, and Linux',
+          'Weak spot: dated interface, no real mobile story, and syncing across devices is on you',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'How to Combine Them Without Creating a Second Job',
+      },
+      {
+        type: 'p',
+        text: 'Running five finance apps is a hobby, not a system. Two is usually the right number for an individual: one tool that answers "where is my money going" and one that answers "what is still charging me". Add a third only when you have a real portfolio to track.',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Light setup: Actual Budget for the monthly plan, Suprascribe for recurring charges',
+          'Full setup: Firefly III as the ledger, Suprascribe for subscriptions, Ghostfolio for investments',
+          'No-server setup: GnuCash on your desktop, Suprascribe in the browser for the subscription side',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'The order matters more than the stack. Start with the tool that recovers money in the first session, then add the one that requires a habit - a system you abandon in week three saves nothing, however well designed it is.',
+        links: [
+          { text: 'recovers money in the first session', href: '/blog/how-to-save-money-fast' },
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Start With the Money Already Leaving Your Account',
+      },
+      {
+        type: 'p',
+        text: 'Budgeting, ledgers, and portfolio tracking all pay off gradually, and all of them ask you to keep doing something. Cancelling a subscription you had forgotten pays off immediately and then keeps paying every month without further effort, because a cancelled subscription stays cancelled.',
+      },
+      {
+        type: 'p',
+        text: 'So do the audit first. Add up every recurring charge, cancel what you are not using, and only then decide which budgeting tool you are going to live with. The list you produce is also the input the other tools need - fixed monthly outgoings are the part of a budget everyone underestimates.',
+        links: [{ text: 'Add up every recurring charge', href: '/subscription-cost-calculator' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is open source and free for manual subscription tracking - no bank access required. Pro scans your inbox for the recurring charges you have forgotten and emails you before each renewal, as a one-time payment rather than a subscription of its own.',
       },
     ],
   },

@@ -75,8 +75,7 @@ export async function fetchGmailEmails(
 
           const body = extractGmailBody(messageData.payload)
           return { subject, from, date, body }
-        } catch (error) {
-          console.warn(`Gmail fetch attempt ${attempt + 1}/${retries} failed for ${msgId}:`, error)
+        } catch {
           if (attempt < retries - 1) {
             await new Promise((r) => setTimeout(r, 500 * (attempt + 1)))
           }

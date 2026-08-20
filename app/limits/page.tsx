@@ -4,16 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MAX_TOTAL_DISCOVERIES } from '@/lib/utils/discovery-rate-limit'
 import { ArrowLeft, HelpCircle, Infinity, Key, Shield, Timer, Zap } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Auto Discovery - How It Works & BYOK',
   description:
     'Learn how Auto Discovery finds your subscriptions from Gmail, Outlook and iCloud. Pro includes a discovery allowance, and BYOK lets you use your own AI API key for unlimited scans.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/limits',
-  },
-}
+  path: '/limits',
+})
 
 export default function LimitsPage() {
   return (

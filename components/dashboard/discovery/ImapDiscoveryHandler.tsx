@@ -14,6 +14,7 @@ export function ImapDiscoveryHandler() {
     discoveredSubscriptions,
     teaser,
     emailCount,
+    runId,
     error,
     warning,
     clearDiscovery,
@@ -70,6 +71,7 @@ export function ImapDiscoveryHandler() {
         aiModel={aiModel}
         isLoadingAI={isLoadingAI}
         isByok={isByok}
+        runId={runId}
       />
     </>
   )

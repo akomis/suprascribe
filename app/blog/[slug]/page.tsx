@@ -6,6 +6,7 @@ import { faqItems } from '@/lib/config/faq'
 import { blogPosts, getBlogPost, type BlogSection, type BlogSectionLink } from '@/lib/config/blog'
 import { Clock, ExternalLink } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import type { ReactElement, ReactNode } from 'react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -18,13 +19,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const post = getBlogPost(slug)
   if (!post) return {}
-  return {
-    title: { absolute: `${post.title} | Suprascribe Blog` },
+  return buildMetadata({
+    title: post.title,
+    absoluteTitle: `${post.title} | Suprascribe Blog`,
     description: post.description,
-    alternates: {
-      canonical: `https://www.suprascribe.com/blog/${post.slug}`,
+    path: `/blog/${post.slug}`,
+    article: {
+      publishedTime: post.publishedAt,
+      modifiedTime: post.updatedAt,
     },
-  }
+  })
 }
 
 export function generateStaticParams() {
@@ -288,10 +292,12 @@ export default async function BlogArticlePage({ params }: Props) {
                     key={related.slug}
                     className="border rounded-lg p-5 space-y-2 hover:bg-muted/30 transition-colors"
                   >
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(related.publishedAt)}
-                    </p>
-                    <h3 className="font-semibold">{related.title}</h3>
+                    <div className="flex items-baseline justify-between gap-3">
+                      <h3 className="font-semibold">{related.title}</h3>
+                      <p className="text-xs text-muted-foreground shrink-0">
+                        {formatDate(related.publishedAt)}
+                      </p>
+                    </div>
                     <p className="text-sm text-muted-foreground">{related.intro}</p>
                     <div className="flex justify-end">
                       <Link href={`/blog/${related.slug}`}>

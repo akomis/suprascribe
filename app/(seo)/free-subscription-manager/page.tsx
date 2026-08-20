@@ -4,15 +4,14 @@ import { faqItems } from '@/lib/config/faq'
 import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
 import { Bell, CalendarDays, Search, Zap } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Free Subscription Manager - Organize, Cancel & Track',
   description:
     'Manage all your subscriptions in one place for free. Suprascribe lets you organize, cancel, set reminders, and view a spending calendar - without paying for another subscription.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/free-subscription-manager',
-  },
-}
+  path: '/free-subscription-manager',
+})
 
 const managerFaqItems = faqItems.filter((item) =>
   [
@@ -96,7 +95,7 @@ export default function FreeSubscriptionManagerPage() {
     <SEOPage
       jsonLd={jsonLd}
       title="The Free Subscription Manager That Puts You in Control"
-      description="Most subscription managers cost a monthly fee. Suprascribe does not - and never will. Manage unlimited subscriptions from your dashboard, set renewal reminders, view a billing calendar, and cancel what you no longer need."
+      description="Most subscription managers cost a monthly fee. Suprascribe is a free subscription manager that does not - and never will. Manage unlimited subscriptions from your dashboard, set renewal reminders, view a billing calendar, and cancel what you no longer need."
       primaryCta={{ href: '/login?tab=signup', label: 'Start Managing for Free' }}
       secondaryCta={{ href: '/demo', label: 'See the Demo' }}
       faqItems={managerFaqItems}
@@ -106,6 +105,7 @@ export default function FreeSubscriptionManagerPage() {
         { href: '/free-subscription-tracker', label: 'Track Subscriptions for Free' },
         { href: '/subscription-management-app', label: 'Subscription Management App' },
         { href: '/subscription-cost-calculator', label: 'Subscription Cost Calculator' },
+        { href: '/subscription-tracking-for-freelancers', label: 'Tracking for Freelancers' },
       ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">

@@ -3,8 +3,7 @@ import { decryptApiKey } from '@/lib/utils/server-crypto'
 import { type LLMProvider, type ProviderConfig } from './ai-provider'
 
 export type BYOKResult =
-  | { ok: true; config: ProviderConfig }
-  | { ok: false; reason: 'not_configured' | 'decrypt_failed' }
+  { ok: true; config: ProviderConfig } | { ok: false; reason: 'not_configured' | 'decrypt_failed' }
 
 export async function getBYOKConfig(userId: string, supabase: SupabaseClient): Promise<BYOKResult> {
   const { data: settings } = await supabase

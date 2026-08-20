@@ -4,16 +4,15 @@ import { faqItems } from '@/lib/config/faq'
 import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
 import { Check, X } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Best Rocket Money Alternative - No Bank Access, No Monthly Fee',
   description:
     'Looking for a Rocket Money alternative that does not require bank account access? Suprascribe finds subscriptions by scanning email instead - free forever, one-time Pro upgrade.',
-  alternates: {
-    canonical: 'https://www.suprascribe.com/rocket-money-alternative',
-  },
-}
+  path: '/rocket-money-alternative',
+})
 
 const rocketFaqItems = faqItems.filter((item) =>
   [
@@ -112,7 +111,7 @@ export default function RocketMoneyAlternativePage() {
     <SEOPage
       jsonLd={jsonLd}
       title="A Rocket Money Alternative That Does Not Touch Your Bank Account"
-      description="Rocket Money finds subscriptions by reading your full transaction history via Plaid. Suprascribe finds the same subscriptions by scanning your email - same result, no bank access, no monthly fee. The free tier is unlimited."
+      description="Suprascribe is a Rocket Money alternative that never touches your bank. Rocket Money finds subscriptions by reading your full transaction history via Plaid; Suprascribe finds the same subscriptions by scanning your email - same result, no bank access, no monthly fee. The free tier is unlimited."
       primaryCta={{ href: '/login?tab=signup', label: 'Try Suprascribe Free' }}
       secondaryCta={{ href: '/demo', label: 'See the Demo' }}
       faqItems={rocketFaqItems}

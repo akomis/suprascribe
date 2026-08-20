@@ -14,6 +14,9 @@ export interface DiscoverySuccessResponse {
   subscriptions: DiscoveredSubscription[]
   emailCount: number
   email: string
+  // Id of the DISCOVERY_RUNS row this scan created. Absent for flows that
+  // record no run (teaser claim, anonymous one-time scan) or if the insert failed.
+  runId?: string
 }
 
 export interface DiscoveryTeaserResponse {
@@ -32,9 +35,7 @@ export interface DiscoveryFailureResponse {
 }
 
 export type DiscoveryResponse =
-  | DiscoverySuccessResponse
-  | DiscoveryTeaserResponse
-  | DiscoveryFailureResponse
+  DiscoverySuccessResponse | DiscoveryTeaserResponse | DiscoveryFailureResponse
 
 // Number of real preview rows sent to a BASIC client in teaser mode.
 export const TEASER_PREVIEW_COUNT = 2
