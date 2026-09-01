@@ -13,7 +13,7 @@
  */
 export const DISCOUNT = {
   /** Last day the offer is honoured, inclusive, in YYYY-MM-DD. `null` disables the offer. */
-  endsOn: '2026-08-31' as string | null,
+  endsOn: null as string | null,
   /** What PRO costs while the offer runs, in cents. Discount percentage is derived from it. */
   priceCents: 1000,
 }

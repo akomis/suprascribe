@@ -30,7 +30,6 @@ export default function DemoReminders() {
                 serviceUrl="https://spotify.com"
                 size={40}
                 className="size-full rounded-lg"
-                fallbackClassName="size-5"
               />
             </div>
             <div className="min-w-0">

@@ -10,7 +10,7 @@ export const STRIPE_API_VERSION: Stripe.LatestApiVersion = '2026-02-25.clover'
 // page, so the two cannot drift apart.
 export const PRO_FULL_PRICE_CENTS = 2000
 export const PRO_DISCOUNT_PRICE_CENTS = DISCOUNT.priceCents
-export const PRO_CURRENCY = 'eur'
+export const PRO_CURRENCY = 'usd'
 
 /**
  * Price actually charged: the discounted one while the discount runs
@@ -21,16 +21,22 @@ export function getProPriceCents(now?: Date): number {
 }
 
 export function formatProPrice(cents: number = getProPriceCents()): string {
-  return `€${new Intl.NumberFormat('de-DE').format(cents / 100)}`
+  return `$${new Intl.NumberFormat('en-US').format(cents / 100)}`
 }
 
 export const PRO_FULL_PRICE_DISPLAY = formatProPrice(PRO_FULL_PRICE_CENTS)
 export const PRO_DISCOUNT_PRICE_DISPLAY = formatProPrice(PRO_DISCOUNT_PRICE_CENTS)
 
-/** Whole-number discount of the offer price against the full price, e.g. 50 for €10 off €20. */
+/** Whole-number discount of the offer price against the full price, e.g. 50 for $10 off $20. */
 export const PRO_DISCOUNT_PERCENT = Math.round(
   (1 - PRO_DISCOUNT_PRICE_CENTS / PRO_FULL_PRICE_CENTS) * 100,
 )
+
+// The anonymous one-time inbox scan (/one-time-scan funnel). Same currency as PRO.
+// Drives the Checkout Session, the payment verification check, and the copy on
+// every page that advertises the scan.
+export const ONCE_SCAN_PRICE_CENTS = 500
+export const ONCE_SCAN_PRICE_DISPLAY = formatProPrice(ONCE_SCAN_PRICE_CENTS)
 
 // Stripe fetches product images from its own servers, so this must be publicly
 // reachable - a NEXT_PUBLIC_BASE_URL-derived localhost URL silently renders no

@@ -57,11 +57,6 @@ async function handleOAuthCallback(
         extraBody.scope =
           'https://graph.microsoft.com/Mail.Read https://graph.microsoft.com/User.Read'
         break
-      case 'apple':
-        clientId = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID
-        clientSecret = process.env.APPLE_CLIENT_SECRET
-        tokenUrl = 'https://appleid.apple.com/auth/token'
-        break
       default:
         console.error('Unsupported provider:', provider)
         return NextResponse.redirect(`${errorBase}?error=unsupported_provider`)

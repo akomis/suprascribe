@@ -2,7 +2,6 @@
 
 import { DiscoveredSubscriptionGroupCard } from '@/components/dashboard/discovery/DiscoveredSubscriptionGroupCard'
 import { DiscoveryEditDialog } from '@/components/dashboard/discovery/DiscoveryEditDialog'
-import { DiscoveryRatingRow } from '@/components/dashboard/discovery/DiscoveryRatingRow'
 import { SupportButton } from '@/components/shared/SupportButton'
 import {
   AlertDialog,
@@ -290,7 +289,6 @@ function ReviewSubscriptionsView({
   onEdit,
   onSave,
   onScanAnother,
-  ratingSlot,
 }: {
   discoveredSubscriptions: DiscoveredSubscription[]
   selectedSubscriptions: Set<number>
@@ -302,7 +300,6 @@ function ReviewSubscriptionsView({
   onEdit: (index: number) => void
   onSave: () => void
   onScanAnother?: () => void
-  ratingSlot?: React.ReactNode
 }) {
   const allSubs = discoveredSubscriptions.map((sub, index) => ({ sub, index }))
   const nonDuplicates = allSubs.filter(({ index }) => !checkIfDuplicate(index))
@@ -384,7 +381,6 @@ function ReviewSubscriptionsView({
       </div>
 
       <DialogFooter className="flex flex-wrap justify-center items-center pt-4">
-        {ratingSlot}
         {onScanAnother && (
           <Button variant="secondary" onClick={onScanAnother} disabled={isSaving}>
             Scan Another Inbox
@@ -521,8 +517,6 @@ interface DiscoveryDialogProps {
   isLoadingAI?: boolean
   isByok?: boolean
   onImport?: (entries: CreateSubscriptionFormData[]) => Promise<void>
-  /** Id of the DISCOVERY_RUNS row this scan created. Present only for full (Pro/BYOK) scans. */
-  runId?: string | null
 }
 
 export function DiscoveryDialog({
@@ -540,7 +534,6 @@ export function DiscoveryDialog({
   isLoadingAI,
   isByok,
   onImport,
-  runId,
 }: DiscoveryDialogProps) {
   const queryClient = useQueryClient()
   const { data: existingSubscriptions = [] } = useSubscriptions({ skipStale: true })
@@ -822,7 +815,6 @@ export function DiscoveryDialog({
               onEdit={setEditingIndex}
               onSave={() => handleSaveSelected('close')}
               onScanAnother={() => handleSaveSelected('scan-another')}
-              ratingSlot={runId ? <DiscoveryRatingRow runId={runId} /> : null}
             />
           ) : warning ? (
             <WarningView warning={warning} onClose={handleClose} />

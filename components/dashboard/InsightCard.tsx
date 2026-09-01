@@ -82,7 +82,6 @@ export default function InsightCard({
                               serviceUrl={serviceUrl}
                               size={24}
                               className="size-full"
-                              fallbackClassName="size-3 sm:size-4"
                             />
                           </div>
                         )}

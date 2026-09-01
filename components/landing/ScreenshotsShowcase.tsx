@@ -26,7 +26,7 @@ const sections: ShowcaseSection[] = [
   },
   {
     id: 'history',
-    title: 'Track & cancel effortlessly',
+    title: 'Observe & cancel effortlessly',
     description:
       'Keep a complete record of your subscription journey. Track when you started, paused, or cancelled services, review past spending patterns in one organized timeline, and quickly cancel any service you no longer need by getting to the unsubscribe pages instantly.',
     component: DemoHistory,

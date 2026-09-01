@@ -75,6 +75,11 @@ export const faqItems: FAQItem[] = [
       'Suprascribe is a web-first app that works in any modern browser on any device - iPhone, Android, desktop, or tablet. There is no app download required. You can also install it as a PWA (Progressive Web App) from your browser for a native-like experience.',
   },
   {
+    question: 'Is Suprascribe a mobile app?',
+    answer:
+      'Suprascribe is a web app, and you can install it on your phone like a native app - no App Store or Google Play involved. Open it in your mobile browser and add it to your home screen (on iPhone use Share then Add to Home Screen, on Android use the install prompt in Chrome). It then gets its own icon, opens in its own window without browser chrome, and works the same as a downloaded app - except it updates automatically and never waits on store approval. Same logic applies to desktop if you want to download it as desktop app.',
+  },
+  {
     question: 'Is Suprascribe on the App Store or Google Play?',
     answer:
       'No. Suprascribe is a web app, so there is nothing to download from the App Store or Google Play. Open it in your browser and install it to your home screen or desktop - on iPhone use Share then Add to Home Screen, on Android or desktop Chrome use the install prompt in the address bar. Installed, it runs in its own window with an app icon and gives you exactly the same experience as a store-downloaded app, while updating automatically with no store approval delays. Staying off the stores also avoids their commission on every purchase, which is a cost that would otherwise be passed on to you - it is part of how Pro stays a low one-time payment.',
@@ -186,4 +191,8 @@ export const faqItems: FAQItem[] = [
   },
 ]
 
-export const featuredFaqItems = faqItems.slice(0, 5)
+export const featuredFaqItems: FAQItem[] = [
+  ...faqItems.slice(0, 2),
+  ...faqItems.filter((item) => item.question === 'Is Suprascribe a mobile app?'),
+  ...faqItems.slice(2, 5),
+]

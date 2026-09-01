@@ -456,6 +456,8 @@ export const blogPosts: BlogPost[] = [
     relatedSlugs: [
       'how-to-cancel-subscriptions',
       'how-to-cancel-disney-plus',
+      'how-to-cancel-max-hbo',
+      'how-to-cancel-paramount-plus',
       'cancel-subscriptions-iphone',
     ],
     relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
@@ -566,6 +568,7 @@ export const blogPosts: BlogPost[] = [
     relatedSlugs: [
       'how-to-cancel-free-trial-before-charged',
       'how-to-cancel-subscriptions',
+      'how-to-cancel-audible',
       'how-to-find-all-your-subscriptions',
     ],
     relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
@@ -1154,6 +1157,7 @@ export const blogPosts: BlogPost[] = [
     ],
     relatedSlugs: [
       'how-to-cancel-netflix-subscription',
+      'how-to-cancel-hulu',
       'how-to-cancel-subscriptions',
       'how-to-find-all-your-subscriptions',
     ],
@@ -1261,6 +1265,8 @@ export const blogPosts: BlogPost[] = [
     ],
     relatedSlugs: [
       'how-to-cancel-netflix-subscription',
+      'how-to-cancel-youtube-premium',
+      'how-to-cancel-audible',
       'cancel-subscriptions-android',
       'cancel-subscriptions-iphone',
     ],
@@ -1361,6 +1367,8 @@ export const blogPosts: BlogPost[] = [
       'cancel-subscriptions-iphone',
       'cancel-subscriptions-android',
       'how-to-cancel-free-trial-before-charged',
+      'how-to-cancel-canva',
+      'how-to-cancel-microsoft-365',
     ],
     relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
     sections: [
@@ -1511,7 +1519,12 @@ export const blogPosts: BlogPost[] = [
       'How do I cancel a subscription I forgot about?',
       'How do renewal reminders work?',
     ],
-    relatedSlugs: ['how-to-cancel-subscriptions', 'how-to-cancel-adobe', 'subscription-fatigue'],
+    relatedSlugs: [
+      'how-to-cancel-subscriptions',
+      'how-to-cancel-gym-membership',
+      'how-to-cancel-adobe',
+      'subscription-fatigue',
+    ],
     relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
     sections: [
       {
@@ -2231,6 +2244,8 @@ export const blogPosts: BlogPost[] = [
       'cancel-subscriptions-iphone',
       'cancel-subscriptions-android',
       'how-to-cancel-subscriptions',
+      'how-to-cancel-gym-membership',
+      'how-to-cancel-siriusxm',
     ],
     relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
     sections: [
@@ -3014,6 +3029,1947 @@ export const blogPosts: BlogPost[] = [
       {
         type: 'callout',
         text: 'Suprascribe is open source and free for manual subscription tracking - no bank access required. Pro scans your inbox for the recurring charges you have forgotten and emails you before each renewal, as a one-time payment rather than a subscription of its own.',
+      },
+    ],
+  },
+  {
+    slug: 'what-is-a-subscription-tracker',
+    title: 'What Is a Subscription Tracker? A Practical Guide for 2026',
+    description:
+      'A subscription tracker helps you see every recurring charge in one place. Learn how they work, what types exist, and how to pick one that actually protects your privacy.',
+    publishedAt: '2026-08-28',
+    readingTimeMin: 8,
+    intro:
+      'A subscription tracker is a tool that lists every service you pay for regularly - streaming, software, fitness apps, cloud storage, news - with the amount, billing cycle, and renewal date. The point is simple: stop paying for things you forgot you signed up for.',
+    faqQuestions: [
+      'How do I find all my subscriptions?',
+      'Is there a subscription tracker that does not require bank access?',
+      'What is the best free app to track subscriptions?',
+    ],
+    relatedSlugs: [
+      'best-subscription-tracker-app',
+      'best-free-subscription-manager',
+      'how-to-find-all-your-subscriptions',
+    ],
+    relatedPageLinks: [
+      { href: '/free-subscription-tracker', label: 'Free Subscription Tracker' },
+      { href: '/compare', label: 'Compare All Trackers' },
+    ],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: A subscription tracker is a dashboard for your recurring payments. The best ones find your subscriptions automatically, do not require bank access, and remind you before renewals. They come in three types: manual entry, bank-linked, and email-based. Email-based trackers like Suprascribe give you the same automatic discovery as bank-linked apps without exposing your financial accounts.',
+      },
+      {
+        type: 'p',
+        text: 'Most people do not know how many subscriptions they have. Not because they are careless, but because the subscriptions are scattered across app stores, PayPal, credit cards, and direct debits. A subscription tracker collects them into one place so you can see the total, spot what you no longer use, and cancel before the next charge.',
+      },
+      {
+        type: 'h2',
+        text: 'What a Subscription Tracker Actually Does',
+      },
+      {
+        type: 'p',
+        text: 'At minimum, a subscription tracker stores a list of services with their cost and renewal date. At best, it discovers them for you, keeps the list current, and alerts you before a payment goes through. The core jobs are:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Discovery: finding every active subscription you are paying for',
+          'Organisation: showing costs, cycles, and renewal dates in one view',
+          'Reminders: notifying you before a charge or price increase',
+          'Cancellation support: making it easier to leave services you no longer want',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'The difference between a useful tracker and a forgotten spreadsheet is automation. If you have to update it by hand every time a trial converts or a price changes, it will drift out of date and stop saving you money.',
+      },
+      {
+        type: 'h2',
+        text: 'The Three Types of Subscription Tracker',
+      },
+      {
+        type: 'h3',
+        text: '1. Manual trackers',
+      },
+      {
+        type: 'p',
+        text: 'You enter every subscription yourself. Apps like Bobby and Subby fall here, as does any spreadsheet. The upside is total privacy and control. The downside is that forgotten subscriptions stay forgotten - the very problem you are trying to solve.',
+      },
+      {
+        type: 'h3',
+        text: '2. Bank-linked trackers',
+      },
+      {
+        type: 'p',
+        text: 'Apps like Rocket Money, PocketGuard, and Truebill connect to your bank through Plaid and detect recurring charges from your transaction history. They are powerful, but they need read access to your full financial life to find a handful of subscriptions. They also tend to charge a monthly fee.',
+      },
+      {
+        type: 'h3',
+        text: '3. Email-based trackers',
+      },
+      {
+        type: 'p',
+        text: 'These tools scan your inbox for receipts, renewal notices, and billing confirmations. Because every subscription sends email, the result is usually the same as a bank-linked app - but the app only sees subscription-related messages, not your entire transaction history. Suprascribe is in this category.',
+      },
+      {
+        type: 'callout',
+        text: 'Bank-linked apps read everything you buy. Email-based trackers read only the emails that prove you are paying for a subscription. For most users, the second option is the better privacy trade-off.',
+      },
+      {
+        type: 'h2',
+        text: 'What to Look For in a Subscription Tracker',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Automatic discovery on the free or affordable tier',
+          'No requirement to link your bank account',
+          'Unlimited subscriptions, or a generous free cap',
+          'Renewal reminders before charges hit',
+          'Multi-currency support if you pay in more than one currency',
+          'A cancellation path that does not require hunting through support pages',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Be suspicious of any subscription manager that charges a monthly subscription. Paying a recurring fee to manage your recurring fees is the problem dressed up as the solution.',
+      },
+      {
+        type: 'h2',
+        text: 'Honest Comparison: The Main Options',
+      },
+      {
+        type: 'p',
+        text: 'Here is how the biggest names compare on the questions that actually matter:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Rocket Money: strong auto-discovery and bill negotiation, but requires full bank access via Plaid and charges a monthly premium',
+          'PocketGuard: full budgeting plus subscription detection, also bank-linked, also monthly or annual',
+          'Bobby: polished iOS manual tracker, one-time unlock, but Apple-only and capped on the free tier',
+          'Subby: unlimited free manual tracker, ad-supported, mobile-only',
+          'YNAB: excellent budgeting methodology, significant overkill if you only want subscriptions, ~$109/year',
+          'Suprascribe: email-based auto-discovery, unlimited free tier, no bank access, one-time Pro upgrade',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'If you want budgeting alongside tracking, Rocket Money or PocketGuard are the strongest bank-linked choices. If you want automatic discovery without handing over your bank login, an email-based tracker is the better fit.',
+        links: [
+          { text: 'Rocket Money', href: '/compare/rocket-money' },
+          { text: 'PocketGuard', href: '/compare/pocketguard' },
+          { text: 'Bobby', href: '/compare/bobby' },
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'How to Choose',
+      },
+      {
+        type: 'p',
+        text: 'Start by deciding whether you are comfortable linking your bank. If not, you have already eliminated most of the market leaders. Then decide whether you want to enter subscriptions manually or have them found for you. Most people who are serious about cutting waste choose automatic discovery - the forgotten subscriptions are where the money is.',
+      },
+      {
+        type: 'p',
+        text: 'A subscription tracker should make the total visible, turn renewals into conscious decisions, and get out of the way. The tool itself should not become another subscription.',
+      },
+      {
+        type: 'h2',
+        text: 'Why Suprascribe Fits',
+      },
+      {
+        type: 'p',
+        text: 'Suprascribe scans Gmail, Outlook, iCloud, or any IMAP inbox to find subscriptions automatically. It does not store email content, it never touches your bank, and the free tier lets you track unlimited subscriptions manually. The Pro upgrade - auto-discovery, renewal reminders, calendar view, quick unsubscribe - is a one-time payment, not a recurring fee.',
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free to use for manual tracking, with no bank access required. See how it compares to the rest on the compare page.',
+        links: [{ text: 'compare page', href: '/compare' }],
+      },
+    ],
+  },
+  {
+    slug: 'best-free-subscription-tracker-no-bank-account',
+    title: 'Best Free Subscription Tracker Without Bank Linking: 2026 Picks',
+    description:
+      'The best free subscription trackers that do not require a bank account - honestly compared on discovery, privacy, limits, and recurring fees.',
+    publishedAt: '2026-08-23',
+    readingTimeMin: 7,
+    intro:
+      'Most free subscription trackers are not really free. They cap your list, show ads, or demand a bank login before they will find anything. Here are the honest picks for 2026.',
+    faqQuestions: [
+      'Is there a subscription tracker that does not require bank access?',
+      'What is the best free app to track subscriptions?',
+      'Is Suprascribe really free?',
+    ],
+    relatedSlugs: [
+      'best-free-subscription-manager',
+      'best-subscription-tracker-app',
+      'subscription-tracker-spreadsheet-template',
+    ],
+    relatedPageLinks: [
+      {
+        href: '/subscription-tracker-without-bank-account',
+        label: 'Tracker With No Bank Linking',
+      },
+      { href: '/compare', label: 'Compare All Trackers' },
+      { href: '/subscription-cost-calculator', label: 'Subscription Cost Calculator' },
+    ],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: The best free subscription tracker without bank linking is one that discovers subscriptions automatically without touching your financial accounts. Suprascribe leads for email-based auto-discovery with an unlimited free tier. Bobby is the best iOS-only manual tracker. Subby is the best ad-supported manual tracker. A spreadsheet is the most private option of all, but it cannot remind you before renewals.',
+      },
+      {
+        type: 'p',
+        text: 'The phrase "free subscription tracker" is used loosely. Some apps are free for five subscriptions. Some are free if you manually type everything. Some are free only after you hand over your bank login so they can upsell you later. This guide focuses on trackers that are genuinely free and genuinely private - no bank access required.',
+      },
+      {
+        type: 'h2',
+        text: 'Why "No Bank Linking" Matters',
+      },
+      {
+        type: 'p',
+        text: 'Bank-linked apps like Rocket Money and PocketGuard need access to your full transaction history through Plaid or Finicity. They see every coffee, every grocery shop, every transfer - just to find a few recurring charges. That is a lot of exposure for a narrow job.',
+      },
+      {
+        type: 'p',
+        text: 'A tracker that works without bank linking relies on your inbox instead. Every subscription sends receipts and renewal notices, so an inbox scan finds the same charges with far less access. The only data involved is the list of services you pay for.',
+      },
+      {
+        type: 'h2',
+        text: 'The Honest Shortlist',
+      },
+      {
+        type: 'h3',
+        text: '1. Suprascribe - Best free tracker with automatic discovery',
+      },
+      {
+        type: 'p',
+        text: 'Suprascribe is web-based, open source, and free for unlimited manual tracking. Connect Gmail, Outlook, or iCloud via OAuth and it scans your inbox for subscription-related emails automatically. No bank access, no stored email content, no subscription cap. Pro adds renewal reminders and a calendar view for a one-time payment.',
+        links: [{ text: 'Suprascribe', href: '/free-subscription-tracker' }],
+      },
+      {
+        type: 'ul',
+        items: [
+          'Free tier: unlimited subscriptions, no credit card',
+          'Discovery: email-based, no bank login',
+          'Platform: any browser, works as a PWA',
+          'Pro: one-time purchase, not monthly',
+        ],
+      },
+      {
+        type: 'h3',
+        text: '2. Bobby - Best iOS manual tracker',
+      },
+      {
+        type: 'p',
+        text: 'Bobby is a polished, Apple-only tracker with a clean interface and a small one-time unlock. It is fully manual, so you enter every subscription yourself, and the free tier is capped at five subscriptions. Great for iPhone users who want something simple and private.',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Free tier: up to 5 subscriptions',
+          'Discovery: manual only',
+          'Platform: iOS only',
+          'Pro: small one-time purchase',
+        ],
+      },
+      {
+        type: 'h3',
+        text: '3. Subby - Best no-frills manual tracker',
+      },
+      {
+        type: 'p',
+        text: 'Subby is mobile-only and ad-supported, but the free tier is genuinely unlimited and the interface is straightforward. If you do not mind ads and want a simple manual tracker, it is a solid choice.',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Free tier: unlimited subscriptions, ad-supported',
+          'Discovery: manual only',
+          'Platform: mobile only',
+          'Pro: small one-time purchase removes ads',
+        ],
+      },
+      {
+        type: 'h3',
+        text: '4. A spreadsheet - Best for total control',
+      },
+      {
+        type: 'p',
+        text: 'A Google Sheets or Excel tracker costs nothing and links to nothing. The trade-off is upkeep: every new signup, price change, and cancellation is a manual edit, and a spreadsheet cannot ping you before a renewal. It is the most private option and the least likely to stay current.',
+      },
+      {
+        type: 'h2',
+        text: 'What "Free" Should Mean',
+      },
+      {
+        type: 'p',
+        text: 'A genuinely free subscription tracker should not do any of the following:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Cap the free tier at a number most people exceed',
+          'Require bank access before showing any value',
+          'Lock basic features like reminders or sorting behind a paywall',
+          'Charge a recurring fee for the privilege of tracking recurring fees',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Which One Should You Choose?',
+      },
+      {
+        type: 'p',
+        text: 'If you want automatic discovery without bank access, Suprascribe is the pick. If you live entirely on an iPhone and do not mind typing, Bobby is the nicer experience. If you want unlimited free tracking and do not mind ads, Subby works. If you want maximum privacy and are disciplined about upkeep, a spreadsheet is fine.',
+      },
+      {
+        type: 'p',
+        text: 'The one to avoid is any tracker that makes you link your bank before it will help. You do not need to expose your entire transaction history to find a few subscriptions.',
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free forever for manual tracking and finds subscriptions automatically by scanning your email - no bank login, no monthly fee. Start for free or see how it compares to Rocket Money, Bobby, and the rest.',
+        links: [
+          { text: 'Start for free', href: '/login?tab=signup' },
+          { text: 'See the comparison', href: '/compare' },
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'how-to-track-subscriptions-on-iphone-and-android',
+    title: 'How to Track Subscriptions on iPhone and Android in 2026',
+    description:
+      'Track subscriptions on your phone without app store limits or bank linking - the best cross-platform tools and built-in options for iPhone and Android.',
+    publishedAt: '2026-08-18',
+    readingTimeMin: 7,
+    intro:
+      'Your phone already has a subscription list buried in Settings or the Play Store, but it only shows a fraction of what you pay for. Here is how to track every subscription on iPhone and Android, not just the ones Apple or Google bill.',
+    faqQuestions: [
+      'How do I cancel a subscription on my iPhone?',
+      'How do I cancel a subscription on Android?',
+      'How do I find all my subscriptions?',
+    ],
+    relatedSlugs: [
+      'cancel-subscriptions-iphone',
+      'cancel-subscriptions-android',
+      'how-to-find-all-your-subscriptions',
+    ],
+    relatedPageLinks: [
+      { href: '/free-subscription-tracker', label: 'Free Subscription Tracker' },
+      {
+        href: '/subscription-tracker-without-bank-account',
+        label: 'Tracker With No Bank Linking',
+      },
+      { href: '/subscription-cost-calculator', label: 'Subscription Cost Calculator' },
+    ],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: iPhone users can check Settings → [your name] → Subscriptions. Android users can check Play Store → Profile → Payments & subscriptions → Subscriptions. Both lists are incomplete - they only show App Store or Google Play billing. To track everything, including direct merchant charges and PayPal, use a cross-platform tracker like Suprascribe that scans your inbox.',
+      },
+      {
+        type: 'p',
+        text: 'Tracking subscriptions on a phone should be easy. The platforms make it half-easy: they give you a clean list of the subscriptions they bill themselves, and they hide everything else. If you want a complete picture, you need to look beyond the built-in screens.',
+      },
+      {
+        type: 'h2',
+        text: 'What Your Phone Already Shows You',
+      },
+      {
+        type: 'h3',
+        text: 'iPhone: Settings → Subscriptions',
+      },
+      {
+        type: 'p',
+        text: 'On iPhone, open Settings, tap your name at the top, then tap Subscriptions. This lists every subscription billed through your Apple Account. You can cancel, change plans, or see renewal dates here. It is the best place to start - but it only covers App Store purchases.',
+      },
+      {
+        type: 'h3',
+        text: 'Android: Play Store → Subscriptions',
+      },
+      {
+        type: 'p',
+        text: 'On Android, open the Play Store, tap your profile, then Payments & subscriptions → Subscriptions. Google Play also lets you pause payments for one to three months instead of cancelling. Again, this only covers subscriptions billed through Google Play.',
+      },
+      {
+        type: 'callout',
+        text: 'Deleting an app does not cancel its subscription. This is the most common and expensive misconception on both platforms. The subscription lives in your Apple or Google account, not on your phone.',
+      },
+      {
+        type: 'h2',
+        text: 'What Your Phone Hides',
+      },
+      {
+        type: 'p',
+        text: 'Most people have more subscriptions billed outside the app stores than inside them. The following will never appear in Settings or the Play Store:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Services you signed up for in a browser',
+          'Software billed through Stripe, Paddle, or a company checkout',
+          'Streaming services billed directly to your card',
+          'PayPal automatic payments',
+          'Gym memberships, insurance, and other direct debits',
+          'Subscriptions started on a computer or another device',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'That is why a phone-only audit usually misses the subscriptions that cost the most - the ones you signed up for and forgot.',
+      },
+      {
+        type: 'h2',
+        text: 'The Best Cross-Platform Trackers',
+      },
+      {
+        type: 'p',
+        text: 'If you use both iPhone and Android, or you want one list that works everywhere, a web-based tracker is the better choice. The best options for phone users are:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Suprascribe: web-based, works as a PWA on iPhone and Android, email-based discovery, no bank linking',
+          'Bobby: iOS-only, manual entry, polished interface',
+          'Subby: mobile-only, manual entry, ad-supported unlimited free tier',
+          'Rocket Money: cross-platform, but bank-linked and monthly fee',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Suprascribe is the only one that gives you automatic discovery on both platforms without asking for your bank login. It installs from the browser like a native app and works whether your next phone is an iPhone or Android.',
+        links: [{ text: 'Suprascribe', href: '/free-subscription-tracker' }],
+      },
+      {
+        type: 'h2',
+        text: 'How to Set Up a Universal Tracker',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Open the tracker in your phone browser',
+          'Add it to your home screen - on iPhone, tap Share then Add to Home Screen; on Android, use the install prompt in Chrome',
+          'Connect the email account where your receipts arrive, or add subscriptions manually',
+          'Review the list, set renewal reminders, and cancel anything unused',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Once installed as a PWA, the tracker opens in its own window with an app icon and updates automatically. You get the convenience of an app without the store restrictions or commission fees.',
+      },
+      {
+        type: 'h2',
+        text: 'Why Web-Based Beats Store-Locked',
+      },
+      {
+        type: 'p',
+        text: 'A tracker tied to the App Store or Google Play only knows what that store knows. A web-based tracker works from your inbox, which is the one place every subscription leaves a trace regardless of platform. It also moves with you when you switch phones.',
+      },
+      {
+        type: 'p',
+        text: 'Store-locked apps also tend to push subscriptions through the store, which adds a commission that gets passed on to you. Staying web-first is part of why Suprascribe can keep Pro as a one-time payment instead of a recurring subscription.',
+      },
+      {
+        type: 'h2',
+        text: 'Keep the Phone Lists as a Backup',
+      },
+      {
+        type: 'p',
+        text: 'The built-in iPhone and Android subscription screens are still useful. Check them quarterly, especially after a free trial. But treat them as one source among several, not the full picture. Pair them with a universal tracker and an occasional bank-statement scan and you will catch almost everything.',
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe works on iPhone, Android, and desktop from the same account. The free tier is unlimited for manual tracking, and Pro scans your inbox to find forgotten subscriptions as a one-time payment - no monthly fee, no bank access.',
+        links: [{ text: 'Try it free', href: '/login?tab=signup' }],
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-hulu',
+    title: 'Cancel Hulu in 2026: Web, App, and the Disney Bundle',
+    description:
+      'Cancel Hulu on the web or app, through the Disney bundle, or via Apple, Google, Amazon, Spotify, or your cable provider - and keep watching until your paid period ends.',
+    publishedAt: '2026-09-01',
+    readingTimeMin: 5,
+    intro:
+      'Cancelling Hulu is quick once you know who bills you. The one wrinkle in 2026 is that Hulu is being folded into Disney+, so many accounts are now part of a bundle and cancelling one part may not cancel the other.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-disney-plus',
+      'how-to-cancel-netflix-subscription',
+      'how-to-cancel-subscriptions',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: To cancel Hulu directly, go to hulu.com/account, open "Cancel Your Subscription", and confirm. If you subscribed through Apple, Google Play, Amazon, Spotify, a Disney bundle, or a cable provider, you must cancel there instead - Hulu cannot stop those charges. You keep access until the end of your current billing period.',
+      },
+      {
+        type: 'p',
+        text: 'Hulu is one of the streaming services most often bundled with something else, which is why the cancellation path depends on where the subscription was created. This guide covers the direct route, the most common third-party billing routes, and the Disney bundle situation in 2026.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on the Web (Recommended)',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Go to hulu.com and sign in',
+          'Hover over your profile name in the top-right and select "Account"',
+          'Under "Your Subscription", select "Cancel Your Subscription"',
+          'Follow the prompts to confirm - you will see the date your access ends',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel in the Hulu App',
+      },
+      {
+        type: 'p',
+        text: 'The mobile app mirrors the web flow for directly billed accounts: open Account from your profile, then choose Cancel Your Subscription. If you do not see a cancel option, the subscription is almost certainly billed through a third party.',
+      },
+      {
+        type: 'h2',
+        text: "If You're Billed Through Apple, Google, Amazon, Spotify, or Cable",
+      },
+      {
+        type: 'p',
+        text: 'When another company handles billing, Hulu cannot cancel it for you. Cancel from whichever platform bills you:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Apple: Settings → [your name] → Subscriptions → Hulu → Cancel Subscription',
+          'Google Play: Play Store → Profile → Payments & subscriptions → Subscriptions → Hulu → Cancel',
+          'Amazon: Account → Memberships & Subscriptions → Hulu → Cancel',
+          'Spotify: some older Hulu bundles are managed inside your Spotify account - look under Account → Your plan',
+          'Cable or telecom provider: manage it in your provider account, not on Hulu',
+        ],
+      },
+      {
+        type: 'callout',
+        text: 'Not sure who bills you? Open your Hulu Account page and check the payment method shown, or search your inbox for the Hulu receipt - it names the billing platform.',
+      },
+      {
+        type: 'h2',
+        text: 'The Disney Bundle Wrinkle',
+      },
+      {
+        type: 'p',
+        text: 'In 2026 Hulu is being merged into the Disney+ app, and the Disney bundle is being restructured. If you are on a Disney+, Hulu, and ESPN+ bundle, cancelling Hulu may not cancel Disney+ or ESPN+ - each part bills separately depending on how the bundle was set up. Check your Account page to see exactly which plans are active before you confirm, so you do not keep paying for the parts you meant to drop.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'ul',
+        items: [
+          'You keep full access until the end of the period you already paid for',
+          'No partial refund is issued, and none is needed',
+          'Profiles and watchlists are retained for a period in case you return',
+          'You can resubscribe anytime',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Streaming Creep Adds Up',
+      },
+      {
+        type: 'p',
+        text: 'Hulu is rarely the only streaming charge on a card. A single live list of every subscription, its cost, and its renewal date is the simplest way to stop streaming costs from drifting upward - and a reminder before each renewal turns every charge into a decision instead of a surprise.',
+      },
+      {
+        type: 'p',
+        text: 'If the Hulu audit turns up other streaming services you no longer watch, Quick Unsubscribe takes you straight to the cancel page for each of them.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free to use for manual subscription tracking - no bank access required. Pro adds automatic email discovery and renewal reminders as a one-time payment, not another monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-youtube-premium',
+    title: 'Cancel YouTube Premium in 2026 (Web, iPhone, Android)',
+    description:
+      'Cancel YouTube Premium or YouTube Music Premium on the web or through Apple and Google Play billing - and keep your playlists and downloads until the paid period ends.',
+    publishedAt: '2026-09-01',
+    readingTimeMin: 4,
+    intro:
+      'YouTube Premium can be cancelled in a few clicks, but the exact page depends on whether you signed up on YouTube, in the iOS app, or through Google Play. Here is the verified path for each.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-spotify',
+      'cancel-subscriptions-android',
+      'cancel-subscriptions-iphone',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: To cancel YouTube Premium, go to youtube.com/paid_memberships, click "Manage membership", then "Deactivate", and confirm. If you subscribed through the iOS app, cancel in Apple Subscriptions instead. If you subscribed through Google Play, cancel in the Play Store. You keep Premium benefits until the end of your current billing period.',
+      },
+      {
+        type: 'p',
+        text: 'YouTube Premium and YouTube Music Premium share the same membership system, so the cancellation steps are identical. The only thing that changes is the platform that took your payment.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on the Web (Verified from YouTube Help)',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Go to youtube.com/paid_memberships while signed in',
+          'Click "Manage membership"',
+          'Click "Deactivate"',
+          'Click "Continue" to cancel',
+          'Select a reason and click "Next"',
+          'Click "Yes, cancel"',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on iPhone (Apple Billing)',
+      },
+      {
+        type: 'p',
+        text: 'If you joined through the YouTube iOS app, Apple is your billing provider and the subscription lives in your Apple Account:',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Open Settings and tap your name at the top',
+          'Tap "Subscriptions"',
+          'Tap YouTube Premium or YouTube Music Premium',
+          'Tap "Cancel Subscription" and confirm',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on Android (Google Play Billing)',
+      },
+      {
+        type: 'p',
+        text: 'If you joined through the YouTube Android app, Google Play handles the billing:',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Open the Play Store and sign in with the correct Google account',
+          'Go to Profile → Payments & subscriptions → Subscriptions',
+          'Tap YouTube Premium or YouTube Music Premium',
+          'Tap "Cancel subscription" and follow the prompts',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Your Premium benefits continue until the end of the current billing period',
+          'You will not be charged again unless you re-subscribe',
+          'Your playlists, subscriptions, and watch history stay in your Google account',
+          'Any downloaded videos will become unavailable when the membership ends',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Watch for Overlapping Music Subscriptions',
+      },
+      {
+        type: 'p',
+        text: 'YouTube Music Premium is often held alongside Spotify, Apple Music, or Amazon Music. A single list of every recurring charge and its renewal date is how you spot the overlap you would otherwise pay for indefinitely.',
+      },
+      {
+        type: 'p',
+        text: 'If YouTube Premium is part of a wider clear-out, Quick Unsubscribe takes you straight to the cancel page for each service in your list.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free for manual subscription tracking - no bank access required. Pro scans your inbox to surface the subscriptions you have forgotten and reminds you before each renewal, as a one-time payment rather than another monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-apple-tv-plus',
+    title: 'Cancel Apple TV+ and Apple One in 2026',
+    description:
+      'Cancel Apple TV+ or Apple One on iPhone, Mac, the web, or Windows - and know what happens to your other Apple subscriptions when you leave Apple One.',
+    publishedAt: '2026-09-01',
+    readingTimeMin: 5,
+    intro:
+      'Cancelling Apple TV+ is straightforward. Cancelling Apple One requires a little more care, because it bundles several services together and leaving it cancels every included subscription unless you switch to individual plans first.',
+    faqQuestions: [
+      'How do I cancel a subscription on my iPhone?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-disney-plus',
+      'cancel-subscriptions-iphone',
+      'how-to-cancel-subscriptions',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: To cancel Apple TV+, go to Settings → [your name] → Subscriptions → Apple TV+ → Cancel Subscription. You can also cancel at account.apple.com. To cancel Apple One, use the same path, but be aware that cancelling Apple One also cancels Apple Music, Apple TV+, Apple Arcade, iCloud+, and Fitness+ unless you switch to individual plans first.',
+      },
+      {
+        type: 'p',
+        text: 'Apple subscriptions are managed centrally through your Apple Account, which makes cancellation consistent across devices. The one decision point is whether you are on a standalone Apple TV+ plan or an Apple One bundle.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on iPhone or iPad (Verified from Apple Support)',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Open Settings and tap your name at the top',
+          'Tap "Subscriptions"',
+          'Tap Apple TV+ or Apple One',
+          'Tap "Cancel Subscription". You may need to scroll down to see the button',
+          'Confirm the cancellation',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on Mac, Windows, or the Web',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Mac: App Store → your name → Account Settings → Subscriptions → Manage → Cancel Subscription',
+          'Windows: Apple Music app or Apple TV app → your name → View My Account → Manage next to Subscriptions → Cancel Subscription',
+          'Web: sign in at account.apple.com, go to Subscriptions, and cancel there',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'The Apple One Bundle Decision',
+      },
+      {
+        type: 'p',
+        text: 'Apple One bundles Apple Music, Apple TV+, Apple Arcade, iCloud+, and sometimes Fitness+ or News+ at a single price. If you cancel Apple One, every included service is cancelled with it. If you only wanted to drop Apple TV+ but keep Apple Music or iCloud+, Apple will usually offer to switch you to individual subscriptions during the cancellation flow. Accept that offer before confirming the cancellation if you want to keep any piece.',
+      },
+      {
+        type: 'callout',
+        text: 'Tip: If you do not see a "Cancel Subscription" button, the subscription is already cancelled or it is managed by a different Apple Account. Search your email for "receipt from Apple" to see which account was charged.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'ul',
+        items: [
+          'You keep Apple TV+ access until the end of the current billing period',
+          'No partial refund is issued',
+          'Any purchased or rented content outside the subscription remains in your account',
+          'Your iCloud+ storage allowance drops only when the separate iCloud+ subscription ends',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Track the Rest of Your Apple Subscriptions',
+      },
+      {
+        type: 'p',
+        text: 'Apple TV+ is often one of several Apple subscriptions - iCloud+, Apple Music, Arcade, Fitness+. A tracker that lists every recurring charge in one place stops the bundle from quietly renewing while you only meant to keep one part.',
+      },
+      {
+        type: 'p',
+        text: 'Quick Unsubscribe takes you straight to the cancel page for each service in your list, including the non-Apple ones that Settings does not show.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free for manual subscription tracking - no bank access required. Pro adds automatic email discovery and renewal reminders as a one-time payment, not another monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-max-hbo',
+    title: 'Cancel Max (Formerly HBO Max) in 2026',
+    description:
+      'Cancel Max on the web or app, or through Apple, Google, Amazon, Roku, YouTube TV, or your cable provider - and keep watching until your paid period ends.',
+    publishedAt: '2026-09-01',
+    readingTimeMin: 5,
+    intro:
+      'Max is the streaming service formerly known as HBO Max. The cancellation process is the same as most streaming services: easy if you are billed directly, and routed through your billing provider if you are not.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-netflix-subscription',
+      'how-to-cancel-disney-plus',
+      'how-to-cancel-hulu',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: To cancel Max directly, sign in at max.com, go to Profile → My Account → Manage Subscription → Cancel Subscription, and confirm. If you subscribed through Apple, Google Play, Amazon, Roku, YouTube TV, or a cable provider, cancel there instead. You keep access until the end of the current billing period.',
+      },
+      {
+        type: 'p',
+        text: 'Max carries the same billing-platform rule as every major streamer: whoever took the first payment has to be the one to stop future payments. This guide covers the direct Max route and the most common third-party billing paths.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on the Web (Recommended)',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Go to max.com and sign in',
+          'Click your profile icon and select "My Account"',
+          'Choose "Manage Subscription"',
+          'Select "Cancel Subscription" and follow the prompts',
+          'Confirm - you will see the date your access ends',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel in the Max App',
+      },
+      {
+        type: 'p',
+        text: 'The mobile app uses the same Account path as the web. If you do not see a cancel option, your subscription is billed by a third party and Max cannot cancel it for you.',
+      },
+      {
+        type: 'h2',
+        text: "If You're Billed Through Apple, Google, Amazon, Roku, YouTube TV, or Cable",
+      },
+      {
+        type: 'p',
+        text: 'When a third party handles billing, cancel from that platform:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Apple: Settings → [your name] → Subscriptions → Max → Cancel Subscription',
+          'Google Play: Play Store → Profile → Payments & subscriptions → Subscriptions → Max → Cancel',
+          'Amazon: Account → Memberships & Subscriptions → Max → Cancel',
+          'Roku: Settings → Subscriptions → Max → Cancel subscription',
+          'YouTube TV: Membership settings in your YouTube TV account',
+          'Cable or telecom provider: manage it in your provider account',
+        ],
+      },
+      {
+        type: 'callout',
+        text: 'Not sure who bills you? Check the payment method shown on your Max Account page, or search your inbox for the Max receipt - the merchant name tells you where to cancel.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'ul',
+        items: [
+          'You keep full access until the end of the period you already paid for',
+          'No partial refund is issued',
+          'Your profiles and watchlist are retained for a period in case you return',
+          'You can resubscribe anytime',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Streaming Subscriptions Multiply Quickly',
+      },
+      {
+        type: 'p',
+        text: 'Max is rarely the only streamer on a card. A single live list of every subscription, its cost, and its renewal date is how you catch the overlap - and a reminder before each renewal turns every charge into a decision.',
+      },
+      {
+        type: 'p',
+        text: 'If Max is part of a wider streaming audit, Quick Unsubscribe takes you straight to the cancel page for each service in your list.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free for manual subscription tracking - no bank access required. Pro adds automatic email discovery and renewal reminders as a one-time payment, not another monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-paramount-plus',
+    title: 'Cancel Paramount+ in 2026 (Web, App, and Third-Party Billing)',
+    description:
+      'Cancel Paramount+ on the web or app, or through Apple, Google, Amazon, Roku, or your cable provider - and keep watching until your paid period ends.',
+    publishedAt: '2026-09-01',
+    readingTimeMin: 5,
+    intro:
+      'Paramount+ is straightforward to cancel directly, but like most streamers it is often billed through a third party. The cancel button is on the platform that took your money.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-netflix-subscription',
+      'how-to-cancel-max-hbo',
+      'how-to-cancel-subscriptions',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: To cancel Paramount+ directly, sign in at paramountplus.com, go to Account → Subscription & Billing → Cancel Subscription, and confirm. If you subscribed through Apple, Google Play, Amazon, Roku, or a cable provider, cancel there instead. You keep access until the end of the current billing period.',
+      },
+      {
+        type: 'p',
+        text: 'Paramount+ subscriptions are managed in the account settings when billed directly, but many people sign up through an app store, Amazon, or a cable bundle. The rule is the same as every other streamer: cancel where you pay.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on the Web (Recommended)',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Go to paramountplus.com and sign in',
+          'Click your profile icon and select "Account"',
+          'Go to "Subscription & Billing"',
+          'Click "Cancel Subscription" and follow the prompts',
+          'Confirm - you will see the date your access ends',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel in the Paramount+ App',
+      },
+      {
+        type: 'p',
+        text: 'The app mirrors the web flow for directly billed accounts. If no cancel option appears, the subscription is billed elsewhere.',
+      },
+      {
+        type: 'h2',
+        text: "If You're Billed Through Apple, Google, Amazon, Roku, or Cable",
+      },
+      {
+        type: 'p',
+        text: 'When a third party handles billing, cancel from that platform:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Apple: Settings → [your name] → Subscriptions → Paramount+ → Cancel Subscription',
+          'Google Play: Play Store → Profile → Payments & subscriptions → Subscriptions → Paramount+ → Cancel',
+          'Amazon: Account → Memberships & Subscriptions → Paramount+ → Cancel',
+          'Roku: Settings → Subscriptions → Paramount+ → Cancel subscription',
+          'Cable or telecom provider: manage it in your provider account',
+        ],
+      },
+      {
+        type: 'callout',
+        text: 'Not sure who bills you? Check your Paramount+ Account page for the payment method, or search your inbox for the Paramount+ receipt - the merchant name tells you where to cancel.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'ul',
+        items: [
+          'You keep full access until the end of the period you already paid for',
+          'No partial refund is issued',
+          'Your watchlist and profiles are retained for a period',
+          'You can resubscribe anytime',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Do Not Lose Track of the Next One',
+      },
+      {
+        type: 'p',
+        text: 'Paramount+ is one of many streaming services that quietly auto-renew. A single live list of every subscription and its renewal date is the simplest way to stay in control.',
+      },
+      {
+        type: 'p',
+        text: 'Quick Unsubscribe takes you straight to the cancel page for each service in your list, so a streaming audit does not turn into an afternoon of hunting through account menus.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free to use for manual subscription tracking - no bank access required. Pro adds automatic email discovery and renewal reminders as a one-time payment, not another monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-peacock',
+    title: 'Cancel Peacock in 2026: Web, App, and Third-Party Billing',
+    description:
+      'Cancel Peacock on the web or app, or through Apple, Google, Amazon, Roku, or your cable provider - and keep watching until your paid period ends.',
+    publishedAt: '2026-09-01',
+    readingTimeMin: 5,
+    intro:
+      'Peacock cancels like most streaming services: directly on the web, or through whichever app store or provider handles your billing. The trick is knowing which one you are dealing with.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-netflix-subscription',
+      'how-to-cancel-paramount-plus',
+      'how-to-cancel-subscriptions',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: To cancel Peacock directly, sign in at peacocktv.com, go to Account → Plans & Payments → Cancel Plan, and confirm. If you subscribed through Apple, Google Play, Amazon, Roku, or a cable provider, cancel there instead. You keep access until the end of the current billing period.',
+      },
+      {
+        type: 'p',
+        text: 'Peacock subscriptions are often started through a TV, a mobile app, or a cable bundle. Each path puts the billing in a different place, so cancellation has to match the original signup.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on the Web (Recommended)',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Go to peacocktv.com and sign in',
+          'Click your profile icon and select "Account"',
+          'Go to "Plans & Payments"',
+          'Select "Cancel Plan" or "Change or Cancel Plan"',
+          'Follow the prompts to confirm - you will see the date your access ends',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel in the Peacock App',
+      },
+      {
+        type: 'p',
+        text: 'For directly billed accounts, the app offers the same cancel path under Account or Plans & Payments. If no cancel option appears, billing is handled by a third party.',
+      },
+      {
+        type: 'h2',
+        text: "If You're Billed Through Apple, Google, Amazon, Roku, or Cable",
+      },
+      {
+        type: 'p',
+        text: 'When a third party handles billing, cancel from that platform:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Apple: Settings → [your name] → Subscriptions → Peacock → Cancel Subscription',
+          'Google Play: Play Store → Profile → Payments & subscriptions → Subscriptions → Peacock → Cancel',
+          'Amazon: Account → Memberships & Subscriptions → Peacock → Cancel',
+          'Roku: Settings → Subscriptions → Peacock → Cancel subscription',
+          'Cable or telecom provider: manage it in your provider account',
+        ],
+      },
+      {
+        type: 'callout',
+        text: 'Not sure who bills you? Check the payment method in your Peacock Account page, or search your inbox for the Peacock receipt - the merchant name tells you where to cancel.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'ul',
+        items: [
+          'You keep full access until the end of the period you already paid for',
+          'No partial refund is issued',
+          'Your watchlist and profiles are retained for a period',
+          'You can resubscribe anytime',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Streaming Audits Work Best in One Sitting',
+      },
+      {
+        type: 'p',
+        text: 'Peacock is one of several streaming services that can quietly stack up. A single live list of every subscription and its renewal date is how you catch the ones you have stopped watching.',
+      },
+      {
+        type: 'p',
+        text: 'Quick Unsubscribe takes you straight to the cancel page for each service in your list, so an audit that would take hours takes minutes.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free to use for manual subscription tracking - no bank access required. Pro adds automatic email discovery and renewal reminders as a one-time payment, not another monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-audible',
+    title: 'Cancel Audible in 2026 Without Losing Your Audiobooks',
+    description:
+      'Cancel Audible through Amazon, keep your purchased audiobooks, and know what happens to your credits when you leave.',
+    publishedAt: '2026-09-01',
+    readingTimeMin: 5,
+    intro:
+      'Cancelling Audible is easy, but the membership model has a few catches. Your purchased audiobooks stay yours, but unused credits usually do not survive cancellation. Here is how to do it properly.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-amazon-prime',
+      'how-to-cancel-subscriptions',
+      'how-to-cancel-spotify',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: To cancel Audible, sign in at audible.com, go to Account Details → Membership, and click "Cancel membership". Use any unused credits first - they typically expire when you cancel. Purchased audiobooks remain in your library forever. If you subscribed through Apple or Google Play, cancel in those subscriptions instead.',
+      },
+      {
+        type: 'p',
+        text: 'Audible is owned by Amazon, so the account and billing system is the same one you use for Prime. The cancellation itself takes a few clicks, but the credit system means timing matters more than with most subscriptions.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on the Web',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Sign in at audible.com with the Amazon account that holds the membership',
+          'Go to "Account Details" from the dropdown under your name',
+          'Select "Membership" from the left-hand menu',
+          'Click "Cancel membership" and follow the prompts',
+          'Confirm the cancellation',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel Through the Audible App',
+      },
+      {
+        type: 'p',
+        text: 'The Audible app generally redirects you to the website or Amazon to manage membership. If you subscribed inside the iOS or Android app, the subscription may be billed by Apple or Google Play instead - in that case, cancel in Settings → Subscriptions or the Play Store.',
+      },
+      {
+        type: 'h2',
+        text: 'Use Your Credits Before You Cancel',
+      },
+      {
+        type: 'p',
+        text: 'This is the most important Audible-specific step. Unused membership credits typically expire when you cancel. Log in, check your credit balance, and spend every credit on books you want before you confirm the cancellation. Once the membership ends, those credits are gone.',
+      },
+      {
+        type: 'callout',
+        text: 'Purchased audiobooks are yours to keep. You can still listen to everything you bought, even after cancelling, through the Audible app or website. Only the credits disappear.',
+      },
+      {
+        type: 'h2',
+        text: 'Pause Instead of Cancel',
+      },
+      {
+        type: 'p',
+        text: 'Audible sometimes offers a "pause membership" option instead of cancelling. This stops your monthly charge and credit for one to three months while keeping your account and benefits ready to resume. It is worth considering if you only need a short break.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'ul',
+        items: [
+          'You keep access to your Audible Plus catalog until the end of the current billing period',
+          'Purchased audiobooks remain in your library permanently',
+          'Unused credits are typically forfeited - spend them first',
+          'You can rejoin later and your library will still be there',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Check for Other Amazon Subscriptions',
+      },
+      {
+        type: 'p',
+        text: 'Audible is often one of several Amazon recurring charges. While you are reviewing, check Prime, Kindle Unlimited, Amazon Music, and any Prime Video Channels you may have added.',
+      },
+      {
+        type: 'p',
+        text: 'Quick Unsubscribe takes you straight to the cancel page for each service in your list, including the Amazon ones.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free to use for manual subscription tracking - no bank access required. Pro adds automatic email discovery and renewal reminders as a one-time payment, not another monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-xbox-game-pass',
+    title: 'Cancel Xbox Game Pass in 2026 (Console, PC, and Cloud)',
+    description:
+      'Cancel Xbox Game Pass, Game Pass Ultimate, or PC Game Pass from your Microsoft account - and keep playing until your paid period ends.',
+    publishedAt: '2026-09-01',
+    readingTimeMin: 5,
+    intro:
+      'Xbox Game Pass is tied to your Microsoft account, so cancellation happens through Microsoft services, not the console itself. The same steps work for Game Pass Ultimate, Console, and PC plans.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-microsoft-365',
+      'how-to-cancel-subscriptions',
+      'how-to-cancel-netflix-subscription',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: To cancel Xbox Game Pass, sign in at account.microsoft.com/services, find your Game Pass subscription, and turn off recurring billing. You keep access until the end of your current paid period. If you bought through a third-party retailer, you may need to request a refund or cancellation from that retailer instead.',
+      },
+      {
+        type: 'p',
+        text: 'Xbox Game Pass subscriptions are Microsoft subscriptions first and Xbox subscriptions second. That means the cancel switch lives in your Microsoft account, not on the Xbox dashboard, and the same page also handles Microsoft 365 and other services.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on the Web (Recommended)',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Sign in at account.microsoft.com/services with the Microsoft account used for Game Pass',
+          'Find your Xbox Game Pass, Game Pass Ultimate, or PC Game Pass subscription',
+          'Select "Manage" or "Turn off recurring billing"',
+          'Follow the prompts to confirm',
+          'You will see the date your access ends',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on Xbox Console',
+      },
+      {
+        type: 'p',
+        text: 'On the console, go to Settings → Account → Subscriptions, select Game Pass, and turn off recurring billing. This is just a front end for the same Microsoft account page, so either method works.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on Windows PC',
+      },
+      {
+        type: 'p',
+        text: 'Open the Xbox app or Microsoft Store app, sign in with the same Microsoft account, go to your profile or account settings, find Game Pass, and turn off recurring billing.',
+      },
+      {
+        type: 'h2',
+        text: 'If You Bought Through a Retailer or Bundle',
+      },
+      {
+        type: 'p',
+        text: 'If your Game Pass came from a retailer code, a console bundle, or a third-party promotion, Microsoft may not be able to cancel or refund it. In those cases the cancellation or refund request goes to whoever sold it to you.',
+      },
+      {
+        type: 'callout',
+        text: 'Tip: Microsoft calls it "turning off recurring billing" rather than "cancelling". The effect is the same: your subscription stops at the end of the current period and you are not charged again.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'ul',
+        items: [
+          'You keep Game Pass access until the end of the current billing period',
+          'Games installed from Game Pass become unplayable when the membership ends, unless you buy them',
+          'Achievements and save data are preserved in your Microsoft account',
+          'Any games you bought separately remain yours',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Do Not Forget the Other Gaming Subscriptions',
+      },
+      {
+        type: 'p',
+        text: 'Game Pass is often stacked with Xbox Live Gold, PlayStation Plus, Nintendo Switch Online, EA Play, or cloud gaming services. A single list of every gaming subscription and its renewal date stops the overlap.',
+      },
+      {
+        type: 'p',
+        text: 'Quick Unsubscribe takes you straight to the cancel page for each service in your list.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free to use for manual subscription tracking - no bank access required. Pro adds automatic email discovery and renewal reminders as a one-time payment, not another monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-linkedin-premium',
+    title: 'Cancel LinkedIn Premium in 2026',
+    description:
+      'Cancel LinkedIn Premium on the web or through Apple and Google Play billing - and keep Premium features until your paid period ends.',
+    publishedAt: '2026-09-01',
+    readingTimeMin: 4,
+    intro:
+      'LinkedIn Premium can be cancelled from your LinkedIn account settings, unless you subscribed through a mobile app. In that case, Apple or Google Play manages the billing and the cancel button is not on LinkedIn.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-subscriptions',
+      'how-to-cancel-microsoft-365',
+      'cancel-subscriptions-iphone',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: To cancel LinkedIn Premium directly, sign in at linkedin.com, go to Me → Premium subscription settings → Manage Premium account → Cancel subscription, and confirm. If you subscribed through the LinkedIn mobile app, cancel in Apple Subscriptions or Google Play instead. You keep Premium until the end of the current billing period.',
+      },
+      {
+        type: 'p',
+        text: 'LinkedIn Premium cancellation is usually smooth, but the page location moves occasionally and mobile subscriptions are handled by the app store. This guide covers both paths.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on the Web (Recommended)',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Sign in at linkedin.com with the account that has Premium',
+          'Click "Me" at the top of the page',
+          'Select "Premium subscription settings" from the dropdown',
+          'Click "Manage Premium account"',
+          'Under "Manage subscription", select "Cancel subscription"',
+          'Follow the prompts to confirm',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on iPhone or Android',
+      },
+      {
+        type: 'p',
+        text: 'If you subscribed through the LinkedIn mobile app, the billing is handled by Apple or Google Play. LinkedIn cannot cancel it for you.',
+      },
+      {
+        type: 'ul',
+        items: [
+          'iPhone: Settings → [your name] → Subscriptions → LinkedIn Premium → Cancel Subscription',
+          'Android: Play Store → Profile → Payments & subscriptions → Subscriptions → LinkedIn Premium → Cancel',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Downgrade Instead of Cancel',
+      },
+      {
+        type: 'p',
+        text: 'LinkedIn sometimes offers a lower-priced Premium tier during the cancellation flow. If cost is the issue but you still want some Premium features, look for a downgrade option before confirming the full cancellation.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'ul',
+        items: [
+          'You keep Premium features until the end of the current billing period',
+          'Your account reverts to the free LinkedIn tier afterwards',
+          'Your profile, connections, and messages remain unchanged',
+          'InMail credits and advanced search filters stop when the period ends',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Free Trials Convert Automatically',
+      },
+      {
+        type: 'p',
+        text: 'LinkedIn Premium free trials convert to paid subscriptions automatically. If you signed up for a trial, cancel at least 24 hours before the trial ends to avoid the first charge.',
+      },
+      {
+        type: 'p',
+        text: 'Quick Unsubscribe takes you straight to the cancel page for each service in your list, so professional subscriptions like LinkedIn Premium do not slip through.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free to use for manual subscription tracking - no bank access required. Pro adds automatic email discovery and renewal reminders as a one-time payment, not another monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-gym-membership',
+    title: 'Cancel a Gym Membership in 2026 (Major Chains Explained)',
+    description:
+      "How to cancel gym memberships at LA Fitness, 24 Hour Fitness, Gold's Gym, Equinox, Crunch, Anytime Fitness, and other major chains - online, in person, or by certified mail.",
+    publishedAt: '2026-09-01',
+    readingTimeMin: 7,
+    intro:
+      'Gyms make signing up easy and leaving harder. Some chains let you cancel online, others require in-person visits or certified mail, and almost all have timing rules that decide whether you pay for one more month. This guide covers the major chains beyond Planet Fitness.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-planet-fitness',
+      'subscription-fatigue',
+      'how-to-cancel-subscriptions',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: "TL;DR: Gym cancellation rules vary by chain. Check your contract first - some require 30 days notice, some require in-person cancellation, and some allow online cancellation through your member portal. Cancel before your next billing date to avoid another month's dues, and watch for annual fees that often hit in the first quarter.",
+      },
+      {
+        type: 'p',
+        text: 'Gyms are notorious for making cancellation harder than signup. The good news is that most major chains follow one of a few patterns. Knowing which pattern your gym uses saves you from another month of dues and the frustration of being told you did it wrong.',
+      },
+      {
+        type: 'h2',
+        text: 'What Your Contract Actually Says',
+      },
+      {
+        type: 'p',
+        text: 'Before doing anything, find your original contract or member agreement. Look for these terms:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Cancellation method - online, in person, by mail, or by certified letter',
+          'Notice period - 30 days is common',
+          'Billing date - cancelling after this date usually triggers one more charge',
+          'Annual fee date - a once-a-year charge that can hit even if you recently cancelled',
+          'Commitment length - some promotional rates lock you in for a year or more',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Major Chain Cancellation Paths',
+      },
+      {
+        type: 'p',
+        text: 'Rules change and vary by location, but these are the typical methods for the largest chains:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'LA Fitness: usually requires a cancellation form submitted in person at your home club, or a certified letter sent to that club',
+          '24 Hour Fitness: often allows cancellation online through the member portal, though some older memberships require in-person or mail',
+          "Gold's Gym: varies widely by franchise - many require in-person cancellation at the location where you joined",
+          'Equinox: typically requires written notice, often accepted in person or through member services',
+          'Crunch Fitness: most locations require in-person cancellation or a certified letter to your home club',
+          'Anytime Fitness: franchise-owned, so policies vary - contact your home club directly',
+          'YMCA: usually requires written notice, often 30 days, and may allow cancellation by mail or in person',
+        ],
+      },
+      {
+        type: 'callout',
+        text: 'Phone calls and emails usually do not count as official cancellation. Get proof - a signed form, a certified-mail receipt, or a cancellation confirmation email - and keep it until the charges stop.',
+      },
+      {
+        type: 'h2',
+        text: 'A Cancellation Letter Template',
+      },
+      {
+        type: 'p',
+        text: 'If your gym accepts mail cancellation, keep the letter short and include everything needed to identify your account:',
+      },
+      {
+        type: 'p',
+        text: 'To Whom It May Concern: I am writing to cancel my gym membership, effective immediately. My name is [full name], my membership number is [number], and the account is registered at [address / phone / email]. Please confirm the cancellation in writing and stop all future charges, including any annual fee. Signed, [signature and date].',
+      },
+      {
+        type: 'h2',
+        text: 'Timing: Billing Date and Annual Fee',
+      },
+      {
+        type: 'p',
+        text: 'Two dates decide how much you pay on the way out:',
+      },
+      {
+        type: 'ul',
+        items: [
+          "Cancel before your next monthly billing date to avoid another month's dues - many gyms do not prorate",
+          'The annual fee often posts once a year, commonly between January and March. If yours is due soon, cancel before it hits or you may pay for a full year you are leaving',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'If They Keep Charging You',
+      },
+      {
+        type: 'p',
+        text: 'If dues keep coming after you cancelled correctly, dispute the charges with your bank or card issuer and attach your proof. State auto-renewal laws often require gyms to honour a written cancellation, so documentation is everything.',
+      },
+      {
+        type: 'h2',
+        text: 'Track the Renewal, Not Just the Cancellation',
+      },
+      {
+        type: 'p',
+        text: 'Gym memberships and their once-a-year fees hide in plain sight. A tracker that lists every recurring charge with its renewal date stops the annual fee from being a surprise.',
+      },
+      {
+        type: 'p',
+        text: 'For services with a real cancel page, Quick Unsubscribe takes you straight to it, so the gym stays the exception rather than the norm.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free to use for manual subscription tracking - no bank access required. Pro finds forgotten recurring charges in your inbox and reminds you before each renewal, including annual ones, as a one-time payment rather than a monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-microsoft-365',
+    title: 'Cancel Microsoft 365 in 2026 (And Keep Your Files)',
+    description:
+      'Cancel Microsoft 365 from your Microsoft account, keep your files when OneDrive storage drops, and know when a refund is possible.',
+    publishedAt: '2026-09-01',
+    readingTimeMin: 5,
+    intro:
+      'Microsoft 365 is cancelled through your Microsoft account, not inside Word or Outlook. The main thing to watch is your OneDrive storage: it drops to 5 GB when the subscription ends, and anything over that needs to be moved.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: ['how-to-cancel-adobe', 'how-to-cancel-dropbox', 'how-to-cancel-subscriptions'],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: To cancel Microsoft 365, sign in at account.microsoft.com/services, find your Microsoft 365 subscription, and turn off recurring billing. You keep access until the end of your paid period. Your OneDrive storage drops to 5 GB afterwards, so download or move anything over that limit before the subscription ends.',
+      },
+      {
+        type: 'p',
+        text: 'Microsoft 365 subscriptions are managed centrally in your Microsoft account, alongside Xbox Game Pass and other services. Cancelling turns off recurring billing; it does not delete your account or immediately remove access.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on the Web (Recommended)',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Sign in at account.microsoft.com/services with the Microsoft account used for the subscription',
+          'Find your Microsoft 365 subscription',
+          'Select "Manage" or "Turn off recurring billing"',
+          'Follow the prompts to confirm',
+          'You will see the date your access ends',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel Through an App Store',
+      },
+      {
+        type: 'p',
+        text: 'If you subscribed to Microsoft 365 through the Apple App Store or Google Play Store, Microsoft cannot cancel it for you. Cancel in the store where you subscribed:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Apple: Settings → [your name] → Subscriptions → Microsoft 365 → Cancel Subscription',
+          'Google Play: Play Store → Profile → Payments & subscriptions → Subscriptions → Microsoft 365 → Cancel',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'The Storage Catch: OneDrive',
+      },
+      {
+        type: 'p',
+        text: 'The biggest practical issue when leaving Microsoft 365 is storage. Your OneDrive allowance drops from 1 TB to the free 5 GB when the subscription ends. If you are over 5 GB, Microsoft gives you a grace period - typically several months - during which you can view and download files, but you cannot add new files. After that, files may be deleted.',
+      },
+      {
+        type: 'callout',
+        text: 'Before the subscription ends, download your OneDrive files to local storage or move them to another cloud provider. Do not wait until the grace period is almost over.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens to Office Apps',
+      },
+      {
+        type: 'p',
+        text: 'Installed Office apps do not uninstall themselves when the subscription ends, but they drop into reduced functionality mode. You can still open and view documents, but editing and creating new documents requires an active subscription or a one-time Office purchase.',
+      },
+      {
+        type: 'h2',
+        text: 'Refunds',
+      },
+      {
+        type: 'p',
+        text: 'Microsoft generally does not offer refunds for monthly subscriptions. For annual plans, you may be eligible for a prorated refund if you cancel shortly after renewal and have not used the service. Contact Microsoft Support to request one.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'ul',
+        items: [
+          'You keep Microsoft 365 features until the end of the current billing period',
+          'OneDrive storage drops to 5 GB after that date',
+          'Office apps enter reduced functionality mode',
+          'Your Microsoft account, email, and purchased content remain active',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Track Your Software Subscriptions',
+      },
+      {
+        type: 'p',
+        text: 'Microsoft 365 is often one of several software subscriptions - Adobe, Dropbox, Canva, cloud storage. A single list of every renewal date stops the annual ones from auto-charging before you review them.',
+      },
+      {
+        type: 'p',
+        text: 'Quick Unsubscribe takes you straight to the cancel page for each service in your list.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free to use for manual subscription tracking - no bank access required. Pro adds automatic email discovery and renewal reminders as a one-time payment, not another monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-canva',
+    title: 'Cancel Canva Pro in 2026',
+    description:
+      'Cancel Canva Pro on the web or through Apple and Google Play billing - and know what happens to your designs and brand kits when you leave.',
+    publishedAt: '2026-09-01',
+    readingTimeMin: 4,
+    intro:
+      'Canva Pro cancels in a few clicks from your Canva account settings, unless you subscribed through a mobile app. The main thing to watch is what happens to premium content and shared designs when the subscription ends.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-adobe',
+      'how-to-cancel-microsoft-365',
+      'how-to-cancel-subscriptions',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: To cancel Canva Pro, sign in at canva.com, go to Account settings → Billing & plans → Cancel subscription, and confirm. If you subscribed through the Canva mobile app, cancel in Apple Subscriptions or Google Play instead. You keep Pro features until the end of your paid period.',
+      },
+      {
+        type: 'p',
+        text: 'Canva keeps cancellation simple for web subscriptions, but app-store subscriptions follow the same rule as every other app-store purchase: Apple or Google manages the billing, so the cancel switch is in their settings.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on the Web (Recommended)',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Sign in at canva.com with the account that holds the Pro subscription',
+          'Click your profile icon and select "Account settings"',
+          'Go to "Billing & plans"',
+          'Find your Canva Pro plan and select "Cancel subscription"',
+          'Follow the prompts to confirm',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on iPhone or Android',
+      },
+      {
+        type: 'p',
+        text: 'If you subscribed through the Canva mobile app, the billing is handled by Apple or Google Play:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'iPhone: Settings → [your name] → Subscriptions → Canva → Cancel Subscription',
+          'Android: Play Store → Profile → Payments & subscriptions → Subscriptions → Canva → Cancel',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'What Happens to Your Designs',
+      },
+      {
+        type: 'p',
+        text: 'When Canva Pro ends, your account reverts to the free Canva tier. Designs you created remain in your account, but any premium elements, brand kits, or folders that exceed free-tier limits may become read-only or hidden. You can still view and download most designs; you just lose the ability to edit designs that use premium features unless you re-subscribe.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'ul',
+        items: [
+          'You keep Canva Pro features until the end of the current billing period',
+          'Your designs stay in your account',
+          'Premium templates, elements, and brand kits may become unavailable',
+          'You can re-subscribe later and restore Pro access',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Track Your Design Subscriptions',
+      },
+      {
+        type: 'p',
+        text: 'Canva Pro, Adobe Creative Cloud, and other design tools often overlap. A single list of every software subscription and its renewal date stops you from paying for two tools that do the same job.',
+      },
+      {
+        type: 'p',
+        text: 'Quick Unsubscribe takes you straight to the cancel page for each service in your list.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free to use for manual subscription tracking - no bank access required. Pro adds automatic email discovery and renewal reminders as a one-time payment, not another monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-dropbox',
+    title: 'Cancel Dropbox in 2026 (And Keep Your Files)',
+    description:
+      'Cancel Dropbox Plus, Family, Professional, or Business from your account settings - and know what happens to your storage and files when the subscription ends.',
+    publishedAt: '2026-09-01',
+    readingTimeMin: 5,
+    intro:
+      'Cancelling Dropbox is straightforward, but the storage drop is the catch. When the subscription ends, your account reverts to the free 2 GB Dropbox Basic plan. Anything over that limit needs to be moved or deleted.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-microsoft-365',
+      'how-to-cancel-adobe',
+      'how-to-cancel-subscriptions',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: To cancel Dropbox, sign in at dropbox.com, go to Settings → Plan → Cancel plan or Manage billing, and follow the prompts. You keep paid features until the end of your current billing period, then your storage drops to 2 GB. Move or download anything over that limit before the subscription ends.',
+      },
+      {
+        type: 'p',
+        text: 'Dropbox subscriptions are managed through the account settings on the web. Business plans are slightly different - the admin cancels or downgrades the team plan - but personal plans follow the same path.',
+      },
+      {
+        type: 'h2',
+        text: 'Cancel on the Web (Recommended)',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Sign in at dropbox.com with the account that holds the subscription',
+          'Click your profile icon and select "Settings"',
+          'Go to the "Plan" tab',
+          'Click "Cancel plan" or "Manage billing"',
+          'Follow the prompts to confirm the cancellation',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel Dropbox Business',
+      },
+      {
+        type: 'p',
+        text: 'For Dropbox Business, only the team admin can cancel or downgrade. The admin signs in at dropbox.com, goes to Admin console → Billing, and cancels or downgrades the plan. Team members cannot cancel the subscription individually.',
+      },
+      {
+        type: 'h2',
+        text: 'The Storage Catch',
+      },
+      {
+        type: 'p',
+        text: 'When your paid Dropbox plan ends, your account becomes Dropbox Basic with 2 GB of storage. If you are using more than 2 GB, Dropbox will not delete your files immediately, but syncing stops and you cannot add new files until you are under the limit. You have time to download or move files, but the sooner you do it the better.',
+      },
+      {
+        type: 'callout',
+        text: 'Before the subscription ends, download important files to local storage or move them to another service. Do not rely on Dropbox staying above the free limit indefinitely.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'ul',
+        items: [
+          'You keep paid features until the end of the current billing period',
+          'Your storage allowance drops to 2 GB after that date',
+          'Files are not deleted immediately, but syncing stops if you are over the limit',
+          'Shared links and folders may be affected if they rely on paid features',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Refunds',
+      },
+      {
+        type: 'p',
+        text: 'Dropbox generally does not refund monthly subscriptions. For annual plans, you may be able to request a prorated refund if you cancel shortly after renewal. Contact Dropbox Support to check eligibility.',
+      },
+      {
+        type: 'h2',
+        text: 'Track Your Cloud Storage Subscriptions',
+      },
+      {
+        type: 'p',
+        text: 'Dropbox, Google One, iCloud+, Microsoft OneDrive, and other storage plans often overlap. A single list of every subscription and its renewal date stops you from paying for more cloud storage than you need.',
+      },
+      {
+        type: 'p',
+        text: 'Quick Unsubscribe takes you straight to the cancel page for each service in your list.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free to use for manual subscription tracking - no bank access required. Pro adds automatic email discovery and renewal reminders as a one-time payment, not another monthly fee.',
+      },
+    ],
+  },
+  {
+    slug: 'how-to-cancel-siriusxm',
+    title: 'Cancel SiriusXM in 2026 (And Get Past the Retention Call)',
+    description:
+      'Cancel SiriusXM online, by chat, or by phone - and know how to handle the retention offers and car trial subscriptions that make leaving harder than it should be.',
+    publishedAt: '2026-09-01',
+    readingTimeMin: 6,
+    intro:
+      'SiriusXM is one of the few major services that still pushes cancellation to a phone call or chat. The good news is that online cancellation has become available for many plans. The bad news is that if it is not, you will need to sit through retention offers before they let you go.',
+    faqQuestions: [
+      'How do I cancel a subscription I forgot about?',
+      'How do renewal reminders work?',
+    ],
+    relatedSlugs: [
+      'how-to-cancel-subscriptions',
+      'how-to-cancel-amazon-prime',
+      'how-to-cancel-spotify',
+    ],
+    relatedPageLinks: [{ href: '/free-subscription-tracker', label: 'Free Subscription Tracker' }],
+    sections: [
+      {
+        type: 'callout',
+        text: 'TL;DR: To cancel SiriusXM, first try your online account at siriusxm.com under Manage Your Plan. If online cancellation is not offered, start a chat or call SiriusXM customer service at the number on your billing statement. Be prepared to decline retention offers. Car trials often convert to paid plans automatically - cancel before the trial ends.',
+      },
+      {
+        type: 'p',
+        text: 'SiriusXM makes leaving deliberately harder than signing up. Some subscribers can now cancel online, but many still need to go through chat or phone. Either way, the process works if you stay polite, firm, and unwilling to accept a discount you do not want.',
+      },
+      {
+        type: 'h2',
+        text: 'Try Online Cancellation First',
+      },
+      {
+        type: 'p',
+        text: 'SiriusXM has been rolling out online cancellation for more subscribers. Log in at siriusxm.com, go to your account, and look for "Manage Your Plan" or "Cancel Service". If the option is there, it is the fastest path.',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Sign in at siriusxm.com',
+          'Go to Account or Manage Your Plan',
+          'Look for "Cancel Service" or "Turn off auto-renew"',
+          'Follow the prompts to confirm',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Cancel by Chat or Phone',
+      },
+      {
+        type: 'p',
+        text: 'If online cancellation is not available, you will need to contact SiriusXM directly. Use chat if it is offered - it is easier to stay firm in writing than on the phone. If you call, the customer service number is printed on your billing statement or available on the SiriusXM website.',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Chat: look for the chat option in your SiriusXM account or on the help page',
+          'Phone: call the number on your billing statement or the SiriusXM support line',
+          'Be ready with your account number, radio ID, or email address',
+        ],
+      },
+      {
+        type: 'callout',
+        text: 'Retention script: the agent will likely offer a lower rate, a free month, or a different plan. You do not need a reason beyond "I want to cancel". Decline every offer and ask for confirmation that the service will not auto-renew.',
+      },
+      {
+        type: 'h2',
+        text: 'Car Trials Convert Automatically',
+      },
+      {
+        type: 'p',
+        text: 'New and used cars often come with a free SiriusXM trial. These trials convert to paid subscriptions automatically unless you cancel. If you are not listening, call or chat before the trial ends and ask to turn off auto-renew. You do not need to wait until the trial is over.',
+      },
+      {
+        type: 'h2',
+        text: 'What Happens After You Cancel',
+      },
+      {
+        type: 'ul',
+        items: [
+          'You keep service until the end of the current billing period',
+          'No partial refund is typically issued',
+          'Your radio ID or streaming login remains on record if you return',
+          'Set a reminder a few days before renewal in case the cancellation does not stick',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'If They Keep Charging You',
+      },
+      {
+        type: 'p',
+        text: 'Save the chat transcript or note the date, time, and representative name from a phone call. If charges continue, dispute them with your card issuer and attach your proof of cancellation.',
+      },
+      {
+        type: 'h2',
+        text: 'Track Subscriptions That Resist Cancellation',
+      },
+      {
+        type: 'p',
+        text: 'SiriusXM is the kind of subscription people forget they have, especially when it started as a car trial. A tracker that lists every recurring charge with its renewal date catches these before they auto-renew.',
+      },
+      {
+        type: 'p',
+        text: 'Quick Unsubscribe takes you straight to the cancel page for each service in your list.',
+        links: [{ text: 'Quick Unsubscribe', href: '/free-subscription-manager' }],
+      },
+      {
+        type: 'callout',
+        text: 'Suprascribe is free to use for manual subscription tracking - no bank access required. Pro adds automatic email discovery and renewal reminders as a one-time payment, not another monthly fee.',
       },
     ],
   },

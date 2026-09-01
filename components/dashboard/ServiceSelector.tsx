@@ -25,7 +25,6 @@ function SelectorLogo({ name, url }: { name: string; url?: string | null }) {
       serviceUrl={url || undefined}
       size={20}
       className="size-5 shrink-0 rounded"
-      fallbackClassName="size-4 shrink-0"
     />
   )
 }

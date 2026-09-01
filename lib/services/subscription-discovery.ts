@@ -69,7 +69,12 @@ export async function discover(input: DiscoveryInput): Promise<DiscoveryResult> 
     rawEmails = await fetchGmailEmails(input.credentials.token, keywords)
   } else {
     email = await fetchOutlookProfileEmail(input.credentials.token)
-    rawEmails = await fetchOutlookEmails(input.credentials.token, keywords)
+    // Graph gets single-word tokens rather than the shared phrase list - see the
+    // note on outlookSubjectTokens for why phrases cannot be quoted safely here.
+    rawEmails = await fetchOutlookEmails(
+      input.credentials.token,
+      EMAIL_DISCOVERY_CONFIG.outlookSubjectTokens,
+    )
   }
 
   if (rawEmails.length === 0) {

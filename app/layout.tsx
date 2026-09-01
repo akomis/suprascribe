@@ -90,14 +90,14 @@ const jsonLd = {
         {
           '@type': 'Offer',
           price: '0',
-          priceCurrency: 'EUR',
+          priceCurrency: 'USD',
           name: 'Basic',
           description: 'Free forever - core subscription tracking features',
         },
         {
           '@type': 'Offer',
-          price: '10',
-          priceCurrency: 'EUR',
+          price: '20',
+          priceCurrency: 'USD',
           name: 'Pro',
           description: 'One-time purchase for advanced features',
         },

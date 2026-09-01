@@ -1,9 +1,9 @@
 'use client'
 
+import { ServiceLettermark } from '@/components/shared/ServiceLettermark'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useLogo } from '@/lib/hooks/useLogo'
 import { cn } from '@/lib/utils'
-import { Box } from 'lucide-react'
 import Image from 'next/image'
 import * as React from 'react'
 
@@ -16,6 +16,7 @@ interface ServiceLogoProps {
   /** Render at natural image dimensions, capped at size. For hero/decorative use. */
   naturalSize?: boolean
   className?: string
+  /** Extra classes for the lettermark fallback only; overrides the sizing above. */
   fallbackClassName?: string
 }
 
@@ -92,11 +93,12 @@ export function ServiceLogo({
     return <Skeleton className={cn('rounded', className)} style={boxStyle} />
   }
 
+  // Every candidate failed: stand in with the service's initials on a coloured tile.
   return (
-    <Box
-      className={cn('text-muted-foreground', fallbackClassName)}
-      style={fallbackClassName ? undefined : { width: size, height: size }}
-      aria-hidden="true"
+    <ServiceLettermark
+      name={name}
+      className={cn('size-full', className, fallbackClassName)}
+      style={boxStyle}
     />
   )
 }

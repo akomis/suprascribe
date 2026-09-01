@@ -13,7 +13,51 @@ export const EMAIL_DISCOVERY_CONFIG = {
     'order confirmation',
   ],
 
-  maxEmailsPerProvider: 500,
+  // Microsoft Graph's $search takes ONE KQL expression wrapped in a single pair
+  // of quotes, so a multi-word value like "payment confirmation" would need
+  // quotes nested inside that quoted string - a case Graph does not document.
+  // Single tokens sidestep the escaping question entirely and match strictly
+  // more: `subject:payment` already covers every subject containing "payment
+  // confirmation". Kept as its own list rather than derived from subjectKeywords
+  // so the noisiest fragments ("order", "confirmation") can be left out.
+  outlookSubjectTokens: [
+    'receipt',
+    'invoice',
+    'payment',
+    'billing',
+    'statement',
+    'subscription',
+    'renewal',
+    'membership',
+    'recurring',
+    'charge',
+  ],
+
+  // Senders whose mail is billing mail regardless of what the subject says.
+  // A receipt routed through a checkout host often carries the merchant's own
+  // subject line ("Your Acme order"), which no keyword list would match.
+  billingSenderDomains: [
+    'stripe.com',
+    'paddle.com',
+    'paddle.net',
+    'chargebee.com',
+    'recurly.com',
+    'lemonsqueezy.com',
+    'gumroad.com',
+    'fastspring.com',
+    'creem.io',
+    'polar.sh',
+    'paypal.com',
+    'apple.com',
+    'google.com',
+  ],
+
+  // How far back to search. Without a window the cap below truncates at an
+  // arbitrary point in history rather than bounding a period, so two scans of
+  // the same inbox could cover different spans.
+  lookbackMonths: 24,
+
+  maxEmailsPerProvider: 1_500,
 
   analysisModel: {
     provider: 'OpenRouter',
@@ -23,7 +67,7 @@ export const EMAIL_DISCOVERY_CONFIG = {
     outputCostPerMillion: 0.4,
     // This model's documented output ceiling. Keep in step with modelName:
     // set too low it truncates mid-JSON, and a provider rejects it if too high.
-    maxOutputTokens: 65_536,
+    maxOutputTokens: 65_535,
   },
 
   batch: {
@@ -37,16 +81,73 @@ export const EMAIL_DISCOVERY_CONFIG = {
   },
 } as const
 
+export interface SearchQueryOptions {
+  /** Sender domains treated as billing mail whatever the subject says. */
+  senders?: readonly string[]
+  /** Oldest message to consider. Omit to search all history. */
+  since?: Date
+}
+
+/** Gmail wants YYYY/MM/DD; Outlook KQL and IMAP want ISO or a Date. */
+function toGmailDate(date: Date): string {
+  return `${date.getUTCFullYear()}/${date.getUTCMonth() + 1}/${date.getUTCDate()}`
+}
+
+export function toIsoDate(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
+
+/** The date `lookbackMonths` before now, which bounds every provider search. */
+export function searchWindowStart(now: Date = new Date()): Date {
+  const since = new Date(now)
+  since.setMonth(since.getMonth() - EMAIL_DISCOVERY_CONFIG.lookbackMonths)
+  return since
+}
+
+/**
+ * Builds the provider-native search expression.
+ *
+ * Gmail and Outlook disagree about quoting, and getting Outlook's wrong is
+ * silent: Graph accepts the request and free-text-searches for the literal
+ * string rather than erroring, so a malformed query reads as "this inbox has no
+ * receipts". The Outlook branch therefore returns the whole KQL expression
+ * already wrapped in its single pair of quotes, ready to be URL-encoded as the
+ * $search value - callers must not add quotes of their own.
+ *
+ * Subject and sender clauses are OR-ed together, then the date window is AND-ed
+ * across the lot, so a receipt qualifies on either signal but never falls
+ * outside the window.
+ */
 export function buildSearchQuery(
   keywords: readonly string[],
   provider: 'gmail' | 'outlook' | 'imap',
+  options: SearchQueryOptions = {},
 ): string {
+  const { senders = [], since } = options
+
   switch (provider) {
-    case 'gmail':
-      return keywords.map((kw) => `subject:"${kw}"`).join(' OR ')
+    case 'gmail': {
+      const clauses = [
+        ...keywords.map((kw) => `subject:"${kw}"`),
+        ...senders.map((domain) => `from:${domain}`),
+      ]
+      if (clauses.length === 0) return 'subject:receipt'
+
+      const grouped = clauses.length > 1 ? `(${clauses.join(' OR ')})` : clauses[0]
+
+      return since ? `${grouped} after:${toGmailDate(since)}` : grouped
+    }
     case 'outlook': {
-      const subjectClauses = keywords.map((kw) => `"subject:${kw}"`).join(' OR ')
-      return subjectClauses
+      const clauses = [
+        ...keywords.map((kw) => `subject:${kw}`),
+        ...senders.map((domain) => `from:${domain}`),
+      ]
+      if (clauses.length === 0) return '"subject:receipt"'
+
+      const grouped = clauses.length > 1 ? `(${clauses.join(' OR ')})` : clauses[0]
+      const withWindow = since ? `${grouped} AND received>=${toIsoDate(since)}` : grouped
+
+      return `"${withWindow}"`
     }
     case 'imap':
       return keywords.map((kw) => `SUBJECT "${kw}"`).join(' OR ')

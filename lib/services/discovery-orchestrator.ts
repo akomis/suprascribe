@@ -261,5 +261,5 @@ export async function runDiscovery(
     })
   }
 
-  return { success: true, subscriptions, emailCount, email, runId: runRow?.id }
+  return { success: true, subscriptions, emailCount, email }
 }

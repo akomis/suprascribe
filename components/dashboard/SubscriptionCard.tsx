@@ -125,7 +125,6 @@ export function SubscriptionCard({
               serviceUrl={serviceUrl}
               size={64}
               className="size-full rounded-lg"
-              fallbackClassName="size-4 sm:size-8"
             />
           </div>
 

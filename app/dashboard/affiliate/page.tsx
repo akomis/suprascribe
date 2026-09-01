@@ -115,13 +115,13 @@ export default function AffiliatePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">
-                {stats ? `€${stats.totalCommission.toFixed(2)}` : '-'}
+                {stats ? `$${stats.totalCommission.toFixed(2)}` : '-'}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Total earned</p>
             </div>
             <div>
               <p className="text-2xl font-bold">
-                {stats ? `€${stats.pendingCommission.toFixed(2)}` : '-'}
+                {stats ? `$${stats.pendingCommission.toFixed(2)}` : '-'}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Pending payout</p>
             </div>

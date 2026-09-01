@@ -1,8 +1,8 @@
 'use client'
 
 import { ServiceLogo } from '@/components/shared/ServiceLogo'
+import { UnsubscribeButton } from '@/components/shared/UnsubscribeButton'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import type { CurrencyCode } from '@/lib/hooks/useCurrency'
 import type { BillingPeriod, DiscoveredSubscription } from '@/lib/types/forms'
@@ -14,7 +14,7 @@ import {
 } from '@/lib/utils'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
 import { isOneTimePayment } from '@/lib/utils/subscription-period-extension'
-import { ChevronDown, ExternalLink } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 
 type ServiceGroup = {
@@ -61,7 +61,6 @@ function groupByService(subs: DiscoveredSubscription[]): ServiceGroup[] {
 
 function ServiceRow({ group }: { group: ServiceGroup }) {
   const { latest } = group
-  const cancelUrl = group.unsubscribeUrl ?? group.serviceUrl
   const periodSuffix = latest.period ? PERIOD_SUFFIX[latest.period] : ''
   const oneTime = isOneTimePayment(latest)
   const dateLabel = oneTime
@@ -96,17 +95,14 @@ function ServiceRow({ group }: { group: ServiceGroup }) {
         )}
         <span className="text-xs text-muted-foreground truncate">{dateLabel}</span>
       </div>
-      {group.active &&
-        (cancelUrl ? (
-          <Button asChild variant="outline" size="sm" className="shrink-0">
-            <a href={cancelUrl} target="_blank" rel="noopener noreferrer">
-              Unsubscribe
-              <ExternalLink className="size-3.5" />
-            </a>
-          </Button>
-        ) : (
-          <span className="text-xs text-muted-foreground shrink-0">No link found</span>
-        ))}
+      {group.active && (
+        <UnsubscribeButton
+          serviceName={group.serviceName}
+          unsubscribeUrl={group.unsubscribeUrl}
+          surface="public"
+          className="shrink-0"
+        />
+      )}
     </div>
   )
 }

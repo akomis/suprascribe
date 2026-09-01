@@ -3,15 +3,15 @@ import { PayCta } from '@/components/discovery-once/PayCta'
 import { TryFunnel } from '@/components/discovery-once/TryFunnel'
 import { StaticGridBackground } from '@/components/landing/StaticGridBackground'
 import { Spinner } from '@/components/ui/spinner'
+import { ONCE_SCAN_PRICE_DISPLAY } from '@/lib/config/stripe'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Suspense } from 'react'
 
 const CANONICAL = 'https://www.suprascribe.com/one-time-scan'
-const TITLE = 'One-Time Subscription Audit for €1'
-const DESCRIPTION =
-  'Scan one inbox once for €1 and reveal your subscriptions with unsubscribe links. No account, no sign-up, nothing saved.'
+const TITLE = `One-Time Subscription Audit for ${ONCE_SCAN_PRICE_DISPLAY}`
+const DESCRIPTION = `Scan one inbox once for ${ONCE_SCAN_PRICE_DISPLAY} and reveal your subscriptions with unsubscribe links. No account, no sign-up, nothing saved.`
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -89,7 +89,7 @@ export default function TryPage() {
             <div className="z-10 flex flex-col items-center gap-6 text-center max-w-3xl">
               <div className="space-y-2">
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                  Find your subscriptions for €1
+                  Find your subscriptions for {ONCE_SCAN_PRICE_DISPLAY}
                 </h1>
                 <p>No account, no sign-up, nothing stored on our servers.</p>
                 <p className="text-muted-foreground">

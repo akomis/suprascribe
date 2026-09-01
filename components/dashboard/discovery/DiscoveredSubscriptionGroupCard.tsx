@@ -66,7 +66,6 @@ export function DiscoveredSubscriptionGroupCard({
                 serviceUrl={serviceUrl}
                 size={64}
                 className="size-full rounded-lg"
-                fallbackClassName="size-5 sm:size-8"
               />
             </div>
             <CardTitle className="text-base break-words">{serviceName}</CardTitle>
@@ -179,6 +178,11 @@ function SubscriptionEntry({
             Active
           </span>
         )}
+        {subscription.is_trial ? (
+          <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 whitespace-nowrap">
+            Trial
+          </span>
+        ) : null}
         <span className="text-xs text-muted-foreground">
           {oneTime
             ? formatLocalizedDate(subscription.start_date)

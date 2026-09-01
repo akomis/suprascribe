@@ -10,7 +10,13 @@ export const metadata: Metadata = buildMetadata({
   path: '/contact',
 })
 
-export default function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ subject?: string; message?: string }>
+}) {
+  const { subject, message } = await searchParams
+
   return (
     <div className="flex min-h-screen flex-col bg-neutral-100 dark:bg-neutral-900/80">
       <div className="flex gap-2 min-h-screen min-w-[350px] max-w-[700px] w-[90vw] sm:w-[600px] md:w-[900px] lg:w-[1000px] flex-col items-center justify-start mx-auto py-4 md:py-10 px-2 md:px-4 fade-on-mount">
@@ -22,6 +28,8 @@ export default function ContactPage() {
           <PublicContactForm
             title="Contact Us"
             description="Have a question, feedback, or just want to say hello? We'd love to hear from you!"
+            initialSubject={subject}
+            initialMessage={message}
           />
         </div>
       </div>
