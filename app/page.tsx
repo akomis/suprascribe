@@ -8,7 +8,11 @@ import { StaticGridBackground } from '@/components/landing/StaticGridBackground'
 import { WhySection } from '@/components/landing/WhySection'
 import { SiteFooter } from '@/components/shared/SiteFooter'
 import { getDiscountStatus } from '@/lib/config/discount'
-import { PRO_FULL_PRICE_DISPLAY, PRO_DISCOUNT_PRICE_DISPLAY } from '@/lib/config/stripe'
+import {
+  ONCE_SCAN_PRICE_DISPLAY,
+  PRO_DISCOUNT_PRICE_DISPLAY,
+  PRO_FULL_PRICE_DISPLAY,
+} from '@/lib/config/stripe'
 import dynamic from 'next/dynamic'
 
 const FeatureCard = dynamic(() =>
@@ -189,7 +193,7 @@ export default function Home() {
               <TierCard
                 name="Basic"
                 description="Perfect for getting started"
-                price="€0"
+                price="$0"
                 period=""
                 features={basicFeatures}
                 buttonText="Get Started"
@@ -218,12 +222,12 @@ export default function Home() {
               <div className="space-y-1">
                 <h3 className="text-lg font-semibold">Just want a quick one-time scan?</h3>
                 <p className="text-sm text-muted-foreground">
-                  Pay €1, connect one inbox, and instantly see your subscriptions with unsubscribe
-                  links. Ephemeral, no sign-up.
+                  Pay {ONCE_SCAN_PRICE_DISPLAY}, connect one inbox, and instantly see your
+                  subscriptions with unsubscribe links. Ephemeral, no sign-up.
                 </p>
               </div>
               <Button size="lg" variant="outline" asChild className="shrink-0">
-                <Link href="/one-time-scan">Scan 1 inbox for €1</Link>
+                <Link href="/one-time-scan">Scan 1 inbox for {ONCE_SCAN_PRICE_DISPLAY}</Link>
               </Button>
             </div>
           </div>
@@ -233,7 +237,7 @@ export default function Home() {
 
         {/* Competitor Table */}
         <section className="container mx-auto py-10 sm:py-20 px-2 sm:px-4">
-          <div className="mx-auto max-w-2xl space-y-8 sm:space-y-12">
+          <div className="mx-auto max-w-3xl space-y-8 sm:space-y-12">
             <div className="text-center space-y-3">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
                 Suprascribe vs. other Trackers
@@ -337,8 +341,8 @@ export default function Home() {
                 .
               </p>
               <p>
-                Suprascribe is open source. You can inspect the code, verify how your data is
-                handled, and contribute.
+                Suprascribe is open source. You can inspect the code and verify how your data is
+                handled.
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4 pt-8">

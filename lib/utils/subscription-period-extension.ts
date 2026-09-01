@@ -1,16 +1,9 @@
 import type { BillingPeriod, DiscoveredSubscription } from '@/lib/types/forms'
 import { toDateString } from '@/lib/utils/date'
 
-// Tolerate a slightly late or missed receipt when judging whether two periods
-// are consecutive.
+// Tolerate a slightly late or missed receipt, both when judging whether two
+// periods are consecutive and when judging whether the newest one is still live.
 const GRACE_BUFFER_DAYS = 10
-
-// How far past its next-billing date a subscription can sit before we call it
-// cancelled. Deliberately much tighter than a full cycle: end_date is the next
-// billing date, so a live subscription's renewal receipt is due on that day.
-// This window only absorbs a receipt that arrived late, did not match the
-// search keywords, or fell outside the fetch limit.
-const MISSED_RENEWAL_GRACE_DAYS = 10
 
 // Approximate length of one billing cycle in days, keyed by billing period.
 const CYCLE_DAYS: Record<BillingPeriod, number> = {
@@ -104,14 +97,31 @@ function mergeIntoRun(
   }
 }
 
-// A run that is only just past its next-billing date is almost certainly still
-// running - the renewal receipt has not landed yet. Anything staler than the
-// grace window was cancelled, and stays in the past.
+/**
+ * Whether a run that is past its next-billing date is still probably running.
+ *
+ * end_date is the next billing date from the LAST receipt we captured, which is
+ * not the same as the last receipt that exists. A renewal email can easily go
+ * unseen: it may not match the subject keywords, it may have landed after the
+ * scan, or it may have fallen outside the fetch window. So a run sitting less
+ * than one cycle past its end means exactly one expected receipt is missing,
+ * which is ordinary. Only past a full cycle have two or more consecutive
+ * receipts gone missing, and that genuinely suggests the subscription ended.
+ *
+ * This is the same tolerance isContinuous applies between two segments, with
+ * today standing in for the next segment's start - the tail of a timeline gets
+ * judged by the same rule as its middle.
+ *
+ * The window used to be a flat 10 days, which marked a monthly subscription
+ * "Past" a week and a half after a single missed receipt. For a tracker that is
+ * the worst way to be wrong: the user stops seeing money they are still paying.
+ * Showing a cancelled subscription as active is visible and one click to fix.
+ */
 function isRecentlyLapsed(sub: DiscoveredSubscription): boolean {
   if (isOneTimePayment(sub)) return false
   const end = endOf(sub)
   if (!hasElapsed(end)) return false
-  return daysBetween(end, todayString()) <= MISSED_RENEWAL_GRACE_DAYS
+  return daysBetween(end, todayString()) <= getCycleDays(sub.period) + GRACE_BUFFER_DAYS
 }
 
 // Advances the run's own end date by whole cycles until it covers today. This
@@ -123,7 +133,7 @@ function extendToCoverToday(sub: DiscoveredSubscription): DiscoveredSubscription
 
   // Runs past today rather than up to it, since a period ending today already
   // counts as spent. Bounded: callers only pass runs that ended within one
-  // cycle + grace, so this advances at most a few times.
+  // cycle + grace, so this advances at most twice.
   while (hasElapsed(toDateString(end))) {
     end.setDate(end.getDate() + cycleDays)
   }

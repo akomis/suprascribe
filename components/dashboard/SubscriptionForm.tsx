@@ -15,6 +15,7 @@ import {
 import { Spinner } from '@/components/ui/spinner'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { CURRENCIES, CurrencyCode, useCurrency } from '@/lib/hooks/useCurrency'
+import { getCurrencySymbol } from '@/lib/utils/currency'
 import { UserSubscriptionWithDetails } from '@/lib/types/database'
 import { BillingPeriod, CreateSubscriptionFormData } from '@/lib/types/forms'
 import { cn, handleNumericInputKeyDown } from '@/lib/utils'
@@ -443,6 +444,17 @@ function PricingFields({
   onCostChange: (v: string) => void
   onAutoRenewToggle: () => void
 }) {
+  // A subscription can be stored in any ISO-4217 currency, while the picker only
+  // offers the ones with an exchange rate. Without appending the current value
+  // the trigger would render blank for, say, a SEK subscription, and the code
+  // would be lost the moment the user touched the field.
+  const currencyOptions = React.useMemo(() => {
+    const offered = Object.entries(CURRENCIES).map(([code, { symbol }]) => ({ code, symbol }))
+    if (offered.some((option) => option.code === selectedCurrency)) return offered
+
+    return [...offered, { code: selectedCurrency, symbol: getCurrencySymbol(selectedCurrency) }]
+  }, [selectedCurrency])
+
   return (
     <div className="grid sm:grid-cols-3 gap-2">
       <div className="flex flex-col gap-2">
@@ -456,7 +468,7 @@ function PricingFields({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(CURRENCIES).map(([code, { symbol }]) => (
+            {currencyOptions.map(({ code, symbol }) => (
               <SelectItem key={code} value={code}>
                 <span className="flex items-center gap-2">
                   <span className="font-medium">{symbol}</span>
@@ -648,7 +660,7 @@ export function SubscriptionForm({
 
   const oneTime = periodChoice === ONE_TIME
   const addBillingCycle = !periodChoice || oneTime ? null : (periodChoice as BillingCycle)
-  const currencySymbol = CURRENCIES[selectedCurrency].symbol
+  const currencySymbol = getCurrencySymbol(selectedCurrency)
 
   const previewData = React.useMemo(
     () =>

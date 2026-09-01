@@ -29,9 +29,17 @@ interface ContactFormProps {
   title: string
   description: string
   initialCategory?: string
+  initialSubject?: string
+  initialMessage?: string
 }
 
-export function ContactForm({ title, description, initialCategory }: ContactFormProps) {
+export function ContactForm({
+  title,
+  description,
+  initialCategory,
+  initialSubject,
+  initialMessage,
+}: ContactFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const validCategories = Object.keys(CATEGORIES) as CategoryType[]
@@ -40,8 +48,8 @@ export function ContactForm({ title, description, initialCategory }: ContactForm
     : 'question'
   const [formData, setFormData] = useState({
     category: safeInitial,
-    subject: '',
-    message: '',
+    subject: initialSubject ?? '',
+    message: initialMessage ?? '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {

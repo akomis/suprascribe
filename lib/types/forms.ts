@@ -17,6 +17,11 @@ export type CreateSubscriptionFormData = {
   period?: BillingPeriod
   paymentMethod?: string
   sourceEmail?: string
+  /**
+   * Set by the discovery review dialog. Lets intake merge a re-scanned period
+   * into the run the user already has rather than adding a duplicate row.
+   */
+  fromDiscovery?: boolean
 }
 
 export interface DiscoveredSubscription {
@@ -32,4 +37,7 @@ export interface DiscoveredSubscription {
   payment_method?: string
   auto_renew?: boolean
   source_email?: string
+  is_trial?: boolean
+  trial_end_date?: string
+  receipt_url?: string
 }

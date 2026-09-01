@@ -26,21 +26,18 @@ export function SubscriptionBadge({
         ? 'text-xs gap-1 sm:gap-1.5 bg-white dark:bg-neutral-900 w-fit px-2 py-0.5'
         : 'gap-1 bg-white dark:bg-neutral-900 w-fit p-0.5 sm:p-1 cursor-default',
       logo: 'size-3 sm:size-4',
-      iconFallback: 'size-2 sm:size-3',
     },
     md: {
       badge: showLabel
         ? 'text-sm md:text-md font-light gap-1 sm:gap-2 bg-white dark:bg-neutral-900 w-fit'
         : 'gap-1 sm:gap-2 bg-white dark:bg-neutral-900 w-fit p-1 sm:p-1.5 cursor-default',
       logo: 'size-4 sm:size-6',
-      iconFallback: 'size-3 sm:size-4',
     },
     lg: {
       badge: showLabel
         ? 'text-base md:text-lg font-medium gap-2 sm:gap-3 bg-white dark:bg-neutral-900 w-fit px-3 py-1'
         : 'gap-2 sm:gap-3 bg-white dark:bg-neutral-900 w-fit p-2 cursor-default',
       logo: 'size-6 sm:size-8',
-      iconFallback: 'size-5 sm:size-6',
     },
   }
 
@@ -66,7 +63,6 @@ export function SubscriptionBadge({
           serviceUrl={url}
           size={size === 'lg' ? 32 : 24}
           className="size-full"
-          fallbackClassName={currentSize.iconFallback}
         />
       </div>
       {showLabel && <span className="truncate">{name}</span>}

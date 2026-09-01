@@ -19,7 +19,6 @@ export interface DiscoveryCoreReturn {
   teaser: DiscoveryTeaser | null
   emailCount: number | null
   scannedEmail: string | null
-  runId: string | null
   error: string | null
   warning: string | null
   runDiscovery: (fetchFn: () => Promise<DiscoveryResponse>) => Promise<void>
@@ -36,7 +35,6 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
   const [teaser, setTeaser] = useState<DiscoveryTeaser | null>(null)
   const [emailCount, setEmailCount] = useState<number | null>(null)
   const [scannedEmail, setScannedEmail] = useState<string | null>(null)
-  const [runId, setRunId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
   const lastFetchFnRef = useRef<(() => Promise<DiscoveryResponse>) | null>(null)
@@ -79,7 +77,6 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
       )
       setEmailCount(data.emailCount)
       setScannedEmail(data.email)
-      setRunId(data.runId ?? null)
       invalidateDiscoveryRuns()
 
       const serviceCount = new Set(data.subscriptions.map((s) => s.service_name)).size
@@ -112,7 +109,6 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
     setTeaser(null)
     setEmailCount(null)
     setScannedEmail(null)
-    setRunId(null)
     setError(null)
     setWarning(null)
     lastFetchFnRef.current = null
@@ -124,7 +120,6 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
     teaser,
     emailCount,
     scannedEmail,
-    runId,
     error,
     warning,
     runDiscovery,

@@ -50,7 +50,6 @@ function ProviderDiscoverButton({
             resolvedLogoUrl={logoSrc}
             size={48}
             className="object-contain rounded-lg w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12"
-            fallbackClassName="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10"
           />
           <span className="font-medium text-xs sm:text-sm">{displayName}</span>
         </div>

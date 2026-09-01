@@ -11,16 +11,23 @@ import { useRouter } from 'next/navigation'
 interface PublicContactFormProps {
   title: string
   description: string
+  initialSubject?: string
+  initialMessage?: string
 }
 
-export function PublicContactForm({ title, description }: PublicContactFormProps) {
+export function PublicContactForm({
+  title,
+  description,
+  initialSubject,
+  initialMessage,
+}: PublicContactFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    subject: '',
-    message: '',
+    subject: initialSubject ?? '',
+    message: initialMessage ?? '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -96,6 +96,35 @@ export default function SafetyPage() {
 
               <section>
                 <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <Eye className="h-5 w-5" />
+                  How The Analysis Works
+                </h2>
+                <p className="text-muted-foreground">
+                  Emails matching the billing search above are passed to an AI language model, which
+                  reads them and returns the subscription details. This means:
+                </p>
+                <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
+                  <li>
+                    The subject, sender and full body of each matching email are sent to our AI
+                    provider for processing
+                  </li>
+                  <li>
+                    Emails that do not match the billing search are never opened, never read, and
+                    never sent anywhere
+                  </li>
+                  <li>
+                    Processing is transient - the email content is used to produce the result and is
+                    not retained by us afterwards
+                  </li>
+                  <li>
+                    On the Pro plan you can supply your own API key, in which case the analysis runs
+                    through the provider and model you choose
+                  </li>
+                </ul>
+              </section>
+
+              <section>
+                <h2 className="text-lg font-semibold flex items-center gap-2">
                   <Database className="h-5 w-5" />
                   What We Store
                 </h2>
@@ -187,8 +216,8 @@ export default function SafetyPage() {
                   <div>
                     <h3 className="font-semibold text-foreground">Open Source</h3>
                     <p className="text-muted-foreground text-sm">
-                      Suprascribe is open source. You can inspect the code, verify our privacy
-                      claims, and contribute on{' '}
+                      Suprascribe is open source. You can inspect the code and verify our privacy
+                      claims on{' '}
                       <Link
                         href={GITHUB_URL}
                         target="_blank"

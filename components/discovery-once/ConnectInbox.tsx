@@ -54,8 +54,8 @@ export function ConnectInbox() {
       <div className="text-center space-y-1">
         <h2 className="text-xl font-semibold">Connect your inbox</h2>
         <p className="text-sm text-muted-foreground max-w-sm">
-          Payment received. Choose the inbox to scan - we read only subject lines and parse strictly
-          subscription-related data.
+          Payment received. Choose the inbox to scan - we read matching billing emails and extract
+          only subscription details from them.
         </p>
       </div>
       <div className="flex gap-4 justify-center">
@@ -84,8 +84,9 @@ export function ConnectInbox() {
       >
         <Lock className="size-10 h-fit mt-1 shrink-0" />
         <p className="text-xs text-muted-foreground text-start">
-          We will only read your email subject lines and parse strictly subscription-related data.
-          None of your credentials or data is saved at any point.
+          We read the subject, sender and body of emails matching our billing search, and an AI
+          model extracts the subscription details. Your emails are never stored, and neither are
+          your credentials.
         </p>
       </a>
     </div>

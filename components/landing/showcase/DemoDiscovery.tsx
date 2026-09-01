@@ -130,7 +130,6 @@ function DemoItemCard({ item }: { item: DemoItem }) {
                 serviceUrl={item.service_url}
                 size={64}
                 className="size-full rounded-lg"
-                fallbackClassName="size-4 sm:size-5"
               />
             </div>
             <CardTitle className="text-sm sm:text-base wrap-break-word truncate">

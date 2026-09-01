@@ -2,6 +2,7 @@ import type { Database } from '@/lib/database.types'
 import type { DiscoveredSubscription } from '@/lib/types/forms'
 import { BILLING_PERIODS, SUBSCRIPTION_CATEGORIES } from '@/lib/schemas/subscription'
 import { STORE_URL_HOSTNAMES } from '@/lib/config/urls'
+import { isOneTimePayment } from '@/lib/utils/subscription-period-extension'
 
 type BillingPeriod = (typeof BILLING_PERIODS)[number]
 type SubscriptionCategory = Database['public']['Enums']['SUBSCRIPTION_CATEGORY']
@@ -34,6 +35,37 @@ const SERVICE_NAME_SUFFIX_BLOCKLIST = [
   'account',
   'service',
   'billing',
+]
+
+// Legal-entity suffixes, stripped so an invoice made out to the company reads as
+// the product the user recognises: "There's An AI For That SRL" is the same
+// thing as "There's An AI For That". The prompt asks for this too, but a receipt
+// that quotes the registered name tends to win, so it is enforced here as well.
+//
+// Deliberately excludes ambiguous short words that end real product names -
+// "Co", "AS", "SA", "KG", "Spa" - where stripping would damage a legitimate
+// name more often than it would clean one up.
+const CORPORATE_SUFFIXES = [
+  'inc',
+  'incorporated',
+  'corp',
+  'corporation',
+  'llc',
+  'ltd',
+  'limited',
+  'gmbh',
+  'srl',
+  'sarl',
+  'sas',
+  'bv',
+  'nv',
+  'ab',
+  'oy',
+  'oyj',
+  'aps',
+  'pty',
+  'plc',
+  'ag',
 ]
 
 const STANDALONE_TIER_WORDS = [
@@ -187,8 +219,11 @@ function cleanServiceName(name: string): string {
   let changed = true
   while (changed) {
     changed = false
-    for (const suffix of SERVICE_NAME_SUFFIX_BLOCKLIST) {
-      const regex = new RegExp(`\\s+${suffix}$`, 'i')
+    // Corporate suffixes may carry a trailing dot ("Acme Inc.") and may sit
+    // before a generic suffix ("Acme Ltd Plan"), so both lists are applied
+    // repeatedly until the name stops shrinking.
+    for (const suffix of [...SERVICE_NAME_SUFFIX_BLOCKLIST, ...CORPORATE_SUFFIXES]) {
+      const regex = new RegExp(`[\\s,]+${suffix}\\.?$`, 'i')
       if (regex.test(cleaned)) {
         cleaned = cleaned.replace(regex, '').trim()
         changed = true
@@ -196,9 +231,9 @@ function cleanServiceName(name: string): string {
       }
     }
   }
-  // Stripping the suffix left only a tier word ("Pro", "Max"), which is not a
-  // usable service name - keep what we started with.
-  if (STANDALONE_TIER_WORDS.includes(cleaned.toLowerCase())) return original
+  // Stripping the suffix left only a tier word ("Pro", "Max") or nothing at all,
+  // neither of which is a usable service name - keep what we started with.
+  if (!cleaned || STANDALONE_TIER_WORDS.includes(cleaned.toLowerCase())) return original
   return cleaned
 }
 
@@ -211,6 +246,10 @@ function toBillingPeriodEnum(raw?: string | null): BillingPeriod | undefined {
     return upper as BillingPeriod
   }
   return undefined
+}
+
+function isDateString(value?: string | null): value is string {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
 }
 
 function isStoreUrl(url: string): boolean {
@@ -234,6 +273,10 @@ export function normalizeDiscoveredSubscription(raw: {
   service_url?: string | null
   unsubscribe_url?: string | null
   payment_method?: string | null
+  is_trial?: boolean | null
+  trial_end_date?: string | null
+  next_billing_date?: string | null
+  receipt_url?: string | null
 }): NormalizationResult {
   if (!raw.service_name) return { ok: false, field: 'service_name', reason: 'Missing service name' }
   if (!raw.price || raw.price === 0)
@@ -244,7 +287,9 @@ export function normalizeDiscoveredSubscription(raw: {
 
   // A one-off charge covers no span, so any end_date the model attached - often
   // the date of a later, separate top-up - is dropped along with the period.
-  const endDate = isOneTime ? raw.start_date : raw.end_date || raw.start_date
+  const endDate = isOneTime
+    ? raw.start_date
+    : raw.end_date || raw.next_billing_date || raw.start_date
   let autoRenew = raw.auto_renew ?? false
 
   if (endDate === raw.start_date) autoRenew = false
@@ -269,6 +314,11 @@ export function normalizeDiscoveredSubscription(raw: {
     unsubscribe_url: raw.unsubscribe_url ?? undefined,
     payment_method: raw.payment_method ?? undefined,
     auto_renew: autoRenew,
+    is_trial: raw.is_trial ?? undefined,
+    // Only kept when it parses; a malformed trial date must not fail the whole
+    // candidate, since the subscription itself is still perfectly usable.
+    trial_end_date: isDateString(raw.trial_end_date) ? raw.trial_end_date : undefined,
+    receipt_url: raw.receipt_url ?? undefined,
   }
 
   return sanitize(candidate)
@@ -314,4 +364,31 @@ export function deduplicateAndMerge(
   }
 
   return Array.from(acc.values())
+}
+
+/**
+ * Drops one-time purchases that appear only once for a service.
+ *
+ * A single credit top-up or token purchase is not a recurring subscription;
+ * showing it would clutter the discovery results. When the same service has
+ * multiple one-time purchases, it indicates a repeating top-up pattern and
+ * they are kept.
+ */
+export function filterSingletonOneTimePayments(
+  subscriptions: DiscoveredSubscription[],
+): DiscoveredSubscription[] {
+  const oneTimeCounts = new Map<string, number>()
+
+  for (const sub of subscriptions) {
+    if (isOneTimePayment(sub)) {
+      const key = sub.service_name.toLowerCase().trim()
+      oneTimeCounts.set(key, (oneTimeCounts.get(key) ?? 0) + 1)
+    }
+  }
+
+  return subscriptions.filter((sub) => {
+    if (!isOneTimePayment(sub)) return true
+    const key = sub.service_name.toLowerCase().trim()
+    return (oneTimeCounts.get(key) ?? 0) > 1
+  })
 }

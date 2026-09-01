@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator'
 import { ProPrice } from '@/components/landing/ProPrice'
 import { faqItems } from '@/lib/config/faq'
 import { getDiscountStatus } from '@/lib/config/discount'
+import { ONCE_SCAN_PRICE_DISPLAY } from '@/lib/config/stripe'
 import { buildMetadata } from '@/lib/utils/metadata'
 import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
 import type { Metadata } from 'next'
@@ -141,12 +142,12 @@ export default function SubscriptionCostCalculatorPage() {
             <div className="space-y-1">
               <h3 className="text-lg font-semibold">Just want a quick one-time scan?</h3>
               <p className="text-sm text-muted-foreground">
-                Pay €1, connect one inbox, and instantly see your subscriptions with unsubscribe
-                links. Ephemeral, no sign-up.
+                Pay {ONCE_SCAN_PRICE_DISPLAY}, connect one inbox, and instantly see your
+                subscriptions with unsubscribe links. Ephemeral, no sign-up.
               </p>
             </div>
             <Button size="lg" variant="outline" asChild className="shrink-0">
-              <Link href="/one-time-scan">Scan 1 inbox for €1</Link>
+              <Link href="/one-time-scan">Scan 1 inbox for {ONCE_SCAN_PRICE_DISPLAY}</Link>
             </Button>
           </div>
         </div>

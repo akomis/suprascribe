@@ -4,6 +4,7 @@ import { EditBillingDialog } from '@/components/dashboard/EditBillingDialog'
 import { SubscriptionBadge } from '@/components/dashboard/SubscriptionBadge'
 import { SubscriptionForm } from '@/components/dashboard/SubscriptionForm'
 import SubscriptionHistory from '@/components/dashboard/SubscriptionHistory'
+import { UnsubscribeButton } from '@/components/shared/UnsubscribeButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -16,8 +17,9 @@ import { CreateSubscriptionFormData } from '@/lib/types/forms'
 import { cn } from '@/lib/utils'
 import { toDateString } from '@/lib/utils/date'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
+import { openExternalUrl } from '@/lib/utils/unsubscribe'
 import { useQueryClient } from '@tanstack/react-query'
-import { ExternalLink, Info, Pencil, Plus, Trash2, UserX } from 'lucide-react'
+import { ExternalLink, Info, Pencil, Plus, Trash2 } from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
 
@@ -136,18 +138,13 @@ function AddBillingPeriodDialog({
   )
 }
 
-function openExternalUrl(url: string | null | undefined) {
-  if (!url) return
-  window.open(url.startsWith('http') ? url : `https://${url}`, '_blank', 'noopener,noreferrer')
-}
-
 type SubscriptionHeaderProps = {
   subscription: UserSubscriptionWithDetails
   mostRecentSubscription: UserSubscriptionWithDetails
   isPast: boolean | null | Date | string
   hasQuickUnsubscribe: boolean
   onOpenServiceUrl: () => void
-  onOpenUnsubscribeUrl: () => void
+  onUnsubscribeOpened: () => void
 }
 
 function SubscriptionHeader({
@@ -156,7 +153,7 @@ function SubscriptionHeader({
   isPast,
   hasQuickUnsubscribe,
   onOpenServiceUrl,
-  onOpenUnsubscribeUrl,
+  onUnsubscribeOpened,
 }: SubscriptionHeaderProps) {
   return (
     <DialogHeader>
@@ -212,10 +209,12 @@ function SubscriptionHeader({
           </div>
         </div>
         {!isPast && hasQuickUnsubscribe && (
-          <Button variant="outline" size="sm" onClick={onOpenUnsubscribeUrl}>
-            <UserX className="size-4" />
-            Unsubscribe
-          </Button>
+          <UnsubscribeButton
+            serviceName={subscription.subscription_service?.name ?? ''}
+            unsubscribeUrl={subscription.subscription_service?.unsubscribe_url}
+            surface="dashboard"
+            onUnsubscribeOpened={onUnsubscribeOpened}
+          />
         )}
       </div>
     </DialogHeader>
@@ -381,16 +380,6 @@ export function SubscriptionDetailsDialogBase({
 
   const handleOpenServiceUrl = () => openExternalUrl(subscription.subscription_service?.url)
 
-  const handleOpenUnsubscribeUrl = () => {
-    const unsubscribeUrl =
-      subscription.subscription_service?.unsubscribe_url ||
-      // /en instead of / because the root page redirects to a language subpage,
-      // which drops the hash the search field reads from
-      `https://justdeleteme.xyz/en#${encodeURIComponent((subscription.subscription_service?.name ?? '').trim().toLowerCase())}`
-    openExternalUrl(unsubscribeUrl)
-    setShowUnsubscribeConfirm(true)
-  }
-
   const handleMarkAsCancelled = async () => {
     setIsMarkingCancelled(true)
     const today = toDateString(new Date())
@@ -422,7 +411,7 @@ export function SubscriptionDetailsDialogBase({
           isPast={isPast}
           hasQuickUnsubscribe={hasQuickUnsubscribe}
           onOpenServiceUrl={handleOpenServiceUrl}
-          onOpenUnsubscribeUrl={handleOpenUnsubscribeUrl}
+          onUnsubscribeOpened={() => setShowUnsubscribeConfirm(true)}
         />
         <SubscriptionActions
           subscriptionsToShow={subscriptionsToShow}

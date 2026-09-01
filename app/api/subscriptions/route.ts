@@ -119,7 +119,9 @@ export const POST = withAuth(
         )
       }
 
-      const result = await intakeSubscription(supabase, serviceData, subscriptionData)
+      const result = await intakeSubscription(supabase, serviceData, subscriptionData, {
+        extendOverlapping: body.fromDiscovery === true,
+      })
 
       if (!result.ok) {
         return NextResponse.json({ error: result.error }, { status: result.status })
@@ -130,6 +132,9 @@ export const POST = withAuth(
         price: result.subscription.price,
         currency: subscriptionData.currency,
         auto_renew: subscriptionData.auto_renew,
+        // Discovery imports were indistinguishable from manual adds, so no
+        // funnel could tell how much of the product auto-discovery carries.
+        source: body.fromDiscovery === true ? 'discovery' : 'manual',
       })
 
       return NextResponse.json({ data: result.subscription }, { status: 201 })

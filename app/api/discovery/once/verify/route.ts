@@ -1,4 +1,4 @@
-import { STRIPE_API_VERSION } from '@/lib/config/stripe'
+import { ONCE_SCAN_PRICE_CENTS, PRO_CURRENCY, STRIPE_API_VERSION } from '@/lib/config/stripe'
 import {
   ENTITLEMENT_COOKIE,
   ENTITLEMENT_TTL_SECONDS,
@@ -8,8 +8,8 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
-// Called by the /one-time-scan funnel after returning from Stripe. Verifies the €1
-// payment, claims the payment_intent (one redemption per payment), and mints a
+// Called by the /one-time-scan funnel after returning from Stripe. Verifies the
+// one-time scan payment, claims the payment_intent (one redemption per payment), and mints a
 // short-lived entitlement cookie the anonymous discover endpoint validates.
 export async function POST(request: NextRequest) {
   let sessionId: string | undefined
@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
     const valid =
       session.payment_status === 'paid' &&
       session.metadata?.purpose === 'one_time_discovery' &&
-      session.amount_total === 100 &&
-      session.currency === 'eur'
+      session.amount_total === ONCE_SCAN_PRICE_CENTS &&
+      session.currency === PRO_CURRENCY
 
     if (!valid) {
       return NextResponse.json({ ok: false, error: 'Payment not verified' }, { status: 402 })

@@ -16,56 +16,6 @@ export const SUBSCRIPTION_CATEGORIES = [
 
 export const BILLING_PERIODS = ['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'] as const
 
-const _EmailAnalysisResultSchema = z.object({
-  is_subscription: z
-    .boolean()
-    .describe('true if this email is a subscription/billing receipt, false otherwise'),
-
-  service_name: z
-    .string()
-    .optional()
-    .describe('Service name with plan tier (e.g., "Netflix Premium", "Claude Pro")'),
-  price: z
-    .number()
-    .optional()
-    .describe(
-      'Price amount as shown in the email without currency symbol (use actual amount from email)',
-    ),
-  billing_period: z
-    .enum(BILLING_PERIODS)
-    .optional()
-    .describe(
-      'Billing period: "MONTHLY" for monthly billing, "YEARLY" for annual/yearly billing, "QUARTERLY" for quarterly billing, "WEEKLY" for weekly billing. If unclear or one-time, omit.',
-    ),
-  currency: z.string().optional().describe('Currency code (USD, EUR, GBP, etc.)'),
-  start_date: z.string().optional().describe('Billing/payment date in YYYY-MM-DD format'),
-  end_date: z
-    .string()
-    .optional()
-    .describe('Next billing date in YYYY-MM-DD format (omit for one-time/credit purchases)'),
-  service_url: z.string().optional().describe('Main website URL with https://'),
-  unsubscribe_url: z.string().optional().describe('URL to cancel subscription'),
-  payment_method: z
-    .string()
-    .optional()
-    .describe('Payment method used (e.g., "Visa ending in 4242")'),
-  category: z.enum(SUBSCRIPTION_CATEGORIES).optional().describe('Subscription category'),
-  auto_renew: z.boolean().optional().describe('Whether subscription auto-renews'),
-
-  non_subscription_reason: z
-    .enum([
-      'marketing_email',
-      'physical_order',
-      'one_time_purchase',
-      'refund_cancellation',
-      'not_subscription_related',
-    ])
-    .optional()
-    .describe('Why this email is not a subscription receipt'),
-})
-
-type _EmailAnalysisResult = z.infer<typeof _EmailAnalysisResultSchema>
-
 const DiscoveredSubscriptionSchema = z.object({
   service_name: z
     .string()
@@ -97,6 +47,23 @@ const DiscoveredSubscriptionSchema = z.object({
     .describe('Payment method used (e.g., "Visa ending in 4242")'),
   category: z.enum(SUBSCRIPTION_CATEGORIES).optional().describe('Subscription category'),
   auto_renew: z.boolean().optional().describe('Whether subscription auto-renews'),
+
+  is_trial: z
+    .boolean()
+    .optional()
+    .describe('True when this is a free or discounted trial rather than a normal paid period'),
+  trial_end_date: z
+    .string()
+    .optional()
+    .describe('Date the trial converts to paid, YYYY-MM-DD, when the email states one'),
+  next_billing_date: z
+    .string()
+    .optional()
+    .describe('The next billing date as stated in the most recent receipt, YYYY-MM-DD'),
+  receipt_url: z
+    .string()
+    .optional()
+    .describe('Link to the hosted invoice or receipt, when the email contains one'),
 })
 
 export const BatchEmailAnalysisResultSchema = z.object({

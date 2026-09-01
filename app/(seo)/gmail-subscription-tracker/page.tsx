@@ -133,9 +133,10 @@ export default function GmailSubscriptionTrackerPage() {
             your bank.
           </p>
           <p>
-            The Gmail scanner reads subject lines and sender addresses of emails matching
-            subscription patterns. No email body content is stored. The scan is ephemeral - only the
-            extracted subscription name, amount, and renewal date are saved.
+            The Gmail scanner finds emails matching subscription patterns, then reads their subject,
+            sender and body so the billing details can be extracted. No email content is stored. The
+            scan is ephemeral - only the extracted subscription name, amount, and renewal date are
+            saved.
           </p>
         </div>
 

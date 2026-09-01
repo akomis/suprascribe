@@ -1,8 +1,12 @@
 import type { SubscriptionServiceInsert, UserSubscriptionInsert } from '@/lib/types/database'
 import type { CreateSubscriptionFormData, DiscoveredSubscription } from '@/lib/types/forms'
 import { toDateString } from '@/lib/utils/date'
+import type { CurrencyCode } from '@/lib/utils/currency'
+import { Constants } from '@/lib/database.types'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+
+const CURRENCY_CODES = Constants.public.Enums.CURRENCY_CODE
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -173,29 +177,22 @@ export function isSubscriptionActive(startDate: string, endDate: string): boolea
   return now >= start && now <= end
 }
 
-const VALID_CURRENCY_CODES = [
-  'USD',
-  'EUR',
-  'GBP',
-  'JPY',
-  'AUD',
-  'CAD',
-  'CHF',
-  'CNY',
-  'INR',
-  'KRW',
-] as const
-
-function normalizeCurrency(currency?: string | null): (typeof VALID_CURRENCY_CODES)[number] {
-  if (!currency) return 'USD'
+/**
+ * Maps a currency string onto a storable ISO-4217 code.
+ *
+ * Returns undefined rather than a default when the code is not recognised. The
+ * previous behaviour fell back to 'USD', which silently relabelled a SEK 199
+ * subscription as $199 - a wrong figure reads as fact, where a missing one is
+ * visibly missing and can be corrected.
+ */
+function normalizeCurrency(currency?: string | null): CurrencyCode | undefined {
+  if (!currency) return undefined
 
   const normalized = currency.toUpperCase().trim()
 
-  if (VALID_CURRENCY_CODES.includes(normalized as any)) {
-    return normalized as (typeof VALID_CURRENCY_CODES)[number]
-  }
-
-  return 'USD'
+  return (CURRENCY_CODES as readonly string[]).includes(normalized)
+    ? (normalized as CurrencyCode)
+    : undefined
 }
 
 export function convertDiscoveredToFormData(discovered: {
@@ -228,7 +225,11 @@ export function convertDiscoveredToFormData(discovered: {
   return {
     serviceName,
     price: discovered.price,
-    currency: normalizeCurrency(discovered.currency),
+    // Every active ISO-4217 code is recognised, so undefined here means the model
+    // returned something that is not a currency code at all ('$', 'dollars').
+    // USD is the fallback of last resort for that case only - a real SEK or BRL
+    // receipt now keeps its own currency instead of being relabelled.
+    currency: normalizeCurrency(discovered.currency) ?? 'USD',
     period: (discovered.period as any) ?? 'MONTHLY',
     startDate: discovered.start_date,
     endDate: discovered.end_date,
@@ -239,6 +240,7 @@ export function convertDiscoveredToFormData(discovered: {
     ...(discovered.receipt_url && { receiptUrl: discovered.receipt_url }),
     ...(discovered.payment_method && { paymentMethod: discovered.payment_method }),
     ...(discovered.source_email && { sourceEmail: discovered.source_email }),
+    fromDiscovery: true,
   }
 }
 

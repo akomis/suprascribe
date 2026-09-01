@@ -2,7 +2,7 @@
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { CURRENCIES, CurrencyCode } from '@/lib/hooks/useCurrency'
+import { getCurrencySymbol } from '@/lib/utils/currency'
 import { UserSubscriptionWithDetails } from '@/lib/types/database'
 import * as React from 'react'
 import {
@@ -143,10 +143,10 @@ function SubscriptionHistory({ subscriptions, onEdit }: SubscriptionHistoryProps
     )[0]
   }, [subscriptions])
 
-  const currencySymbol = React.useMemo(() => {
-    const currency = mostRecentSubscription?.currency as CurrencyCode
-    return currency ? CURRENCIES[currency].symbol : '$'
-  }, [mostRecentSubscription?.currency])
+  const currencySymbol = React.useMemo(
+    () => getCurrencySymbol(mostRecentSubscription?.currency),
+    [mostRecentSubscription?.currency],
+  )
 
   const currentMonthPeriod = React.useMemo(() => getCurrentMonthPeriod(), [])
 

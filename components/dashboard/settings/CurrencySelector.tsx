@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useCurrency, CURRENCIES, CurrencyCode } from '@/lib/hooks/useCurrency'
+import { useCurrency, CURRENCIES, type DisplayCurrencyCode } from '@/lib/hooks/useCurrency'
 import { cn } from '@/lib/utils'
 
 type CurrencySelectorProps = {
@@ -19,7 +19,7 @@ export function CurrencySelector({ triggerClassName }: CurrencySelectorProps) {
   const { currency, setCurrency } = useCurrency()
 
   return (
-    <Select value={currency} onValueChange={(value) => setCurrency(value as CurrencyCode)}>
+    <Select value={currency} onValueChange={(value) => setCurrency(value as DisplayCurrencyCode)}>
       <SelectTrigger
         aria-label="Select currency"
         className={cn('w-fit hover:cursor-pointer', triggerClassName)}

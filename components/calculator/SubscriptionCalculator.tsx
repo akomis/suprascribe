@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { CURRENCIES, type CurrencyCode, useCurrency } from '@/lib/hooks/useCurrency'
+import { CURRENCIES, type DisplayCurrencyCode, useCurrency } from '@/lib/hooks/useCurrency'
 import { toMonthlyCost } from '@/lib/utils'
 import { Info, Plus, RotateCcw, Sparkles, X } from 'lucide-react'
 import * as React from 'react'
@@ -177,7 +177,10 @@ export function SubscriptionCalculator() {
           </Dialog>
         )}
         <div className="ml-auto flex items-center gap-2">
-          <Select value={currency} onValueChange={(value) => setCurrency(value as CurrencyCode)}>
+          <Select
+            value={currency}
+            onValueChange={(value) => setCurrency(value as DisplayCurrencyCode)}
+          >
             <SelectTrigger size="sm" className="w-36" aria-label="Currency">
               <SelectValue />
             </SelectTrigger>

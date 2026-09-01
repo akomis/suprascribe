@@ -1,8 +1,8 @@
-import { STRIPE_API_VERSION } from '@/lib/config/stripe'
+import { ONCE_SCAN_PRICE_CENTS, PRO_CURRENCY, STRIPE_API_VERSION } from '@/lib/config/stripe'
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
-// Creates a €1 one-time Stripe Checkout Session for the anonymous discovery
+// Creates the one-time Stripe Checkout Session for the anonymous discovery
 // funnel. No user/account involved. The `purpose` metadata lets the PRO webhook
 // ignore this payment so it never grants a Pro tier.
 export async function POST(request: NextRequest) {
@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
       line_items: [
         {
           price_data: {
-            currency: 'eur',
-            unit_amount: 100,
+            currency: PRO_CURRENCY,
+            unit_amount: ONCE_SCAN_PRICE_CENTS,
             product_data: {
               name: 'One-time subscription discovery',
               description:

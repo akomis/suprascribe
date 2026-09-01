@@ -137,10 +137,71 @@ async function upsertService(
   return createNewService(supabase, serviceData)
 }
 
+function minDate(a: string | null, b: string): string {
+  return a && a < b ? a : b
+}
+
+function maxDate(a: string | null, b: string): string {
+  return a && a > b ? a : b
+}
+
+/**
+ * Whether a discovered period belongs to a run the user already has.
+ *
+ * Requires the same billing cycle, so a monthly plan never absorbs a yearly one,
+ * and a one-time payment (no period) never absorbs anything.
+ */
+export function overlapsExistingPeriod(
+  incoming: { start_date: string; end_date: string; period: string | null },
+  existing: { start_date: string | null; end_date: string | null; period: string | null },
+): boolean {
+  if (!existing.start_date || !existing.end_date) return false
+  if (!incoming.period || incoming.period !== existing.period) return false
+
+  return incoming.start_date <= existing.end_date && existing.start_date <= incoming.end_date
+}
+
+async function extendExistingPeriod(
+  supabase: SupabaseClient,
+  id: number,
+  dates: { start_date: string; end_date: string },
+): Promise<IntakeResult> {
+  const { error } = await supabase.from('USER_SUBSCRIPTIONS').update(dates).eq('id', id)
+
+  if (error) {
+    return { ok: false, error: `Error extending subscription: ${error.message}`, status: 500 }
+  }
+
+  const { data: full, error: fetchError } = await supabase
+    .from('USER_SUBSCRIPTIONS')
+    .select(
+      `*, subscription_service:SUBSCRIPTION_SERVICES!subscription_service_id(name, url, unsubscribe_url)`,
+    )
+    .eq('id', id)
+    .single()
+
+  if (fetchError || !full) {
+    return { ok: false, error: `Error fetching subscription: ${fetchError?.message}`, status: 500 }
+  }
+
+  return { ok: true, subscription: full as UserSubscriptionWithDetails }
+}
+
+export interface IntakeOptions {
+  /**
+   * Merge a new period into an overlapping one for the same service and cycle
+   * instead of inserting a second row. Set for discovery imports, where the
+   * same subscription is re-derived on every scan; left off for manual adds,
+   * where two overlapping periods may well be deliberate.
+   */
+  extendOverlapping?: boolean
+}
+
 export async function intakeSubscription(
   supabase: SupabaseClient,
   serviceData: SubscriptionServiceInsert,
   subscriptionData: Omit<UserSubscriptionInsert, 'subscription_service_id'>,
+  options: IntakeOptions = {},
 ): Promise<IntakeResult> {
   const serviceResult = await upsertService(supabase, serviceData)
   if ('error' in serviceResult) return { ok: false, ...serviceResult }
@@ -151,7 +212,7 @@ export async function intakeSubscription(
     .from('USER_SUBSCRIPTIONS')
     .select(
       `
-      id, start_date, end_date,
+      id, start_date, end_date, period,
       subscription_service:SUBSCRIPTION_SERVICES!subscription_service_id(name)
       `,
     )
@@ -190,6 +251,32 @@ export async function intakeSubscription(
           error: `This subscription already exists (${sub.start_date} to ${sub.end_date})`,
           status: 400,
         }
+      }
+    }
+
+    // A re-scan of the same inbox produces the same subscription with a slightly
+    // later end date, because consolidation stretches the current run to cover
+    // today. Exact-match duplicate detection misses that, so every re-scan used
+    // to add another row for a subscription the user already had. Extending the
+    // period the user owns is the honest outcome: same service, same cycle, one
+    // continuous run.
+    if (options.extendOverlapping) {
+      const overlapping = existing.find((sub) =>
+        overlapsExistingPeriod(
+          {
+            start_date: subscriptionData.start_date!,
+            end_date: subscriptionData.end_date!,
+            period: subscriptionData.period ?? null,
+          },
+          sub,
+        ),
+      )
+
+      if (overlapping) {
+        return extendExistingPeriod(supabase, overlapping.id, {
+          start_date: minDate(overlapping.start_date, subscriptionData.start_date!),
+          end_date: maxDate(overlapping.end_date, subscriptionData.end_date!),
+        })
       }
     }
   }

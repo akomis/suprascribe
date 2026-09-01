@@ -407,8 +407,9 @@ export default function ImapGuidePage() {
               <li>Transmitted securely over encrypted connections</li>
             </ul>
             <p className="mt-4">
-              We only read email subject lines and sender information to identify subscription
-              receipts. No email content is stored or saved.
+              We search your mailbox for billing emails, then read the subject, sender and body of
+              the ones that match so an AI model can extract the subscription details. No email
+              content is stored or saved.
             </p>
             <p className="mt-4 text-xs">
               You can revoke app passwords anytime from your email provider&apos;s security
