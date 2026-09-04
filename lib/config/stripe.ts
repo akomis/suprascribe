@@ -10,7 +10,7 @@ export const STRIPE_API_VERSION: Stripe.LatestApiVersion = '2026-02-25.clover'
 // page, so the two cannot drift apart.
 export const PRO_FULL_PRICE_CENTS = 2000
 export const PRO_DISCOUNT_PRICE_CENTS = DISCOUNT.priceCents
-export const PRO_CURRENCY = 'usd'
+export const PRO_CURRENCY = 'eur'
 
 /**
  * Price actually charged: the discounted one while the discount runs
@@ -21,13 +21,13 @@ export function getProPriceCents(now?: Date): number {
 }
 
 export function formatProPrice(cents: number = getProPriceCents()): string {
-  return `$${new Intl.NumberFormat('en-US').format(cents / 100)}`
+  return `€${new Intl.NumberFormat('en-US').format(cents / 100)}`
 }
 
 export const PRO_FULL_PRICE_DISPLAY = formatProPrice(PRO_FULL_PRICE_CENTS)
 export const PRO_DISCOUNT_PRICE_DISPLAY = formatProPrice(PRO_DISCOUNT_PRICE_CENTS)
 
-/** Whole-number discount of the offer price against the full price, e.g. 50 for $10 off $20. */
+/** Whole-number discount of the offer price against the full price, e.g. 50 for €10 off €20. */
 export const PRO_DISCOUNT_PERCENT = Math.round(
   (1 - PRO_DISCOUNT_PRICE_CENTS / PRO_FULL_PRICE_CENTS) * 100,
 )

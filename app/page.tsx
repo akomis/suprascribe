@@ -1,8 +1,10 @@
-import { BadgesCarousel } from '@/components/landing/BadgesCarousel'
+import { BlogPostCard } from '@/components/blog/BlogPostCard'
+import { BadgeLinks } from '@/components/landing/BadgeLinks'
 import { CompetitorTable } from '@/components/landing/CompetitorTable'
 import { DiscoveryLearnMoreButton } from '@/components/landing/DiscoveryLearnMoreButton'
 import { FAQSection } from '@/components/landing/FAQSection'
 import { LandingCTA } from '@/components/landing/LandingCTA'
+import { ShinyBrandline } from '@/components/landing/ShinyBrandline'
 import { ShinyText } from '@/components/landing/ShinyText'
 import { StaticGridBackground } from '@/components/landing/StaticGridBackground'
 import { WhySection } from '@/components/landing/WhySection'
@@ -28,6 +30,7 @@ const TierCard = dynamic(() =>
 )
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { getHomepageBlogPosts } from '@/lib/config/blog'
 import { featuredFaqItems } from '@/lib/config/faq'
 import { getEnabledFeaturesByTier } from '@/lib/config/features'
 import { GITHUB_URL } from '@/lib/config/urls'
@@ -60,6 +63,7 @@ const homepageFaqJsonLd = {
 export default function Home() {
   const basicFeatures = getEnabledFeaturesByTier('basic')
   const proFeatures = getEnabledFeaturesByTier('pro')
+  const guidePosts = getHomepageBlogPosts()
 
   return (
     <>
@@ -112,8 +116,6 @@ export default function Home() {
               ,{' '}
               <Link
                 href="/safety"
-                target="_blank"
-                rel="noopener noreferrer"
                 className="hover:underline underline-offset-4 hover:text-foreground transition-colors"
               >
                 private
@@ -193,7 +195,7 @@ export default function Home() {
               <TierCard
                 name="Basic"
                 description="Perfect for getting started"
-                price="$0"
+                price="€0"
                 period=""
                 features={basicFeatures}
                 buttonText="Get Started"
@@ -206,7 +208,7 @@ export default function Home() {
                 price={PRO_FULL_PRICE_DISPLAY}
                 discountPrice={PRO_DISCOUNT_PRICE_DISPLAY}
                 discount={getDiscountStatus()}
-                period="once and forever"
+                period="once, forever"
                 features={proFeatures}
                 buttonText="Upgrade to Pro"
                 buttonVariant="default"
@@ -243,8 +245,8 @@ export default function Home() {
                 Suprascribe vs. other Trackers
               </h2>
               <p className="text-base sm:text-lg text-muted-foreground">
-                See why Suprascribe outperforms every other subscription management app in both
-                features and price
+                See why Suprascribe outperforms every other subscription management app
+                <br className="hidden md:inline" /> in both features and price
               </p>
             </div>
             <CompetitorTable />
@@ -280,8 +282,37 @@ export default function Home() {
 
         <Separator className="data-[orientation=horizontal]:w-[50vw] mx-auto" />
 
+        {/* Entry point into the blog - server-rendered on purpose, so the links are crawlable */}
+        <section className="container mx-auto py-10 sm:py-20 px-2 sm:px-4">
+          <div className="mx-auto max-w-7xl space-y-8 sm:space-y-12">
+            <div className="text-center space-y-3">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
+                Subscription Guides From Our Blog
+              </h2>
+              <p className="text-base sm:text-lg text-muted-foreground">
+                Practical, research-backed guides on finding what you are paying for, shutting down
+                what you do not want, and knowing what you are entitled to.
+              </p>
+            </div>
+            <div className="grid gap-6 lg:grid-cols-3">
+              {guidePosts.map((post) => (
+                <BlogPostCard key={post.slug} post={post} as="h3" />
+              ))}
+            </div>
+            <div className="flex justify-center">
+              <Link href="/blog">
+                <Button variant="outline" size="lg">
+                  Read the blog
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <Separator className="data-[orientation=horizontal]:w-[50vw] mx-auto" />
+
         {/* Final CTA Section */}
-        <section className="container mx-auto py-20 px-4">
+        <section className="container mx-auto pt-10 px-4">
           <div className="mx-auto max-w-5xl space-y-8 text-center">
             <div className="space-y-4 text-lg text-muted-foreground text-start">
               <p>
@@ -296,8 +327,6 @@ export default function Home() {
                 Suprascribe works for{' '}
                 <Link
                   href="/subscription-tracking-for-students"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="underline underline-offset-4 hover:text-foreground transition-colors"
                 >
                   students
@@ -305,8 +334,6 @@ export default function Home() {
                 ,{' '}
                 <Link
                   href="/subscription-tracking-for-freelancers"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="underline underline-offset-4 hover:text-foreground transition-colors"
                 >
                   freelancers
@@ -314,8 +341,6 @@ export default function Home() {
                 ,{' '}
                 <Link
                   href="/subscription-tracking-for-families"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="underline underline-offset-4 hover:text-foreground transition-colors"
                 >
                   families
@@ -323,8 +348,6 @@ export default function Home() {
                 ,{' '}
                 <Link
                   href="/subscription-tracking-for-business"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="underline underline-offset-4 hover:text-foreground transition-colors"
                 >
                   businesses
@@ -332,8 +355,6 @@ export default function Home() {
                 /
                 <Link
                   href="/subscription-tracking-for-startups"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="underline underline-offset-4 hover:text-foreground transition-colors"
                 >
                   startups
@@ -355,11 +376,11 @@ export default function Home() {
                 </Link>
               </Button>
             </div>
-            <BadgesCarousel />
+            <BadgeLinks />
           </div>
         </section>
 
-        <Separator />
+        <ShinyBrandline />
 
         <SiteFooter />
       </div>

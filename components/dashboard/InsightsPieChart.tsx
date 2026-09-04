@@ -101,6 +101,7 @@ export default function InsightsPieChart({
             }
           />
           <Pie
+            rootTabIndex={-1}
             data={themedPieData}
             dataKey="value"
             nameKey="name"

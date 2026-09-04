@@ -1,112 +1,55 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useAutoDiscoveryAccess } from '@/lib/hooks/useAutoDiscoveryAccess'
 import { useFeatureAccess } from '@/lib/hooks/useFeatureAccess'
-import { Lock, Mail, PenLine } from 'lucide-react'
+import { Mail, PenLine } from 'lucide-react'
 import { useEffect } from 'react'
 
-function AutoDiscoverButton({
-  isEnabled,
-  isDisabled,
-  requiresUpgrade,
-  forceDisabled,
-  disabledTooltipMessage,
-  onClick,
-}: {
-  isEnabled: boolean
-  isDisabled: boolean
-  requiresUpgrade: boolean
-  forceDisabled: boolean
-  disabledTooltipMessage: string
-  onClick: () => void
-}) {
+function AutoDiscoverButton({ isEnabled, onClick }: { isEnabled: boolean; onClick: () => void }) {
   if (!isEnabled) return null
 
-  const button = (
+  // No locked state here: the button leads to the auto-discover view either way, and
+  // that view is where the Pro pitch belongs.
+  return (
     <Button
       variant="outline"
-      onClick={isDisabled ? undefined : onClick}
-      disabled={isDisabled}
-      className="flex-1 h-auto py-6 px-4 flex flex-col items-center gap-3 hover:bg-accent hover:border-primary/50 relative disabled:opacity-50 disabled:cursor-not-allowed"
+      onClick={onClick}
+      className="flex-1 h-auto py-6 px-4 flex flex-col items-center gap-3 hover:bg-accent hover:border-primary/50 relative"
     >
-      {requiresUpgrade && !forceDisabled && (
-        <div className="absolute top-2 right-2 flex items-center gap-1">
-          <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
-            PRO
-          </Badge>
-          <Lock className="size-3 text-muted-foreground" />
-        </div>
-      )}
-      {forceDisabled && (
-        <div className="absolute top-2 right-2 flex items-center gap-1 text-muted-foreground">
-          <Lock className="size-3" />
-        </div>
-      )}
       <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
         <Mail className="h-6 w-6 text-primary" />
       </div>
       <div className="flex flex-col items-center text-center gap-1">
         <span className="font-medium">Auto-discover</span>
-        <span className="text-xs text-muted-foreground">
-          {forceDisabled ? 'Sign in required' : 'Scan your email inbox'}
-        </span>
+        <span className="text-xs text-muted-foreground">Scan your email inbox</span>
       </div>
     </Button>
-  )
-
-  if (!isDisabled) return button
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent>
-        <p>{forceDisabled ? disabledTooltipMessage : 'Upgrade to PRO to unlock'}</p>
-      </TooltipContent>
-    </Tooltip>
   )
 }
 
 interface AddSubscriptionOptionsProps {
   onSelectAutoDiscover: () => void
   onSelectManual: () => void
-  forceDisableAutoDiscovery?: boolean
-  disabledTooltipMessage?: string
 }
 
 export function AddSubscriptionOptions({
   onSelectAutoDiscover,
   onSelectManual,
-  forceDisableAutoDiscovery = false,
-  disabledTooltipMessage = 'Email discovery requires sign-in',
 }: AddSubscriptionOptionsProps) {
-  const {
-    hasAccess: hasAutoDiscovery,
-    requiresUpgrade: autoDiscoveryRequiresUpgrade,
-    isEnabled: isAutoDiscoveryEnabled,
-  } = useAutoDiscoveryAccess()
+  const { hasAccess: hasAutoDiscovery, isEnabled: isAutoDiscoveryEnabled } =
+    useAutoDiscoveryAccess()
   const { hasAccess: hasManualAdd } = useFeatureAccess('manual_add')
 
-  const isAutoDiscoveryDisabled = forceDisableAutoDiscovery || autoDiscoveryRequiresUpgrade
-
   useEffect(() => {
-    if (hasAutoDiscovery && !hasManualAdd && !forceDisableAutoDiscovery) {
+    if (hasAutoDiscovery && !hasManualAdd) {
       onSelectAutoDiscover()
     } else if (hasManualAdd && !hasAutoDiscovery && !isAutoDiscoveryEnabled) {
       onSelectManual()
     }
-  }, [
-    hasAutoDiscovery,
-    hasManualAdd,
-    isAutoDiscoveryEnabled,
-    forceDisableAutoDiscovery,
-    onSelectAutoDiscover,
-    onSelectManual,
-  ])
+  }, [hasAutoDiscovery, hasManualAdd, isAutoDiscoveryEnabled, onSelectAutoDiscover, onSelectManual])
 
-  if (hasAutoDiscovery && !hasManualAdd && !forceDisableAutoDiscovery) {
+  if (hasAutoDiscovery && !hasManualAdd) {
     return null
   }
 
@@ -129,14 +72,7 @@ export function AddSubscriptionOptions({
       </p>
 
       <div className="flex gap-3">
-        <AutoDiscoverButton
-          isEnabled={isAutoDiscoveryEnabled}
-          isDisabled={isAutoDiscoveryDisabled}
-          requiresUpgrade={autoDiscoveryRequiresUpgrade}
-          forceDisabled={forceDisableAutoDiscovery}
-          disabledTooltipMessage={disabledTooltipMessage}
-          onClick={onSelectAutoDiscover}
-        />
+        <AutoDiscoverButton isEnabled={isAutoDiscoveryEnabled} onClick={onSelectAutoDiscover} />
 
         {hasManualAdd && (
           <Button

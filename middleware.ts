@@ -61,6 +61,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|sw.js|manifest.webmanifest|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // .txt covers robots.txt, llms.txt, and the IndexNow key file - all public,
+    // so none of them should pay for a Supabase getUser() round-trip.
+    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|sw.js|manifest.webmanifest|\\.well-known|.*\\.(?:txt|svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

@@ -11,11 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { ShinyText } from '@/components/landing/ShinyText'
-import dynamic from 'next/dynamic'
-const UpgradeButton = dynamic(
-  () => import('@/components/UpgradeButton').then((m) => m.UpgradeButton),
-  { ssr: false },
-)
+import { UpgradeButton } from '@/components/UpgradeButton'
 import { FeatureDefinition } from '@/lib/config/features'
 import { formatDiscountLabel, getDiscountStatus, type DiscountStatus } from '@/lib/config/discount'
 import { PRO_DISCOUNT_PERCENT } from '@/lib/config/stripe'
@@ -145,7 +141,6 @@ export function TierCard({
             text={buttonText}
             variant={buttonVariant as any}
             fullWidth={true}
-            hideIfPro={true}
             location="landing_pricing"
           />
         ) : (

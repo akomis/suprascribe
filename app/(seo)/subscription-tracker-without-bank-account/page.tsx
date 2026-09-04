@@ -1,3 +1,4 @@
+import { seoPageBlogLinks } from '@/lib/config/seoPages'
 import { SEOPage } from '@/components/shared/SEOPage'
 import { SEOSection } from '@/components/shared/SEOSection'
 import { faqItems } from '@/lib/config/faq'
@@ -117,6 +118,7 @@ export default function SubscriptionTrackerWithoutBankAccountPage() {
       faqItems={pageFaqItems}
       relatedHeading="Also worth exploring"
       relatedDescription="See how the no-bank-linking approach compares to the tools that require it."
+      blogSlugs={seoPageBlogLinks['/subscription-tracker-without-bank-account']}
       relatedPages={[
         { href: '/open-source-subscription-tracker', label: 'Open Source Subscription Tracker' },
         { href: '/rocket-money-alternative', label: 'Rocket Money Alternative' },

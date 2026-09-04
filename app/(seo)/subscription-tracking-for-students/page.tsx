@@ -1,3 +1,4 @@
+import { seoPageBlogLinks } from '@/lib/config/seoPages'
 import { SEOPage } from '@/components/shared/SEOPage'
 import { SEOSection } from '@/components/shared/SEOSection'
 import { faqItems } from '@/lib/config/faq'
@@ -101,6 +102,7 @@ export default function SubscriptionTrackingForStudentsPage() {
       faqItems={pageFaqItems}
       relatedHeading="Subscription tracking for all"
       relatedDescription="The same tracker, different situations"
+      blogSlugs={seoPageBlogLinks['/subscription-tracking-for-students']}
       relatedPages={[
         { href: '/subscription-tracking-for-families', label: 'For Families' },
         { href: '/subscription-tracking-for-freelancers', label: 'For Freelancers' },

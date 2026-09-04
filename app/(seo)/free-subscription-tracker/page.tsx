@@ -1,3 +1,4 @@
+import { seoPageBlogLinks } from '@/lib/config/seoPages'
 import { CompetitorTable } from '@/components/landing/CompetitorTable'
 import { SEOPage } from '@/components/shared/SEOPage'
 import { Separator } from '@/components/ui/separator'
@@ -63,6 +64,7 @@ export default function FreeSubscriptionTrackerPage() {
       faqItems={trackerFaqItems}
       relatedHeading="Also Looking For a Full Subscription Manager?"
       relatedDescription="Suprascribe tracks and manages - cancel, organize, set reminders, and view a spending calendar. All in one place."
+      blogSlugs={seoPageBlogLinks['/free-subscription-tracker']}
       relatedPages={[
         {
           href: '/subscription-tracker-without-bank-account',

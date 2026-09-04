@@ -1,13 +1,36 @@
 import { SEOPage } from '@/components/shared/SEOPage'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { author } from '@/lib/config/author'
 import { faqItems } from '@/lib/config/faq'
-import { blogPosts, getBlogPost, type BlogSection, type BlogSectionLink } from '@/lib/config/blog'
+import {
+  blogPosts,
+  getBlogPost,
+  getClusterPosts,
+  getPillarForPost,
+  getRelatedPosts,
+  getWordCount,
+  TOPIC_LABELS,
+  type BlogSection,
+  type BlogSectionLink,
+} from '@/lib/config/blog'
 import { Clock, ExternalLink } from 'lucide-react'
 import type { Metadata } from 'next'
 import { buildMetadata } from '@/lib/utils/metadata'
+import { formatBlogDate } from '@/lib/utils/date'
+import { BlogPostCard } from '@/components/blog/BlogPostCard'
+import { BlogDiagram } from '@/components/blog/BlogDiagram'
 import type { ReactElement, ReactNode } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
@@ -33,14 +56,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }))
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
 }
 
 const INLINE_LINK_CLASS = 'text-primary underline underline-offset-4 hover:no-underline'
@@ -96,18 +111,32 @@ function linkify(text: string, links?: BlogSectionLink[]): ReactNode {
   return nodes.length === 1 ? nodes[0] : nodes
 }
 
+/**
+ * A qualifier like "Recommended" sitting beside a heading. Inline-flex rather than a flex
+ * container on the heading itself, so the heading text still wraps as normal text.
+ */
+function HeadingBadge({ label }: { label: string }) {
+  return (
+    <Badge variant="secondary" className="ml-3 align-middle text-xs font-medium tracking-normal">
+      {label}
+    </Badge>
+  )
+}
+
 function renderSection(section: BlogSection, index: number) {
   switch (section.type) {
     case 'h2':
       return (
         <h2 key={index} className="text-2xl sm:text-3xl font-bold tracking-tight pt-4">
           {linkify(section.text ?? '', section.links)}
+          {section.badge && <HeadingBadge label={section.badge} />}
         </h2>
       )
     case 'h3':
       return (
         <h3 key={index} className="text-xl font-semibold pt-2">
           {linkify(section.text ?? '', section.links)}
+          {section.badge && <HeadingBadge label={section.badge} />}
         </h3>
       )
     case 'p':
@@ -141,6 +170,72 @@ function renderSection(section: BlogSection, index: number) {
           {linkify(section.text ?? '', section.links)}
         </aside>
       )
+    case 'table': {
+      if (!section.table) return null
+      const { headers, rows, caption, rowHeaders } = section.table
+      return (
+        // A horizontally scrolling region has to be reachable by keyboard, so it takes focus
+        // and carries a label. `links` are not rendered here - see BlogSection.links.
+        <div
+          key={index}
+          tabIndex={0}
+          role="region"
+          aria-label={caption ?? 'Table'}
+          className="overflow-x-auto rounded-lg border focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none"
+        >
+          <Table>
+            {caption && <TableCaption>{caption}</TableCaption>}
+            <TableHeader>
+              <TableRow className="border-t-0">
+                {headers.map((header, i) => (
+                  <TableHead key={i} scope="col">
+                    {header}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row, rowIndex) => (
+                <TableRow key={rowIndex}>
+                  {row.map((cell, cellIndex) =>
+                    rowHeaders && cellIndex === 0 ? (
+                      <TableHead key={cellIndex} scope="row" className="text-foreground">
+                        {cell}
+                      </TableHead>
+                    ) : (
+                      <TableCell key={cellIndex}>{cell}</TableCell>
+                    ),
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )
+    }
+    case 'diagram': {
+      if (!section.diagram) return null
+      return <BlogDiagram key={index} diagram={section.diagram} />
+    }
+    case 'image': {
+      if (!section.image) return null
+      const { src, alt, caption, width, height } = section.image
+      return (
+        <figure key={index} className="space-y-2">
+          <Image
+            src={src}
+            alt={alt}
+            width={width}
+            height={height}
+            className="rounded-lg border w-full h-auto"
+            sizes="(max-width: 768px) 100vw, 768px"
+          />
+          {caption && (
+            <figcaption className="text-xs text-muted-foreground text-center">{caption}</figcaption>
+          )}
+        </figure>
+      )
+    }
     default:
       return null
   }
@@ -151,9 +246,16 @@ export default async function BlogArticlePage({ params }: Props) {
   const post = getBlogPost(slug)
   if (!post) notFound()
 
-  const postFaqItems = faqItems.filter((item) => post.faqQuestions.includes(item.question))
+  // Shared pool first, then the post's own questions - the general answers set up the specific ones.
+  const postFaqItems = [
+    ...faqItems.filter((item) => post.faqQuestions.includes(item.question)),
+    ...(post.faq ?? []),
+  ]
 
-  const relatedPosts = blogPosts.filter((p) => post.relatedSlugs.includes(p.slug))
+  // Three, so the row below fills a three-column grid exactly at every breakpoint.
+  const relatedPosts = getRelatedPosts(post, 3)
+  const pillar = getPillarForPost(post)
+  const clusterPosts = post.pillar ? getClusterPosts(post) : []
 
   const relatedResources = [
     { href: '/login?tab=signup', label: 'Start for Free' },
@@ -173,8 +275,10 @@ export default async function BlogArticlePage({ params }: Props) {
         dateModified: post.updatedAt ?? post.publishedAt,
         url: `https://www.suprascribe.com/blog/${post.slug}`,
         author: {
-          '@type': 'Organization',
-          '@id': 'https://www.suprascribe.com/#organization',
+          '@type': 'Person',
+          name: author.name,
+          url: author.url,
+          jobTitle: author.role,
         },
         image: {
           '@type': 'ImageObject',
@@ -194,11 +298,21 @@ export default async function BlogArticlePage({ params }: Props) {
           '@type': 'WebPage',
           '@id': `https://www.suprascribe.com/blog/${post.slug}`,
         },
+        inLanguage: 'en',
+        isAccessibleForFree: true,
+        articleSection: TOPIC_LABELS[post.topics[0]],
+        wordCount: getWordCount(post),
+        // Capped at three: a long `about` list reads as keyword padding, not as a subject.
+        about: post.topics.slice(0, 3).map((topic) => ({
+          '@type': 'Thing',
+          name: TOPIC_LABELS[topic],
+        })),
       },
       ...(postFaqItems.length > 0
         ? [
             {
               '@type': 'FAQPage',
+              '@id': `https://www.suprascribe.com/blog/${post.slug}#faq`,
               mainEntity: postFaqItems.map((item) => ({
                 '@type': 'Question',
                 name: item.question,
@@ -239,74 +353,110 @@ export default async function BlogArticlePage({ params }: Props) {
     >
       <section className="container mx-auto px-4 py-10 sm:py-16 max-w-3xl">
         <div className="space-y-6">
-          <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-3">
-              <span>{formatDate(post.publishedAt)}</span>
-              <span>|</span>
-              <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {post.readingTimeMin} min read
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <div className="flex items-center justify-between gap-3">
+              <span>
+                <Link href="/about-author" className="hover:text-foreground transition-colors">
+                  Written by {author.name}
+                </Link>
+                {', '}
+                {formatBlogDate(post.updatedAt ?? post.publishedAt)}
               </span>
-            </div>
-            {post.source &&
-              (post.sourceUrl ? (
-                <a
-                  href={post.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+              <div className="flex flex-wrap items-center gap-3">
+                {post.source &&
+                  (post.sourceUrl ? (
+                    <a
+                      href={post.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
+                      Read the original report on
+                      <Badge
+                        variant="secondary"
+                        className="rounded-none px-2 py-0.5 text-xs font-medium"
+                      >
+                        {post.source}
+                      </Badge>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ) : (
+                    <Badge
+                      variant="secondary"
+                      className="rounded-none px-2 py-0.5 text-xs font-medium"
+                    >
+                      {post.source}
+                    </Badge>
+                  ))}
+                <Badge
+                  variant="secondary"
+                  className="gap-1 rounded-none px-2 py-0.5 text-xs font-medium"
                 >
-                  Read the original report on
-                  <Badge
-                    variant="secondary"
-                    className="rounded-none px-2 py-0.5 text-xs font-medium"
-                  >
-                    {post.source}
-                  </Badge>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              ) : (
-                <Badge variant="secondary" className="rounded-none px-2 py-0.5 text-xs font-medium">
-                  {post.source}
+                  <Clock className="h-3 w-3" />
+                  {post.readingTimeMin} min read
                 </Badge>
-              ))}
+              </div>
+            </div>
+            {pillar && (
+              <div>
+                Part of{' '}
+                <Link
+                  href={`/blog/${pillar.slug}`}
+                  className="underline underline-offset-4 hover:text-foreground transition-colors"
+                >
+                  {pillar.title}
+                </Link>
+              </div>
+            )}
           </div>
 
           <div className="space-y-5">
+            <p className="text-lg text-foreground leading-relaxed">{post.intro}</p>
             {post.sections.map((section, i) => renderSection(section, i))}
           </div>
         </div>
       </section>
 
-      {relatedPosts.length > 0 && (
+      {clusterPosts.length > 0 && (
         <>
           <Separator className="data-[orientation=horizontal]:w-[40vw] mx-auto" />
           <section className="container mx-auto px-4 py-12 sm:py-16 max-w-3xl">
             <div className="space-y-4">
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-center">
+                Every guide in this cluster
+              </h2>
+              <p className="text-sm text-muted-foreground text-center">
+                This is the hub for the topic. Each guide below covers one service or platform in
+                detail.
+              </p>
+              <ul className="grid gap-x-6 gap-y-2 sm:grid-cols-2 pt-2">
+                {clusterPosts.map((member) => (
+                  <li key={member.slug}>
+                    <Link
+                      href={`/blog/${member.slug}`}
+                      className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
+                    >
+                      {member.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        </>
+      )}
+
+      {relatedPosts.length > 0 && (
+        <>
+          <Separator className="data-[orientation=horizontal]:w-[40vw] mx-auto" />
+          <section className="container mx-auto px-4 py-12 sm:py-16 max-w-6xl">
+            <div className="space-y-8">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-center">
                 More from the Blog
               </h2>
-              <div className="space-y-4">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {relatedPosts.map((related) => (
-                  <article
-                    key={related.slug}
-                    className="border rounded-lg p-5 space-y-2 hover:bg-muted/30 transition-colors"
-                  >
-                    <div className="flex items-baseline justify-between gap-3">
-                      <h3 className="font-semibold">{related.title}</h3>
-                      <p className="text-xs text-muted-foreground shrink-0">
-                        {formatDate(related.publishedAt)}
-                      </p>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{related.intro}</p>
-                    <div className="flex justify-end">
-                      <Link href={`/blog/${related.slug}`}>
-                        <Button variant="ghost" size="sm" className="px-0 text-sm">
-                          Read →
-                        </Button>
-                      </Link>
-                    </div>
-                  </article>
+                  <BlogPostCard key={related.slug} post={related} as="h3" />
                 ))}
               </div>
             </div>

@@ -1,3 +1,4 @@
+import { seoPageBlogLinks } from '@/lib/config/seoPages'
 import { SEOPage } from '@/components/shared/SEOPage'
 import { SEOSection } from '@/components/shared/SEOSection'
 import { faqItems } from '@/lib/config/faq'
@@ -89,6 +90,7 @@ export default function GmailSubscriptionTrackerPage() {
       faqItems={gmailFaqItems}
       relatedHeading="Tracking Subscriptions Is Just the Start"
       relatedDescription="Once you have your complete list, manage it all in one place - cancel, set reminders, and track spending over time."
+      blogSlugs={seoPageBlogLinks['/gmail-subscription-tracker']}
       relatedPages={[
         { href: '/free-subscription-manager', label: 'Manage Subscriptions for Free' },
       ]}

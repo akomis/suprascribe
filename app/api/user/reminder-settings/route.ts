@@ -1,6 +1,5 @@
 import { withAdminAuth } from '@/lib/api/withAuth'
 import { hasFeatureAccess } from '@/lib/config/features'
-import { captureEvent } from '@/lib/posthog-server'
 import { getUserTier } from '@/lib/supabase/tier'
 import { NextResponse } from 'next/server'
 
@@ -66,11 +65,6 @@ export const PUT = withAdminAuth(async (request, { user, supabase, admin }) => {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
-
-    void captureEvent(user.id, 'reminder_settings_updated', {
-      email_reminders_enabled,
-      reminder_days_before,
-    })
 
     return NextResponse.json({ success: true })
   } catch (err: unknown) {

@@ -31,55 +31,55 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: 'https://www.suprascribe.com/subscription-cost-calculator',
-      lastModified: new Date('2026-07-28'),
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/free-subscription-tracker',
-      lastModified: new Date('2026-05-27'),
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/free-subscription-manager',
-      lastModified: new Date('2026-05-27'),
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/subscription-management-app',
-      lastModified: new Date('2026-05-27'),
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/gmail-subscription-tracker',
-      lastModified: new Date('2026-05-27'),
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/rocket-money-alternative',
-      lastModified: new Date('2026-05-27'),
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/subscription-tracker-without-bank-account',
-      lastModified: new Date('2026-07-26'),
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/open-source-subscription-tracker',
-      lastModified: new Date('2026-07-26'),
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/subscription-tracking-for-business',
-      lastModified: new Date('2026-08-04'),
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/subscription-tracking-for-startups',
-      lastModified: new Date('2026-08-04'),
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/subscription-tracking-for-freelancers',
-      lastModified: new Date('2026-08-04'),
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/subscription-tracking-for-families',
-      lastModified: new Date('2026-08-04'),
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/subscription-tracking-for-students',
-      lastModified: new Date('2026-08-04'),
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/compare',
@@ -92,6 +92,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: 'https://www.suprascribe.com/faq',
       lastModified: new Date('2026-05-16'),
+    },
+    {
+      url: 'https://www.suprascribe.com/about-author',
+      lastModified: new Date('2026-09-01'),
     },
     {
       url: 'https://www.suprascribe.com/safety',

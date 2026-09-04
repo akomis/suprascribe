@@ -1,3 +1,4 @@
+import { TEASER_RESERVED } from '@/lib/config/email-discovery'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getUserTier } from '@/lib/supabase/tier'
 import type { DiscoveredSubscription } from '@/lib/types/forms'
@@ -32,12 +33,15 @@ export async function GET(): Promise<NextResponse<TeaserStatusResponse>> {
 
   const { data: teaser } = await admin
     .from('DISCOVERY_TEASERS')
-    .select('subscriptions_found, claimed, expires_at')
+    .select('subscriptions_found, claimed, expires_at, email_address')
     .eq('user_id', user.id)
     .maybeSingle()
 
+  // A row still holding TEASER_RESERVED is a slot claimed by a scan that is
+  // still running: it uses up the free scan but has nothing to unlock yet.
+  const hasResults = !!teaser && teaser.email_address !== TEASER_RESERVED
   const hasPendingTeaser =
-    !!teaser && !teaser.claimed && new Date(teaser.expires_at).getTime() > Date.now()
+    hasResults && !teaser.claimed && new Date(teaser.expires_at).getTime() > Date.now()
 
   return NextResponse.json({
     freeScanUsed: !!teaser,
@@ -85,6 +89,14 @@ export async function POST(): Promise<NextResponse<DiscoveryResponse>> {
       success: false,
       kind: 'unknown',
       error: 'No discovered subscriptions found to unlock.',
+    })
+  }
+
+  if (teaser.email_address === TEASER_RESERVED) {
+    return NextResponse.json({
+      success: false,
+      kind: 'unknown',
+      error: 'Your scan is still running. Try again in a moment.',
     })
   }
 

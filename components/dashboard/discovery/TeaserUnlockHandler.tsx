@@ -64,8 +64,8 @@ export function TeaserUnlockHandler() {
           <AlertDialogHeader>
             <AlertDialogTitle>Your subscriptions are ready to import</AlertDialogTitle>
             <AlertDialogDescription>
-              We saved the {status?.subscriptionsFound ?? 0} subscriptions we discovered from your
-              earlier scan. Unlock them now to review and import - no need to scan again.
+              We saved the subscriptions we discovered from your earlier scan. Unlock them now to
+              review and import - no need to scan again.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

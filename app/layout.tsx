@@ -90,14 +90,14 @@ const jsonLd = {
         {
           '@type': 'Offer',
           price: '0',
-          priceCurrency: 'USD',
+          priceCurrency: 'EUR',
           name: 'Basic',
           description: 'Free forever - core subscription tracking features',
         },
         {
           '@type': 'Offer',
           price: '20',
-          priceCurrency: 'USD',
+          priceCurrency: 'EUR',
           name: 'Pro',
           description: 'One-time purchase for advanced features',
         },
@@ -116,7 +116,7 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '<') }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
         />
       </head>
       <body className={cn(GeistSans.variable, 'antialiased')}>

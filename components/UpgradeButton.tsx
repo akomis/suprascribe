@@ -9,7 +9,6 @@ interface UpgradeButtonProps {
   size?: 'default' | 'sm' | 'lg'
   className?: string
   showIcon?: boolean
-  hideIfPro?: boolean
   fullWidth?: boolean
   location?: string
 }

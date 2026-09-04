@@ -1,3 +1,4 @@
+import { seoPageBlogLinks } from '@/lib/config/seoPages'
 import { SubscriptionCalculator } from '@/components/calculator/SubscriptionCalculator'
 import { SEOPage } from '@/components/shared/SEOPage'
 import { Button } from '@/components/ui/button'
@@ -69,6 +70,7 @@ export default function SubscriptionCostCalculatorPage() {
       faqItems={calculatorFaqItems}
       relatedHeading="Tired of Doing This by Hand?"
       relatedDescription="Suprascribe tracks and manages your subscriptions for you - cancel, organize, set reminders, and more."
+      blogSlugs={seoPageBlogLinks['/subscription-cost-calculator']}
       relatedPages={[
         { href: '/free-subscription-tracker', label: 'Free Subscription Tracker' },
         { href: '/subscription-management-app', label: 'Full Subscription Manager' },

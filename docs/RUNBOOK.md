@@ -156,6 +156,24 @@ supabase migration new <description>
 supabase db push
 ```
 
+### 4.1 Notify search engines (IndexNow)
+
+After a deploy that adds or changes indexable content (blog posts, SEO landing pages, comparison pages), push the sitemap to IndexNow. It fans out to Bing, Yandex, Seznam, Naver, and Yep within seconds. Google does not participate, so this is in addition to Search Console, not instead of it.
+
+```bash
+yarn indexnow --dry-run   # print the payload, submit nothing
+yarn indexnow             # submit every URL in the live sitemap
+yarn indexnow --url=https://www.suprascribe.com/blog/some-post   # single URL
+```
+
+Run it **after** the deploy is live - the script reads `https://www.suprascribe.com/sitemap.xml` from production, and engines crawl in response within minutes.
+
+Verification lives in `public/<key>.txt`, whose filename is its own contents. The script derives the key from that file and refuses to run if the two disagree.
+
+**Rotating the key:** rename `public/<key>.txt`, rewrite its contents to match the new filename (no trailing newline), and update the `source` of the matching `headers()` entry in `next.config.ts`. Deploy before running `yarn indexnow` again.
+
+Submission history is visible in Bing Webmaster Tools -> IndexNow.
+
 ---
 
 ## 5. Supabase Edge Functions

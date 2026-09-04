@@ -1,3 +1,4 @@
+import { seoPageBlogLinks } from '@/lib/config/seoPages'
 import { SEOPage } from '@/components/shared/SEOPage'
 import { SEOSection } from '@/components/shared/SEOSection'
 import { faqItems } from '@/lib/config/faq'
@@ -101,6 +102,7 @@ export default function FreeSubscriptionManagerPage() {
       faqItems={managerFaqItems}
       relatedHeading="Want Automatic Discovery Too?"
       relatedDescription="Suprascribe scans your inbox to find subscriptions you might have missed - no manual entry needed."
+      blogSlugs={seoPageBlogLinks['/free-subscription-manager']}
       relatedPages={[
         { href: '/free-subscription-tracker', label: 'Track Subscriptions for Free' },
         { href: '/subscription-management-app', label: 'Subscription Management App' },

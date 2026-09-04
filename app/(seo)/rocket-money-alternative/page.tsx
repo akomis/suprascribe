@@ -1,3 +1,4 @@
+import { seoPageBlogLinks } from '@/lib/config/seoPages'
 import { SEOPage } from '@/components/shared/SEOPage'
 import { SEOSection } from '@/components/shared/SEOSection'
 import { faqItems } from '@/lib/config/faq'
@@ -117,6 +118,7 @@ export default function RocketMoneyAlternativePage() {
       faqItems={rocketFaqItems}
       relatedHeading="Compare All Alternatives"
       relatedDescription="See how Suprascribe stacks up against Rocket Money, YNAB, Bobby, and every other subscription tracker in one place."
+      blogSlugs={seoPageBlogLinks['/rocket-money-alternative']}
       relatedPages={[
         { href: '/compare/rocket-money', label: 'Suprascribe vs Rocket Money' },
         {

@@ -30,13 +30,12 @@ export function SetupBYOKPrompt() {
           <UpgradeButton
             size="sm"
             variant="default"
-            hideIfPro={false}
             location="byok_prompt_teaser"
             text={`Import ${teaserCount} discovered subscription${teaserCount !== 1 ? 's' : ''}`}
           />
         )}
 
-        <UpgradeButton size="sm" hideIfPro={false} location="byok_prompt" />
+        <UpgradeButton size="sm" location="byok_prompt" />
       </div>
     </div>
   )

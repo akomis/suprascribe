@@ -169,6 +169,18 @@ export function isDuplicateSubscription(
   return ds === es && de === ee
 }
 
+/**
+ * Counts distinct services in a discovery result.
+ *
+ * A scan returns one entry per billing charge, so a service billed monthly shows
+ * up many times. Every screen groups those charges under the service, so the
+ * stored "subscriptions found" count follows the same rule - otherwise a run
+ * reports 19 while the list it links to shows 10.
+ */
+export function countDistinctServices(subscriptions: { service_name: string }[]): number {
+  return new Set(subscriptions.map((sub) => sub.service_name)).size
+}
+
 export function isSubscriptionActive(startDate: string, endDate: string): boolean {
   const now = new Date()
   const start = new Date(startDate)

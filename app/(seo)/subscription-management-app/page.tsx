@@ -1,3 +1,4 @@
+import { seoPageBlogLinks } from '@/lib/config/seoPages'
 import { CompetitorTable } from '@/components/landing/CompetitorTable'
 import { SEOPage } from '@/components/shared/SEOPage'
 import { Separator } from '@/components/ui/separator'
@@ -85,6 +86,7 @@ export default function SubscriptionManagementAppPage() {
       faqItems={appFaqItems}
       relatedHeading="Looking for a Free Option?"
       relatedDescription="The Basic tier is free forever - unlimited subscriptions, full dashboard."
+      blogSlugs={seoPageBlogLinks['/subscription-management-app']}
       relatedPages={[
         { href: '/free-subscription-tracker', label: 'Track Subscriptions for Free' },
         { href: '/free-subscription-manager', label: 'Manage Subscriptions for Free' },

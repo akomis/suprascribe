@@ -2,6 +2,7 @@
 
 import { DiscoveredSubscriptionGroupCard } from '@/components/dashboard/discovery/DiscoveredSubscriptionGroupCard'
 import { DiscoveryEditDialog } from '@/components/dashboard/discovery/DiscoveryEditDialog'
+import { OneTimePurchaseNote } from '@/components/shared/OneTimePurchaseNote'
 import { SupportButton } from '@/components/shared/SupportButton'
 import {
   AlertDialog,
@@ -14,6 +15,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -27,7 +29,12 @@ import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
 import { useSubscriptions } from '@/lib/hooks/useSubscriptions'
 import type { DiscoveryTeaser } from '@/lib/hooks/discovery/useDiscoveryCore'
-import type { CreateSubscriptionFormData, DiscoveredSubscription } from '@/lib/types/forms'
+import type { TeaserPreviewEntry, TeaserPreviewGroup } from '@/lib/types/discovery'
+import type {
+  BillingPeriod,
+  CreateSubscriptionFormData,
+  DiscoveredSubscription,
+} from '@/lib/types/forms'
 import {
   cn,
   convertDiscoveredToFormData,
@@ -35,12 +42,13 @@ import {
   isDuplicateSubscription,
   isSubscriptionActive,
 } from '@/lib/utils'
+import { ServiceLogo } from '@/components/shared/ServiceLogo'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
 import type { CurrencyCode } from '@/lib/hooks/useCurrency'
-import { ServiceLogo } from '@/components/shared/ServiceLogo'
+import { isOneTimePayment, ONE_TIME_SECTION_LABEL } from '@/lib/utils/subscription-period-extension'
 import { UpgradeButton } from '@/components/UpgradeButton'
 import { useQueryClient } from '@tanstack/react-query'
-import { ChevronDown, Lock } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -54,6 +62,13 @@ const AddSubscriptionDialog = dynamic(
 
 // What happens once the selected subscriptions are committed.
 type ImportOutcome = 'close' | 'scan-another'
+
+const TEASER_PERIOD_SUFFIX: Record<BillingPeriod, string> = {
+  WEEKLY: '/wk',
+  MONTHLY: '/mo',
+  QUARTERLY: '/qtr',
+  YEARLY: '/yr',
+}
 
 type GroupedItem = { sub: DiscoveredSubscription; index: number }
 type SubscriptionGroup = { serviceName: string; serviceUrl?: string; items: GroupedItem[] }
@@ -218,7 +233,9 @@ function WarningView({ warning, onClose }: { warning: string; onClose: () => voi
     <>
       <DialogHeader>
         <DialogTitle>Discovery Limit Reached</DialogTitle>
-        <DialogDescription>This email address was recently discovered.</DialogDescription>
+        <DialogDescription>
+          Upgrade to Pro for multiple discovery runs and more features.
+        </DialogDescription>
       </DialogHeader>
       <div className="rounded-md bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-400">
         {warning}
@@ -305,12 +322,16 @@ function ReviewSubscriptionsView({
   const nonDuplicates = allSubs.filter(({ index }) => !checkIfDuplicate(index))
   const duplicates = allSubs.filter(({ index }) => checkIfDuplicate(index))
 
+  // A one-time charge has no active/past state worth showing, so it leaves the
+  // recurring split and gets a section of its own below it.
+  const recurring = nonDuplicates.filter(({ sub }) => !isOneTimePayment(sub))
   const activeGroups = getGroupedItems(
-    nonDuplicates.filter(({ sub }) => isSubscriptionActive(sub.start_date, sub.end_date)),
+    recurring.filter(({ sub }) => isSubscriptionActive(sub.start_date, sub.end_date)),
   )
   const pastGroups = getGroupedItems(
-    nonDuplicates.filter(({ sub }) => !isSubscriptionActive(sub.start_date, sub.end_date)),
+    recurring.filter(({ sub }) => !isSubscriptionActive(sub.start_date, sub.end_date)),
   )
+  const oneTimeGroups = getGroupedItems(nonDuplicates.filter(({ sub }) => isOneTimePayment(sub)))
   const duplicateGroups = getGroupedItems(duplicates)
 
   return (
@@ -353,6 +374,20 @@ function ReviewSubscriptionsView({
           onEdit={onEdit}
         />
 
+        {oneTimeGroups.length > 0 && (
+          <Badge variant="outline" className="text-xs font-medium">
+            {ONE_TIME_SECTION_LABEL}
+          </Badge>
+        )}
+        <DiscoveryGroupList
+          groups={oneTimeGroups}
+          selectedSubscriptions={selectedSubscriptions}
+          isDuplicateGroup={false}
+          isSaving={isSaving}
+          onToggle={onToggle}
+          onEdit={onEdit}
+        />
+
         {duplicateGroups.length > 0 && (
           <>
             <Separator orientation="horizontal" />
@@ -380,7 +415,7 @@ function ReviewSubscriptionsView({
         )}
       </div>
 
-      <DialogFooter className="flex flex-wrap justify-center items-center pt-4">
+      <DialogFooter className="flex flex-wrap justify-end items-center pt-4">
         {onScanAnother && (
           <Button variant="secondary" onClick={onScanAnother} disabled={isSaving}>
             Scan Another Inbox
@@ -394,73 +429,140 @@ function ReviewSubscriptionsView({
   )
 }
 
-function TeaserPreviewRow({ sub }: { sub: DiscoveredSubscription }) {
+function TeaserPrice({ entry }: { entry: TeaserPreviewEntry }) {
+  const periodSuffix = entry.period ? TEASER_PERIOD_SUFFIX[entry.period] : ''
+
   return (
-    <div className="flex items-center gap-3 rounded-lg border p-3">
-      <div className="flex size-10 items-center justify-center rounded-lg overflow-hidden flex-shrink-0">
-        <ServiceLogo name={sub.service_name} serviceUrl={sub.service_url} />
-      </div>
-      <div className="flex flex-1 items-center justify-between gap-2 min-w-0">
-        <span className="font-medium truncate">{sub.service_name}</span>
-        {sub.price > 0 && (
-          <span className="text-sm text-muted-foreground tabular-nums">
-            {formatCurrencyAmount(sub.price, (sub.currency as CurrencyCode) ?? 'USD')}
-          </span>
-        )}
-      </div>
+    <span className="font-medium text-sm whitespace-nowrap tabular-nums shrink-0">
+      {formatCurrencyAmount(entry.price, (entry.currency as CurrencyCode) ?? 'EUR')}
+      {periodSuffix}
+    </span>
+  )
+}
+
+function TeaserPreviewEntryRow({ entry }: { entry: TeaserPreviewEntry }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-1.5 border-t first:border-t-0">
+      {isOneTimePayment(entry) ? (
+        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 whitespace-nowrap">
+          One-time
+        </span>
+      ) : (
+        <span className="text-xs text-muted-foreground">Recurring</span>
+      )}
+      <TeaserPrice entry={entry} />
     </div>
   )
 }
 
-function TeaserBlurredRow() {
+function TeaserPreviewGroupCard({ group }: { group: TeaserPreviewGroup }) {
+  // A single charge needs no breakdown, so its price sits on the service row itself.
+  const soleEntry = group.entries.length === 1 ? group.entries[0] : null
+
   return (
-    <div
-      className="flex items-center gap-3 rounded-lg border p-3 blur-sm select-none pointer-events-none"
-      aria-hidden="true"
-    >
-      <div className="size-10 rounded-lg bg-muted flex-shrink-0" />
-      <div className="flex flex-1 items-center justify-between gap-2">
-        <span className="h-4 w-32 rounded bg-muted" />
-        <span className="h-4 w-12 rounded bg-muted" />
-      </div>
+    <Card className="border gap-0 py-4">
+      <CardHeader className="gap-0">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-lg overflow-hidden flex-shrink-0">
+            <ServiceLogo
+              name={group.service_name}
+              serviceUrl={group.service_url}
+              size={64}
+              className="size-full rounded-lg"
+            />
+          </div>
+          <CardTitle className="text-base break-words flex-1 min-w-0">
+            {group.service_name}
+          </CardTitle>
+          {soleEntry && <TeaserPrice entry={soleEntry} />}
+        </div>
+      </CardHeader>
+      {!soleEntry && (
+        <CardContent className="flex flex-col gap-0 pt-0">
+          {group.entries.map((entry, i) => (
+            <TeaserPreviewEntryRow key={`${group.service_name}-entry-${i}`} entry={entry} />
+          ))}
+        </CardContent>
+      )}
+    </Card>
+  )
+}
+
+function TeaserPreviewList({ groups }: { groups: TeaserPreviewGroup[] }) {
+  return (
+    <div className="flex flex-col gap-2">
+      {groups.map((group) => (
+        <TeaserPreviewGroupCard key={group.service_name} group={group} />
+      ))}
     </div>
   )
 }
 
 function TeaserLockedView({ teaser, onClose }: { teaser: DiscoveryTeaser; onClose: () => void }) {
-  const hiddenCount = Math.max(teaser.subscriptionsFound - teaser.preview.length, 0)
-  // Cap the number of blurred placeholder rows so the dialog stays compact.
-  const placeholderRows = Math.min(hiddenCount, 4)
+  // Cards arrive pre-grouped and sorted - recurring services first, one-time-only
+  // services after them. A service charged both ways splits into two cards here,
+  // so its one-time entries land in their own section rather than in the
+  // active/past split, which only describes a recurring charge.
+  const recurringServices: TeaserPreviewGroup[] = []
+  const oneTimeServices: TeaserPreviewGroup[] = []
+  for (const group of teaser.preview) {
+    const recurringEntries = group.entries.filter((entry) => !isOneTimePayment(entry))
+    const oneTimeEntries = group.entries.filter(isOneTimePayment)
+    if (recurringEntries.length > 0) {
+      recurringServices.push({
+        ...group,
+        entries: recurringEntries,
+        is_active: recurringEntries.some((entry) => entry.is_active),
+      })
+    }
+    if (oneTimeEntries.length > 0) {
+      oneTimeServices.push({
+        ...group,
+        entries: oneTimeEntries,
+        is_active: oneTimeEntries.some((entry) => entry.is_active),
+      })
+    }
+  }
+  const activeServices = recurringServices.filter((group) => group.is_active)
+  const pastServices = recurringServices.filter((group) => !group.is_active)
 
   return (
     <div className="animate-in fade-in duration-300 flex flex-col flex-1 overflow-hidden">
       <DialogHeader>
-        <DialogTitle>We found {teaser.subscriptionsFound} subscriptions!</DialogTitle>
+        <DialogTitle>We found {teaser.preview.length} subscriptions!</DialogTitle>
         <DialogDescription>
-          Here&apos;s a peek at what we discovered in your inbox. Upgrade to Pro to unlock and
-          import the full list - no need to scan again.
+          Here&apos;s everything we discovered in your inbox. Upgrade to Pro to import the full list
+          with totals, start/renewal dates, quick unsubscribe links and renewal reminders - no need
+          to scan again.
         </DialogDescription>
       </DialogHeader>
 
       <div className="flex flex-col gap-2 py-4 overflow-y-auto flex-1 pr-1">
-        {teaser.preview.map((sub, i) => (
-          <TeaserPreviewRow key={`preview-${i}`} sub={sub} />
-        ))}
+        {activeServices.length > 0 && (
+          <>
+            <Badge variant="outline" className="text-xs font-medium self-start">
+              Active
+            </Badge>
+            <TeaserPreviewList groups={activeServices} />
+          </>
+        )}
 
-        {placeholderRows > 0 && (
-          <div className="relative">
-            <div className="flex flex-col gap-2">
-              {Array.from({ length: placeholderRows }).map((_, i) => (
-                <TeaserBlurredRow key={`blur-${i}`} />
-              ))}
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex items-center gap-2 rounded-full bg-background/80 px-3 py-1 text-sm font-medium shadow-sm">
-                <Lock className="size-4" />
-                {hiddenCount} more locked
-              </div>
-            </div>
-          </div>
+        {pastServices.length > 0 && (
+          <>
+            <Badge variant="outline" className="text-xs font-medium self-start">
+              Past
+            </Badge>
+            <TeaserPreviewList groups={pastServices} />
+          </>
+        )}
+
+        {oneTimeServices.length > 0 && (
+          <>
+            <Badge variant="outline" className="text-xs font-medium self-start">
+              {ONE_TIME_SECTION_LABEL}
+            </Badge>
+            <TeaserPreviewList groups={oneTimeServices} />
+          </>
         )}
       </div>
 
@@ -468,8 +570,10 @@ function TeaserLockedView({ teaser, onClose }: { teaser: DiscoveryTeaser; onClos
         <Button variant="outline" onClick={onClose}>
           Maybe later
         </Button>
-        <UpgradeButton text="Upgrade to unlock all" location="discovery_teaser" />
+        <UpgradeButton text="Upgrade to import & manage" location="discovery_teaser" />
       </DialogFooter>
+
+      <OneTimePurchaseNote className="text-right pt-3" />
     </div>
   )
 }

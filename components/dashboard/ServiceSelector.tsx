@@ -12,6 +12,16 @@ type Service = {
   url: string | null
 }
 
+/**
+ * Every rendered row mounts a ServiceLogo, and each of those fires its own
+ * /api/logo request. An uncapped list turns one keystroke into hundreds of
+ * queued requests, so only render as many rows as a user would ever scan.
+ */
+const MAX_SUGGESTIONS = 8
+
+/** Long enough that a fast typist sends one request per word, not per letter. */
+const SEARCH_DEBOUNCE_MS = 200
+
 type ServiceSelectorProps = {
   value: string
   onChange: (value: string, serviceUrl?: string) => void
@@ -29,26 +39,56 @@ function SelectorLogo({ name, url }: { name: string; url?: string | null }) {
   )
 }
 
+/** Exact prefix hits are what the typist is aiming at; the rest are consolation. */
+function rankMatches(services: Service[], value: string): Service[] {
+  const searchTerm = value.trim().toLowerCase()
+  if (!searchTerm) return services.slice(0, MAX_SUGGESTIONS)
+
+  const prefixMatches: Service[] = []
+  const substringMatches: Service[] = []
+
+  for (const service of services) {
+    if (service.name.toLowerCase().startsWith(searchTerm)) {
+      prefixMatches.push(service)
+    } else {
+      substringMatches.push(service)
+    }
+  }
+
+  return [...prefixMatches, ...substringMatches].slice(0, MAX_SUGGESTIONS)
+}
+
 export function ServiceSelector({ value, onChange, disabled = false }: ServiceSelectorProps) {
   const [showDropdown, setShowDropdown] = React.useState(false)
   const [services, setServices] = React.useState<Service[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
 
+  // The catalogue is far too large to hold client-side, so each query round-trips.
   React.useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const response = await fetch('/api/services')
-        if (response.ok) {
-          const data = await response.json()
-          setServices(data.services || [])
-        }
-      } finally {
-        setIsLoading(false)
-      }
-    }
+    let isCurrent = true
+    const controller = new AbortController()
 
-    fetchServices()
-  }, [])
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/services?q=${encodeURIComponent(value.trim())}`, {
+          signal: controller.signal,
+        })
+        if (!response.ok) return
+        const data = await response.json()
+        if (isCurrent) setServices(data.services || [])
+      } catch {
+        // Aborted or offline: keep the previous results rather than blanking the list.
+      } finally {
+        if (isCurrent) setIsLoading(false)
+      }
+    }, SEARCH_DEBOUNCE_MS)
+
+    return () => {
+      isCurrent = false
+      controller.abort()
+      clearTimeout(timer)
+    }
+  }, [value])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value
@@ -61,11 +101,7 @@ export function ServiceSelector({ value, onChange, disabled = false }: ServiceSe
     setShowDropdown(false)
   }
 
-  const filteredServices = React.useMemo(() => {
-    if (!value) return services
-    const searchTerm = value.toLowerCase()
-    return services.filter((service) => service.name.toLowerCase().includes(searchTerm))
-  }, [services, value])
+  const filteredServices = React.useMemo(() => rankMatches(services, value), [services, value])
 
   const selectedService = services.find((s) => s.name.toLowerCase() === value.toLowerCase())
   const isOpen = showDropdown && !isLoading && filteredServices.length > 0

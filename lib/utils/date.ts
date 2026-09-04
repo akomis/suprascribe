@@ -28,3 +28,15 @@ export function formatDisplayDate(date: string | Date): string {
   const d = typeof date === 'string' ? parseDateString(date) : date
   return format(d, 'PPP')
 }
+
+/**
+ * Long-form date for blog bylines and post cards (e.g. "1 September 2026"). Deliberately
+ * distinct from formatDisplayDate, which uses the ordinal US style.
+ */
+export function formatBlogDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}

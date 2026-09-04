@@ -89,17 +89,38 @@ export default function TryPage() {
             <div className="z-10 flex flex-col items-center gap-6 text-center max-w-3xl">
               <div className="space-y-2">
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                  Find your subscriptions for {ONCE_SCAN_PRICE_DISPLAY}
+                  Automatically find your subscriptions for {ONCE_SCAN_PRICE_DISPLAY}
                 </h1>
-                <p>No account, no sign-up, nothing stored on our servers.</p>
+                <p className="text-lg md:text-xl text-muted-foreground font-medium">
+                  No account, no sign-up, nothing stored on our servers.
+                </p>
                 <p className="text-muted-foreground">
                   A one-time scan of a single Gmail/Outlook inbox. We reveal every subscription we
                   find, each with an unsubscribe link so you can perform a quick and effective
-                  subscription audit.
+                  subscription audit. You see the full list, with active and past subscriptions, in
+                  about a minute. The process has privacy and security as the top priority and the
+                  results live only locally in your browser.{' '}
+                  <Link
+                    href="/safety"
+                    className="underline underline-offset-4 hover:text-foreground transition-colors"
+                  >
+                    Learn more about data safety
+                  </Link>
+                  .
                 </p>
               </div>
-              <div className="space-y-2 mt-6">
+              <div className="flex flex-col items-center gap-4 mt-6">
                 <PayCta />
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 rounded-full border bg-background/60 px-3 py-1.5">
+                    <Image src="/logos/google.svg" alt="" width={20} height={20} aria-hidden />
+                    <span className="text-sm font-medium">Gmail</span>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-full border bg-background/60 px-3 py-1.5">
+                    <Image src="/logos/microsoft.svg" alt="" width={20} height={20} aria-hidden />
+                    <span className="text-sm font-medium">Outlook</span>
+                  </div>
+                </div>
               </div>
             </div>
           </IntroOnly>

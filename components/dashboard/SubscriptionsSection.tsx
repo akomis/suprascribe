@@ -17,13 +17,11 @@ import type { InsightMode, InsightTab, MergedSubscriptionResponse } from '@/lib/
 import * as React from 'react'
 import AddSubscriptionDialog, { type ViewType } from './AddSubscriptionDialog'
 import { EmailProviderSelection } from './EmailProviderSelection'
-import { SetupBYOKPrompt } from './discovery/SetupBYOKPrompt'
 import { SubscriptionDetailsDialog } from './SubscriptionDetailsDialog'
 import { SubscriptionGroupBy, toInsightsGroupBy, type GroupByValue } from './SubscriptionGroupBy'
 import { SubscriptionSearch } from './SubscriptionSearch'
 import { SubscriptionSort } from './SubscriptionSort'
 import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/spinner'
 import { Calculator, Check, PenLine } from 'lucide-react'
 import {
   DropdownMenu,
@@ -358,7 +356,6 @@ function PastContent({
 
 // ── Guards ────────────────────────────────────────────────────────────────────
 
-const isActiveOrPast = (v: unknown): v is 'active' | 'past' => v === 'active' || v === 'past'
 const isSortByValue = (v: unknown): v is 'name' | 'endDate' | 'startDate' | 'price' =>
   v === 'name' || v === 'endDate' || v === 'startDate' || v === 'price'
 const isSortOrder = (v: unknown): v is 'asc' | 'desc' => v === 'asc' || v === 'desc'
@@ -432,11 +429,8 @@ export function SubscriptionsSectionBase({ actions }: { actions: SubscriptionsSe
     [onExternalEditingChange],
   )
 
-  const [activeTab, setActiveTab] = usePersistedState<'active' | 'past'>(
-    `${storagePrefix}_activeTab`,
-    'active',
-    isActiveOrPast,
-  )
+  // Not persisted: every page load starts on Active by design.
+  const [activeTab, setActiveTab] = React.useState<'active' | 'past'>('active')
 
   const [selectedYear, setSelectedYear] = React.useState<string | null>(null)
   const [searchQuery, setSearchQuery] = React.useState('')
@@ -540,6 +534,11 @@ export function SubscriptionsSectionBase({ actions }: { actions: SubscriptionsSe
     }
   }, [mergedSubscriptions, searchQuery, sortBy, sortOrder, hasSearchSort, groupBy])
 
+  // The Past tab is only rendered while past subscriptions exist. Without this, a user who
+  // switched to Past and then lost their last past subscription keeps driving the insights
+  // and the count badge off a tab that is no longer on screen.
+  const effectiveTab = past.length > 0 ? activeTab : 'active'
+
   React.useEffect(() => {
     if (pastYears.length > 0 && (!selectedYear || !pastYears.includes(selectedYear))) {
       // Use setTimeout to avoid synchronous setState during effect
@@ -566,10 +565,10 @@ export function SubscriptionsSectionBase({ actions }: { actions: SubscriptionsSe
   return (
     <div className="flex flex-col gap-6 w-full">
       {Boolean(mergedSubscriptions.length) &&
-        (activeTab === 'active' ? active.length > 0 : past.length > 0) && (
+        (effectiveTab === 'active' ? active.length > 0 : past.length > 0) && (
           <InsightsComponent
-            tab={activeTab}
-            year={activeTab === 'past' && selectedYear ? parseInt(selectedYear, 10) : undefined}
+            tab={effectiveTab}
+            year={effectiveTab === 'past' && selectedYear ? parseInt(selectedYear, 10) : undefined}
           />
         )}
 
@@ -599,7 +598,7 @@ export function SubscriptionsSectionBase({ actions }: { actions: SubscriptionsSe
             <div className="flex items-center gap-1 sm:gap-2">
               {Boolean(mergedSubscriptions.length) && (
                 <Badge variant="outline" className="gap-1 text-xs sm:text-sm">
-                  {hasSubscriptionHistory && activeTab === 'past'
+                  {hasSubscriptionHistory && effectiveTab === 'past'
                     ? filteredPast.length
                     : filteredActive.length}
                 </Badge>
@@ -749,8 +748,7 @@ function SubscriptionsSectionContent({
 }: SubscriptionsSectionContentProps = {}) {
   const { data: mergedSubscriptions = [], error } = useSubscriptionsSuspense()
   const { hasAccess: hasSubscriptionHistory } = useFeatureAccess('subscription_history')
-  const { hasAccess: hasAutoDiscovery, isLoading: isAutoDiscoveryLoading } =
-    useAutoDiscoveryAccess()
+  const { hasAccess: hasAutoDiscovery } = useAutoDiscoveryAccess()
   const { hasAccess: hasSearchSort } = useFeatureAccess('search_sort_group')
 
   const actions: SubscriptionsSectionActions = {
@@ -774,15 +772,8 @@ function SubscriptionsSectionContent({
             Add Manually
           </Button>
         </div>
-        {isAutoDiscoveryLoading ? (
-          <div className="flex items-center justify-center w-[300px] md:w-[450px] min-h-[200px]">
-            <Spinner className="size-8" />
-          </div>
-        ) : hasAutoDiscovery ? (
-          <EmailProviderSelection />
-        ) : (
-          <SetupBYOKPrompt />
-        )}
+        {/* EmailProviderSelection carries its own loading and locked states. */}
+        <EmailProviderSelection />
       </>
     ),
     renderActiveTabEmpty: () => <EmailProviderSelection />,

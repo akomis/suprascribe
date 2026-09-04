@@ -1,3 +1,4 @@
+import { seoPageBlogLinks } from '@/lib/config/seoPages'
 import { SEOPage } from '@/components/shared/SEOPage'
 import { SEOSection } from '@/components/shared/SEOSection'
 import { faqItems } from '@/lib/config/faq'
@@ -110,6 +111,7 @@ export default function OpenSourceSubscriptionTrackerPage() {
       faqItems={pageFaqItems}
       relatedHeading="Also worth exploring"
       relatedDescription="Open source is one differentiator - here is how the rest compares."
+      blogSlugs={seoPageBlogLinks['/open-source-subscription-tracker']}
       relatedPages={[
         {
           href: '/subscription-tracker-without-bank-account',

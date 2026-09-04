@@ -1,8 +1,10 @@
+import { BlogPostCard } from '@/components/blog/BlogPostCard'
 import { FAQSection } from '@/components/landing/FAQSection'
 import { SuprascribeLogo } from '@/components/landing/SuprascribeLogo'
 import { SiteFooter } from '@/components/shared/SiteFooter'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { getBlogPost } from '@/lib/config/blog'
 import type { FAQItem } from '@/lib/config/faq'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -27,6 +29,12 @@ interface SEOPageProps {
   secondaryCta?: CTAButton
   faqItems?: FAQItem[]
   relatedPages?: RelatedPage[]
+  /**
+   * Blog slugs to surface as a card row above the related-page chips. Kept separate from
+   * `relatedPages`: article titles rendered as bare chips read as a link farm, and a card
+   * carries the date and reading time that make the link worth following.
+   */
+  blogSlugs?: string[]
   /** `null` renders the links without a heading. */
   relatedHeading?: string | null
   relatedDescription?: string
@@ -38,7 +46,7 @@ export function PageShell({ jsonLd, children }: { jsonLd: object; children: Reac
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '<') }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <div className="flex flex-col px-4 md:px-8">
         <div className="container mx-auto px-4 pt-8">
@@ -62,10 +70,13 @@ export function SEOPage({
   secondaryCta,
   faqItems,
   relatedPages,
+  blogSlugs,
   relatedHeading = 'Also worth exploring',
   relatedDescription,
   children,
 }: SEOPageProps) {
+  const blogPosts = (blogSlugs ?? []).map(getBlogPost).filter((post) => post !== undefined)
+
   return (
     <PageShell jsonLd={jsonLd}>
       <section className="container mx-auto px-4 py-6 sm:py-20 max-w-6xl text-center">
@@ -115,6 +126,24 @@ export function SEOPage({
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Common Questions</h2>
               </div>
               <FAQSection items={faqItems} showViewAll />
+            </div>
+          </section>
+        </>
+      )}
+
+      {blogPosts.length > 0 && (
+        <>
+          <Separator className="data-[orientation=horizontal]:w-[40vw] mx-auto" />
+          <section className="container mx-auto px-4 py-12 sm:py-16 max-w-6xl">
+            <div className="space-y-8">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center">
+                From the Blog
+              </h2>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {blogPosts.map((post) => (
+                  <BlogPostCard key={post.slug} post={post} as="h3" />
+                ))}
+              </div>
             </div>
           </section>
         </>
