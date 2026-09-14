@@ -291,7 +291,6 @@ export function LoginClient({ initialTab, errorParam }: LoginClientProps) {
     }
     if (data.user) {
       posthog.identify(data.user.id, { email: data.user.email })
-      posthog.capture('user_signed_up', { method: 'email' })
     }
     toast.success('Check your email', {
       description: 'We sent you a confirmation link to complete sign up.',

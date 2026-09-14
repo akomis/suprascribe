@@ -117,7 +117,7 @@ export default function SafetyPage() {
                     not retained by us afterwards
                   </li>
                   <li>
-                    On the Pro plan you can supply your own API key, in which case the analysis runs
+                    On the PRO plan you can supply your own API key, in which case the analysis runs
                     through the provider and model you choose
                   </li>
                 </ul>

@@ -12,7 +12,7 @@
 - Multi-currency support
 - Bring Your Own Key (BYOK) - use your own AI API keys for unlimited discovery
 
-**Pro (one-time)**
+**PRO (one-time)**
 
 - Auto-discovery from Gmail, Outlook, iCloud, or any IMAP provider
 - Complete subscription history
@@ -94,7 +94,7 @@ Alternatively, leave `MODEL_API_KEY` empty - users can bring their own key (BYOK
 
 | Service                              | Variable(s)                                  | Purpose                      |
 | ------------------------------------ | -------------------------------------------- | ---------------------------- |
-| [Stripe](https://stripe.com)         | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | One-time Pro upgrade payment |
+| [Stripe](https://stripe.com)         | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | One-time PRO upgrade payment |
 | [Resend](https://resend.com)         | `RESEND_API_KEY`                             | Renewal reminder emails      |
 | [Brandfetch](https://brandfetch.com) | `BRANDFETCH_API_KEY`                         | Service logo fetching        |
 

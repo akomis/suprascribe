@@ -5,6 +5,7 @@ if (process.env.NODE_ENV !== 'development') {
         api_host: '/supraph',
         ui_host: 'https://eu.posthog.com',
         defaults: '2026-01-30',
+        cookieless_mode: 'always',
         capture_exceptions: true,
         disable_session_recording: true,
         enable_recording_console_log: false,

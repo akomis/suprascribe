@@ -1,16 +1,17 @@
 import { SEOPage } from '@/components/shared/SEOPage'
 import { SEOSection } from '@/components/shared/SEOSection'
 import { faqItems } from '@/lib/config/faq'
-import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
+import { breadcrumbSchema, faqPageSchema, softwareApplicationSchema } from '@/lib/utils/schema'
 import { Check, X } from 'lucide-react'
 import type { Metadata } from 'next'
 import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
+import { buildProOfferJsonLd } from '@/lib/config/pricing'
 
 export const metadata: Metadata = buildMetadata({
   title: 'Subscription Tracker Without a Bank Account - No Plaid, No Linking',
   description:
-    'A subscription tracker that never asks for your bank account. Suprascribe finds subscriptions by scanning your email instead of linking to Plaid - free, private, one-time Pro upgrade.',
+    'A subscription tracker that never asks for your bank account. Suprascribe finds subscriptions by scanning your email instead of linking to Plaid - free, private, one-time PRO upgrade.',
   path: '/subscription-tracker-without-bank-account',
 })
 
@@ -28,31 +29,11 @@ const pageFaqItems = faqItems.filter((item) =>
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
-    {
-      '@type': 'SoftwareApplication',
-      name: 'Suprascribe',
-      applicationCategory: 'FinanceApplication',
-      operatingSystem: 'Web',
-      url: 'https://www.suprascribe.com',
+    softwareApplicationSchema({
       description:
         'Subscription tracker that works without a bank account. Finds subscriptions by scanning email instead of linking to Plaid - no financial-account access, no monthly fee, free unlimited tier.',
-      offers: [
-        {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'EUR',
-          name: 'Basic',
-          description: 'Free forever - unlimited subscription tracking',
-        },
-        {
-          '@type': 'Offer',
-          price: '10',
-          priceCurrency: 'EUR',
-          name: 'Pro',
-          description: 'One-time purchase - auto-discovery, reminders, calendar',
-        },
-      ],
-    },
+      proOffer: buildProOfferJsonLd(),
+    }),
     faqPageSchema(pageFaqItems),
     breadcrumbSchema(
       'Subscription Tracker Without a Bank Account',
@@ -93,7 +74,7 @@ const comparisonRows = [
   {
     feature: 'Recurring monthly fee',
     suprascribe: false,
-    suprascribeNote: 'No - one-time Pro upgrade only',
+    suprascribeNote: 'No - one-time PRO upgrade only',
     bankApps: true,
     bankAppsNote: 'Most charge $4-$12/month for premium',
   },
@@ -110,6 +91,7 @@ export default function SubscriptionTrackerWithoutBankAccountPage() {
   return (
     <SEOPage
       jsonLd={jsonLd}
+      path="/subscription-tracker-without-bank-account"
       title="A Subscription Tracker Without Bank Account Access, Ever"
       description="Most subscription trackers only work if you hand over your bank login through Plaid. Suprascribe is a subscription tracker without bank account access of any kind - it finds the same subscriptions by scanning your email. No financial data exposure, no monthly fee. And you can skip email entirely and add them by hand."
       primaryCta={{ href: '/login?tab=signup', label: 'Try Suprascribe Free' }}
@@ -117,11 +99,6 @@ export default function SubscriptionTrackerWithoutBankAccountPage() {
       faqItems={pageFaqItems}
       relatedHeading="Also worth exploring"
       relatedDescription="See how the no-bank-linking approach compares to the tools that require it."
-      relatedPages={[
-        { href: '/open-source-subscription-tracker', label: 'Open Source Subscription Tracker' },
-        { href: '/rocket-money-alternative', label: 'Rocket Money Alternative' },
-        { href: '/free-subscription-tracker', label: 'Track Subscriptions for Free' },
-      ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">
         <div className="space-y-8">
@@ -214,7 +191,7 @@ export default function SubscriptionTrackerWithoutBankAccountPage() {
           <p>
             <strong className="text-foreground">No recurring fee.</strong> Most bank-linked apps
             charge a monthly premium - you end up paying a subscription to manage your
-            subscriptions. Suprascribe Pro is a one-time purchase.
+            subscriptions. Suprascribe PRO is a one-time purchase.
           </p>
         </div>
 
@@ -226,9 +203,9 @@ export default function SubscriptionTrackerWithoutBankAccountPage() {
               - unlimited and free, with nothing connected at all.
             </li>
             <li>
-              • <strong className="text-foreground">Email auto-discovery (Pro).</strong> Connect
-              Gmail, Outlook, or iCloud via OAuth. Only subscription-related emails are scanned, and
-              no email content is ever stored.
+              • <strong className="text-foreground">Email auto-discovery (PRO).</strong> Connect
+              Gmail or Outlook via OAuth, or iCloud and any other provider over IMAP. Only
+              subscription-related emails are scanned, and no email content is ever stored.
             </li>
           </ul>
           <p className="text-xs text-muted-foreground pt-1">

@@ -78,7 +78,7 @@ export default async function CompetitorPage({
             name: `What is the best alternative to ${competitor.name}?`,
             acceptedAnswer: {
               '@type': 'Answer',
-              text: `Suprascribe is the top alternative to ${competitor.name}. It offers unlimited free subscription tracking, automatic discovery via email scanning (no bank access), and a one-time Pro upgrade with no recurring fees. ${competitor.verdict}`,
+              text: `Suprascribe is the top alternative to ${competitor.name}. It offers unlimited free subscription tracking, automatic discovery via email scanning (no bank access), and a one-time PRO upgrade with no recurring fees. ${competitor.verdict}`,
             },
           },
         ],
@@ -104,46 +104,39 @@ export default async function CompetitorPage({
     ],
   }
 
+  // Every cell reads a verified field on the competitor record. Do not infer these from the
+  // suprascribeWins copy - an unmentioned advantage is not the same as the competitor having it.
   const featureRows = [
     {
       feature: 'Email auto-discovery',
       suprascribe: true,
-      them: competitor.suprascribeWins.some((w) => w.label === 'Email auto-discovery')
-        ? false
-        : null,
+      them: competitor.discoverySource === 'email',
       suprascribeDetail: 'Scans Gmail, Outlook, iCloud, and IMAP automatically',
     },
     {
       feature: 'No bank account required',
       suprascribe: true,
-      them: !competitor.suprascribeWins.some((w) => w.label.toLowerCase().includes('bank')),
+      them: !competitor.requiresBankLinking,
     },
     {
       feature: 'Web-based (any browser/device)',
       suprascribe: true,
-      them: !competitor.suprascribeWins.some(
-        (w) => w.label.toLowerCase().includes('web') || w.label.toLowerCase().includes('platform'),
-      ),
+      them: competitor.isWebBased,
     },
     {
       feature: 'Free unlimited tier',
       suprascribe: true,
-      them: !competitor.suprascribeWins.some(
-        (w) =>
-          w.label.toLowerCase().includes('free') || w.label.toLowerCase().includes('unlimited'),
-      ),
+      them: competitor.hasUnlimitedFree,
     },
     {
       feature: 'One-time purchase option',
       suprascribe: true,
-      them:
-        !competitor.isSubscription &&
-        !competitor.suprascribeWins.some((w) => w.label.toLowerCase().includes('one-time')),
+      them: competitor.hasOneTimeOption,
     },
     {
       feature: 'Open source',
       suprascribe: true,
-      them: !competitor.suprascribeWins.some((w) => w.label.toLowerCase().includes('open source')),
+      them: competitor.isOpenSource,
     },
   ]
 
@@ -151,7 +144,7 @@ export default async function CompetitorPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '<') }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <div className="flex flex-col px-4 md:px-8">
         <div className="container mx-auto px-4 pt-8">
@@ -196,7 +189,7 @@ export default async function CompetitorPage({
               <div className="border rounded-lg p-5 space-y-3">
                 <p className="font-semibold">Suprascribe</p>
                 <p className="text-muted-foreground text-sm">
-                  Basic free forever. Pro is a one-time purchase - no recurring fees.
+                  Basic free forever. PRO is a one-time purchase - no recurring fees.
                 </p>
               </div>
               <div className="border rounded-lg p-5 space-y-3">

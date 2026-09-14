@@ -51,7 +51,7 @@ export default function Image() {
           lineHeight: 1.4,
         }}
       >
-        Automatically discover and manage your subscriptions. Free forever - Pro is a one-time
+        Automatically discover and manage your subscriptions. Free forever - PRO is a one-time
         purchase.
       </p>
       <div

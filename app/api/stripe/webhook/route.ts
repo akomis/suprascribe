@@ -1,5 +1,4 @@
 import { STRIPE_API_VERSION } from '@/lib/config/stripe'
-import { captureEvent } from '@/lib/posthog-server'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 import Stripe from 'stripe'
@@ -57,11 +56,6 @@ async function handleAffiliateConversion(
     status: 'pending',
   })
   if (!convErr) {
-    await captureEvent(userId, 'affiliate_conversion', {
-      affiliate_code: affiliateCode,
-      amount_total: session.amount_total,
-      commission_amount: commissionAmount,
-    })
     console.log(`✅ Affiliate conversion recorded: ${affiliateCode} → ${userId}`)
   } else if (convErr.code !== '23505') {
     console.error('Failed to record affiliate conversion:', convErr)
@@ -123,13 +117,6 @@ export async function POST(request: NextRequest) {
     if (event.type === 'charge.failed') {
       const charge = event.data.object
       console.warn('Payment failed for charge:', charge.id)
-      await captureEvent(charge.customer?.toString() || charge.id, 'charge_failed', {
-        charge_id: charge.id,
-        amount: charge.amount,
-        currency: charge.currency,
-        failure_code: charge.failure_code,
-        failure_message: charge.failure_message,
-      })
       return NextResponse.json({ success: true })
     }
 

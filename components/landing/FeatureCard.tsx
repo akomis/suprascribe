@@ -90,7 +90,7 @@ export function FeatureCard({
   // Straddles the card's bottom border, outside the content flow, so it never shifts the
   // text or breaks the equal heights of a card row. Mirrors `sourceMark` on the top border.
   const actionMark = actionComponent ? (
-    <div className="absolute -bottom-4 right-4 z-10 flex items-center bg-background p-2 rounded-md">
+    <div className="absolute -bottom-6 right-4 z-10 flex items-center bg-background p-2 rounded-md">
       {actionComponent}
     </div>
   ) : actionHref && actionText ? (

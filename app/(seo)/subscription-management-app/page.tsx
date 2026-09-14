@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button'
 import { competitors } from '@/lib/config/comparisons'
 import { GITHUB_URL } from '@/lib/config/urls'
 import { faqItems } from '@/lib/config/faq'
-import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
+import { breadcrumbSchema, faqPageSchema, softwareApplicationSchema } from '@/lib/utils/schema'
 import type { Metadata } from 'next'
 import { buildMetadata } from '@/lib/utils/metadata'
 import { Check } from 'lucide-react'
 import Link from 'next/link'
+import { buildProOfferJsonLd } from '@/lib/config/pricing'
 
 export const metadata: Metadata = buildMetadata({
   title: 'Subscription Management App - Gmail, Outlook & iCloud',
@@ -23,7 +24,7 @@ const appFaqItems = faqItems.filter((item) =>
     'Which email providers are supported?',
     'How does auto-discovery work? Does it read all my emails?',
     'Is my data safe and private?',
-    'Is Pro really a one-time payment?',
+    'Is PRO really a one-time payment?',
     'Is Suprascribe open source?',
     'Can I use Suprascribe without connecting my email?',
   ].includes(item.question),
@@ -32,31 +33,11 @@ const appFaqItems = faqItems.filter((item) =>
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
-    {
-      '@type': 'SoftwareApplication',
-      name: 'Suprascribe',
-      applicationCategory: 'FinanceApplication',
-      operatingSystem: 'Web',
-      url: 'https://www.suprascribe.com',
+    softwareApplicationSchema({
       description:
         'Subscription management app that automatically discovers and tracks recurring payments by scanning Gmail, Outlook, iCloud, and IMAP email inboxes.',
-      offers: [
-        {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'EUR',
-          name: 'Basic',
-          description: 'Free forever - unlimited subscription management',
-        },
-        {
-          '@type': 'Offer',
-          price: '10',
-          priceCurrency: 'EUR',
-          name: 'Pro',
-          description: 'One-time purchase - auto-discovery and advanced features',
-        },
-      ],
-    },
+      proOffer: buildProOfferJsonLd(),
+    }),
     faqPageSchema(appFaqItems),
     breadcrumbSchema(
       'Subscription Management App',
@@ -78,6 +59,7 @@ export default function SubscriptionManagementAppPage() {
   return (
     <SEOPage
       jsonLd={jsonLd}
+      path="/subscription-management-app"
       title="The Subscription Management App Built Around Your Inbox"
       description="Suprascribe is a subscription management app that connects to Gmail, Outlook, iCloud, or any IMAP inbox and automatically identifies every recurring payment. No bank linking. No manual digging through receipts. A complete subscription list in minutes."
       primaryCta={{ href: '/login?tab=signup', label: 'Get Started Free' }}
@@ -85,12 +67,6 @@ export default function SubscriptionManagementAppPage() {
       faqItems={appFaqItems}
       relatedHeading="Looking for a Free Option?"
       relatedDescription="The Basic tier is free forever - unlimited subscriptions, full dashboard."
-      relatedPages={[
-        { href: '/free-subscription-tracker', label: 'Track Subscriptions for Free' },
-        { href: '/free-subscription-manager', label: 'Manage Subscriptions for Free' },
-        { href: '/subscription-cost-calculator', label: 'Subscription Cost Calculator' },
-        { href: '/subscription-tracking-for-business', label: 'Tracking for Business' },
-      ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">
         <div className="space-y-8">

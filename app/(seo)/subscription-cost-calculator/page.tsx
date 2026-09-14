@@ -5,7 +5,7 @@ import { Separator } from '@/components/ui/separator'
 import { ProPrice } from '@/components/landing/ProPrice'
 import { faqItems } from '@/lib/config/faq'
 import { getDiscountStatus } from '@/lib/config/discount'
-import { ONCE_SCAN_PRICE_DISPLAY } from '@/lib/config/stripe'
+import { OnceScanPrice } from '@/components/shared/OnceScanPrice'
 import { buildMetadata } from '@/lib/utils/metadata'
 import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
 import type { Metadata } from 'next'
@@ -63,17 +63,13 @@ export default function SubscriptionCostCalculatorPage() {
   return (
     <SEOPage
       jsonLd={jsonLd}
+      path="/subscription-cost-calculator"
       title="Subscription Cost Calculator"
       description="This free subscription cost calculator adds up every subscription you pay for - monthly, yearly, quarterly, or weekly - and shows what it actually costs you per month and per year. No signup, nothing stored."
       primaryCta={{ href: '/login?tab=signup', label: 'Find the Ones You Forgot' }}
       faqItems={calculatorFaqItems}
       relatedHeading="Tired of Doing This by Hand?"
       relatedDescription="Suprascribe tracks and manages your subscriptions for you - cancel, organize, set reminders, and more."
-      relatedPages={[
-        { href: '/free-subscription-tracker', label: 'Free Subscription Tracker' },
-        { href: '/subscription-management-app', label: 'Full Subscription Manager' },
-        { href: '/rocket-money-alternative', label: 'Rocket Money Alternative' },
-      ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-16 max-w-3xl">
         <SubscriptionCalculator />
@@ -98,7 +94,7 @@ export default function SubscriptionCostCalculatorPage() {
             <div className="space-y-2 text-center">
               <h3 className="font-semibold">No manual tracking</h3>
               <p className="text-sm text-muted-foreground">
-                Suprascribe Pro scans Gmail, Outlook, iCloud, or any IMAP inbox for receipts and
+                Suprascribe PRO scans Gmail, Outlook, iCloud, or any IMAP inbox for receipts and
                 renewal notices - no bank account linking.
               </p>
             </div>
@@ -130,7 +126,7 @@ export default function SubscriptionCostCalculatorPage() {
               </Button>
             </div>
             <div className="space-y-1">
-              <p className="font-semibold">Pro is a one-time payment - not another subscription.</p>
+              <p className="font-semibold">PRO is a one-time payment - not another subscription.</p>
               <p className="text-sm text-muted-foreground">
                 Pay once, own forever. Automatic tracking, renewal reminders, quick unsubscribe and
                 more. The Basic tier stays free with unlimited manual tracking.
@@ -140,14 +136,16 @@ export default function SubscriptionCostCalculatorPage() {
 
           <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed p-4 text-center sm:flex-row sm:justify-between sm:text-left">
             <div className="space-y-1">
-              <h3 className="text-lg font-semibold">Just want a quick one-time scan?</h3>
+              <h3 className="text-lg font-semibold">Just want a quick subscription audit?</h3>
               <p className="text-sm text-muted-foreground">
-                Pay {ONCE_SCAN_PRICE_DISPLAY}, connect one inbox, and instantly see your
-                subscriptions with unsubscribe links. Ephemeral, no sign-up.
+                Pay <OnceScanPrice />, connect one inbox, and instantly see your subscriptions with
+                unsubscribe links. Ephemeral, no sign-up.
               </p>
             </div>
             <Button size="lg" variant="outline" asChild className="shrink-0">
-              <Link href="/one-time-scan">Scan 1 inbox for {ONCE_SCAN_PRICE_DISPLAY}</Link>
+              <Link href="/one-time-scan">
+                Scan 1 inbox for <OnceScanPrice />
+              </Link>
             </Button>
           </div>
         </div>

@@ -7,12 +7,12 @@ import {
   generateRandomDiscoveredSubscriptions,
 } from '@/lib/demo/demoDiscoveryData'
 
-const MIN_DELAY_MS = 5000
-const MAX_DELAY_MS = 10000
+const MIN_DELAY_MS = 4000
+const MAX_DELAY_MS = 6000
 
 // Simulates the email-discovery flow on the demo page. Mirrors the slice of the
 // real IMAP discovery hook consumed by DiscoveryDialog, but instead of hitting
-// any backend it spins for a random 5-10s then returns results.
+// any backend it spins for a random 4-6s then returns results.
 //
 // `randomize` (used by /demo-discovery) generates a fresh random set each scan;
 // otherwise the fixed curated set is returned (the public /demo page).

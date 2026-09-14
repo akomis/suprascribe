@@ -10,7 +10,7 @@ import Link from 'next/link'
 export const metadata: Metadata = buildMetadata({
   title: 'Auto Discovery - How It Works & BYOK',
   description:
-    'Learn how Auto Discovery finds your subscriptions from Gmail, Outlook and iCloud. Pro includes a discovery allowance, and BYOK lets you use your own AI API key for unlimited scans.',
+    'Learn how Auto Discovery finds your subscriptions from Gmail, Outlook and iCloud. PRO includes a discovery allowance, and BYOK lets you use your own AI API key for unlimited scans.',
   path: '/limits',
 })
 
@@ -53,12 +53,12 @@ export default function LimitsPage() {
                   Total Discovery Limit
                 </h3>
                 <p className="text-muted-foreground">
-                  Pro users can run up to <strong>{MAX_TOTAL_DISCOVERIES} discoveries total</strong>{' '}
+                  PRO users can run up to <strong>{MAX_TOTAL_DISCOVERIES} discoveries total</strong>{' '}
                   using our AI infrastructure. Each time you scan an email account (Gmail, Outlook,
                   or iCloud) counts as one discovery.
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
-                  <li>Pro includes {MAX_TOTAL_DISCOVERIES} discoveries using our infrastructure</li>
+                  <li>PRO includes {MAX_TOTAL_DISCOVERIES} discoveries using our infrastructure</li>
                   <li>You can use any combination of email providers</li>
                   <li>After reaching the limit, configure BYOK for unlimited discoveries</li>
                 </ul>
@@ -119,7 +119,7 @@ export default function LimitsPage() {
               <p className="text-muted-foreground">
                 The {MAX_TOTAL_DISCOVERIES} discovery limit is designed to be generous for typical
                 use. Most users only need to discover once per email account. If you&apos;ve found
-                subscriptions you missed, you can always add them manually at any time. Pro users
+                subscriptions you missed, you can always add them manually at any time. PRO users
                 can configure BYOK for unlimited discoveries beyond the included allowance. Still
                 have questions?
               </p>

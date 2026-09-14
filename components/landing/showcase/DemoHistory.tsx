@@ -1,12 +1,25 @@
 'use client'
 
-import SubscriptionHistory from '@/components/dashboard/SubscriptionHistory'
+import { Spinner } from '@/components/ui/spinner'
+import dynamic from 'next/dynamic'
 import { SubscriptionBadge } from '@/components/dashboard/SubscriptionBadge'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { UserSubscriptionWithDetails } from '@/lib/types/database'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
 import { UserX } from 'lucide-react'
+
+// Recharts is ~370 kB and this is the only thing on the marketing page that needs it.
+// Loading it lazily keeps it out of the landing page's initial script set; the chart
+// is below the fold, so it resolves well before a visitor scrolls to it.
+const SubscriptionHistory = dynamic(() => import('@/components/dashboard/SubscriptionHistory'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-[200px] sm:h-[250px]">
+      <Spinner />
+    </div>
+  ),
+})
 
 const DEMO_SUBSCRIPTION_HISTORY: UserSubscriptionWithDetails[] = [
   {

@@ -155,3 +155,19 @@ export function buildSearchQuery(
       return keywords[0] || 'receipt'
   }
 }
+
+/**
+ * Placeholder written into a teaser row's NOT NULL text columns while its scan
+ * is still running. A row carrying this is a reservation rather than a result:
+ * it holds the user's single free-scan slot for the length of the scan, so two
+ * concurrent scans cannot both see "no teaser yet" and then collide on
+ * DISCOVERY_TEASERS_user_id_key once they finish.
+ */
+export const TEASER_RESERVED = '__reserved__'
+
+/**
+ * How long a reservation is honoured. A scan killed mid-flight (function
+ * timeout, deploy) leaves its row behind, and without an expiry the user would
+ * lose their free scan for good. Comfortably longer than the slowest scan.
+ */
+export const TEASER_RESERVATION_TIMEOUT_MS = 15 * 60 * 1000

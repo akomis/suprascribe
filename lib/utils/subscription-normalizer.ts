@@ -231,7 +231,7 @@ function cleanServiceName(name: string): string {
       }
     }
   }
-  // Stripping the suffix left only a tier word ("Pro", "Max") or nothing at all,
+  // Stripping the suffix left only a tier word ("PRO", "Max") or nothing at all,
   // neither of which is a usable service name - keep what we started with.
   if (!cleaned || STANDALONE_TIER_WORDS.includes(cleaned.toLowerCase())) return original
   return cleaned

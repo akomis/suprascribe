@@ -69,6 +69,16 @@ const nextConfig = {
         ],
       },
       {
+        // IndexNow key file. Its name is its contents; rotating the key means
+        // renaming public/<key>.txt, rewriting it, and updating this source.
+        source: '/87ba2ab97f619db3326326912d92d6eb.txt',
+        headers: [
+          { key: 'Content-Type', value: 'text/plain; charset=utf-8' },
+          { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
+          { key: 'Cache-Control', value: 'public, max-age=86400' },
+        ],
+      },
+      {
         source: '/sw.js',
         headers: [
           { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },

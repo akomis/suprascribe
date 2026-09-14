@@ -1,11 +1,12 @@
 import { SEOPage } from '@/components/shared/SEOPage'
 import { SEOSection } from '@/components/shared/SEOSection'
 import { faqItems } from '@/lib/config/faq'
-import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
+import { breadcrumbSchema, faqPageSchema, softwareApplicationSchema } from '@/lib/utils/schema'
 import { Check, X } from 'lucide-react'
 import type { Metadata } from 'next'
 import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
+import { buildProOfferJsonLd } from '@/lib/config/pricing'
 
 export const metadata: Metadata = buildMetadata({
   title: 'Open Source Subscription Tracker - Auditable, Self-Hostable, One-Time',
@@ -20,7 +21,7 @@ const pageFaqItems = faqItems.filter((item) =>
     'Is my data safe and private?',
     'Is there a subscription tracker that does not require bank access?',
     'How does auto-discovery work? Does it read all my emails?',
-    'Is Pro really a one-time payment?',
+    'Is PRO really a one-time payment?',
     'Is Suprascribe really free?',
   ].includes(item.question),
 )
@@ -28,31 +29,11 @@ const pageFaqItems = faqItems.filter((item) =>
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
-    {
-      '@type': 'SoftwareApplication',
-      name: 'Suprascribe',
-      applicationCategory: 'FinanceApplication',
-      operatingSystem: 'Web',
-      url: 'https://www.suprascribe.com',
+    softwareApplicationSchema({
       description:
         'Open source subscription tracker with full source code on GitHub. Finds subscriptions by scanning email instead of bank linking - auditable, self-hostable, no recurring fee.',
-      offers: [
-        {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'EUR',
-          name: 'Basic',
-          description: 'Free forever - unlimited subscription tracking',
-        },
-        {
-          '@type': 'Offer',
-          price: '10',
-          priceCurrency: 'EUR',
-          name: 'Pro',
-          description: 'One-time purchase - auto-discovery, reminders, calendar',
-        },
-      ],
-    },
+      proOffer: buildProOfferJsonLd(),
+    }),
     faqPageSchema(pageFaqItems),
     breadcrumbSchema(
       'Open Source Subscription Tracker',
@@ -86,7 +67,7 @@ const comparisonRows = [
   {
     feature: 'One-time upgrade',
     suprascribe: true,
-    suprascribeNote: 'One-time Pro upgrade only',
+    suprascribeNote: 'One-time PRO upgrade only',
     closed: false,
     closedNote: 'Most charge monthly or per seat',
   },
@@ -103,6 +84,7 @@ export default function OpenSourceSubscriptionTrackerPage() {
   return (
     <SEOPage
       jsonLd={jsonLd}
+      path="/open-source-subscription-tracker"
       title="Open Source Subscription Tracker"
       description="Most subscription trackers ask you to trust a closed-source app with your financial data. Suprascribe is an open source subscription tracker: the full source code is on GitHub, subscriptions are found by scanning email instead of your bank, and you pay once - not every month. Self-host it if you want total control."
       primaryCta={{ href: '/login?tab=signup', label: 'Try Suprascribe Free' }}
@@ -110,15 +92,6 @@ export default function OpenSourceSubscriptionTrackerPage() {
       faqItems={pageFaqItems}
       relatedHeading="Also worth exploring"
       relatedDescription="Open source is one differentiator - here is how the rest compares."
-      relatedPages={[
-        {
-          href: '/subscription-tracker-without-bank-account',
-          label: 'Tracker With No Bank Linking',
-        },
-        { href: '/rocket-money-alternative', label: 'Rocket Money Alternative' },
-        { href: '/compare', label: 'All Comparisons' },
-        { href: '/subscription-tracking-for-startups', label: 'Tracking for Startups' },
-      ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">
         <div className="space-y-8">
@@ -210,7 +183,7 @@ export default function OpenSourceSubscriptionTrackerPage() {
           </p>
           <p>
             <strong className="text-foreground">One-time cost, not a rented tool.</strong> Open
-            source and a one-time Pro purchase go together: you are not renting access to your own
+            source and a one-time PRO purchase go together: you are not renting access to your own
             data month after month. Pay once, own it, self-host if you ever want to.
           </p>
         </div>
@@ -220,7 +193,7 @@ export default function OpenSourceSubscriptionTrackerPage() {
           <ul className="text-sm text-muted-foreground space-y-1.5">
             <li>• Full source code on GitHub - auditable and self-hostable</li>
             <li>• Email-based discovery - no bank account access, ever</li>
-            <li>• Unlimited free tier; Pro is a one-time purchase, no recurring fee</li>
+            <li>• Unlimited free tier; PRO is a one-time purchase, no recurring fee</li>
           </ul>
           <p className="text-xs text-muted-foreground pt-1">
             Prefer not to self-host? The hosted version runs the exact same open code, so the

@@ -1,8 +1,11 @@
+import { BlogPostCard } from '@/components/blog/BlogPostCard'
 import { FAQSection } from '@/components/landing/FAQSection'
 import { SuprascribeLogo } from '@/components/landing/SuprascribeLogo'
 import { SiteFooter } from '@/components/shared/SiteFooter'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { getBlogPost } from '@/lib/config/blog'
+import { getRelatedSeoPages, getSeoPageBlogSlugs } from '@/lib/config/linkGraph'
 import type { FAQItem } from '@/lib/config/faq'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -21,12 +24,25 @@ interface RelatedPage {
 
 interface SEOPageProps {
   jsonLd: object
+  /**
+   * The page's own path, for pages in the app/(seo) registry. Given this, the related-page chips
+   * and the blog card row are derived from the link graph instead of being typed out per page,
+   * which is what keeps every page in the group reachable. Passing `relatedPages` or `blogSlugs`
+   * explicitly still wins - the blog article route does exactly that.
+   */
+  path?: string
   title: string
   description: string
   primaryCta?: CTAButton
   secondaryCta?: CTAButton
   faqItems?: FAQItem[]
   relatedPages?: RelatedPage[]
+  /**
+   * Blog slugs to surface as a card row above the related-page chips. Kept separate from
+   * `relatedPages`: article titles rendered as bare chips read as a link farm, and a card
+   * carries the date and reading time that make the link worth following.
+   */
+  blogSlugs?: string[]
   /** `null` renders the links without a heading. */
   relatedHeading?: string | null
   relatedDescription?: string
@@ -38,7 +54,7 @@ export function PageShell({ jsonLd, children }: { jsonLd: object; children: Reac
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '<') }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <div className="flex flex-col px-4 md:px-8">
         <div className="container mx-auto px-4 pt-8">
@@ -56,16 +72,22 @@ export function PageShell({ jsonLd, children }: { jsonLd: object; children: Reac
 
 export function SEOPage({
   jsonLd,
+  path,
   title,
   description,
   primaryCta,
   secondaryCta,
   faqItems,
   relatedPages,
+  blogSlugs,
   relatedHeading = 'Also worth exploring',
   relatedDescription,
   children,
 }: SEOPageProps) {
+  const resolvedRelatedPages = relatedPages ?? (path ? getRelatedSeoPages(path) : undefined)
+  const resolvedBlogSlugs = blogSlugs ?? (path ? getSeoPageBlogSlugs(path) : [])
+  const blogPosts = resolvedBlogSlugs.map(getBlogPost).filter((post) => post !== undefined)
+
   return (
     <PageShell jsonLd={jsonLd}>
       <section className="container mx-auto px-4 py-6 sm:py-20 max-w-6xl text-center">
@@ -120,7 +142,25 @@ export function SEOPage({
         </>
       )}
 
-      {relatedPages && relatedPages.length > 0 && (
+      {blogPosts.length > 0 && (
+        <>
+          <Separator className="data-[orientation=horizontal]:w-[40vw] mx-auto" />
+          <section className="container mx-auto px-4 py-12 sm:py-16 max-w-6xl">
+            <div className="space-y-8">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center">
+                From the Blog
+              </h2>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {blogPosts.map((post) => (
+                  <BlogPostCard key={post.slug} post={post} as="h3" />
+                ))}
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      {resolvedRelatedPages && resolvedRelatedPages.length > 0 && (
         <section className="container mx-auto px-4 py-10 max-w-4xl text-center">
           <div className="space-y-4">
             <div>
@@ -131,7 +171,7 @@ export function SEOPage({
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-              {relatedPages.map((page) => (
+              {resolvedRelatedPages.map((page) => (
                 <Link key={page.href} href={page.href}>
                   <Button variant="outline">{page.label}</Button>
                 </Link>

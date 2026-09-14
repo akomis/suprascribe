@@ -200,7 +200,7 @@ export const SAMPLE_SUBSCRIPTIONS: DemoMergedSubscription[] = [
     ),
   },
   {
-    name: 'GitHub Pro',
+    name: 'GitHub PRO',
     serviceUrl: 'https://github.com',
     price: 4.0,
     period: 'MONTHLY',
@@ -218,7 +218,7 @@ export const SAMPLE_SUBSCRIPTIONS: DemoMergedSubscription[] = [
     subscriptions: buildMonthlyPeriods(
       4000,
       4,
-      'GitHub Pro',
+      'GitHub PRO',
       'https://github.com',
       4.0,
       'USD',

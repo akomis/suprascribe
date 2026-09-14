@@ -1,16 +1,17 @@
 import { SEOPage } from '@/components/shared/SEOPage'
 import { SEOSection } from '@/components/shared/SEOSection'
 import { faqItems } from '@/lib/config/faq'
-import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
+import { breadcrumbSchema, faqPageSchema, softwareApplicationSchema } from '@/lib/utils/schema'
 import { Check, X } from 'lucide-react'
 import type { Metadata } from 'next'
 import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
+import { buildProOfferJsonLd } from '@/lib/config/pricing'
 
 export const metadata: Metadata = buildMetadata({
   title: 'Best Rocket Money Alternative - No Bank Access, No Monthly Fee',
   description:
-    'Looking for a Rocket Money alternative that does not require bank account access? Suprascribe finds subscriptions by scanning email instead - free forever, one-time Pro upgrade.',
+    'Looking for a Rocket Money alternative that does not require bank account access? Suprascribe finds subscriptions by scanning email instead - free forever, one-time PRO upgrade.',
   path: '/rocket-money-alternative',
 })
 
@@ -18,7 +19,7 @@ const rocketFaqItems = faqItems.filter((item) =>
   [
     'Is there a subscription tracker that does not require bank access?',
     'Is Suprascribe really free?',
-    'Is Pro really a one-time payment?',
+    'Is PRO really a one-time payment?',
     'How does auto-discovery work? Does it read all my emails?',
     'Is my data safe and private?',
     'Is Suprascribe open source?',
@@ -28,31 +29,11 @@ const rocketFaqItems = faqItems.filter((item) =>
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
-    {
-      '@type': 'SoftwareApplication',
-      name: 'Suprascribe',
-      applicationCategory: 'FinanceApplication',
-      operatingSystem: 'Web',
-      url: 'https://www.suprascribe.com',
+    softwareApplicationSchema({
       description:
         'Rocket Money alternative that finds subscriptions through email scanning instead of bank linking - no Plaid access, no monthly fee, free unlimited tier.',
-      offers: [
-        {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'EUR',
-          name: 'Basic',
-          description: 'Free forever - unlimited subscription tracking',
-        },
-        {
-          '@type': 'Offer',
-          price: '10',
-          priceCurrency: 'EUR',
-          name: 'Pro',
-          description: 'One-time purchase - auto-discovery, reminders, calendar',
-        },
-      ],
-    },
+      proOffer: buildProOfferJsonLd(),
+    }),
     faqPageSchema(rocketFaqItems),
     breadcrumbSchema(
       'Rocket Money Alternative',
@@ -86,7 +67,7 @@ const comparisonRows = [
   {
     feature: 'Recurring monthly fee',
     suprascribe: false,
-    suprascribeNote: 'No - one-time Pro upgrade only',
+    suprascribeNote: 'No - one-time PRO upgrade only',
     rocketMoney: true,
     rocketMoneyNote: '$4–$12/month for premium',
   },
@@ -110,6 +91,7 @@ export default function RocketMoneyAlternativePage() {
   return (
     <SEOPage
       jsonLd={jsonLd}
+      path="/rocket-money-alternative"
       title="A Rocket Money Alternative That Does Not Touch Your Bank Account"
       description="Suprascribe is a Rocket Money alternative that never touches your bank. Rocket Money finds subscriptions by reading your full transaction history via Plaid; Suprascribe finds the same subscriptions by scanning your email - same result, no bank access, no monthly fee. The free tier is unlimited."
       primaryCta={{ href: '/login?tab=signup', label: 'Try Suprascribe Free' }}
@@ -117,14 +99,6 @@ export default function RocketMoneyAlternativePage() {
       faqItems={rocketFaqItems}
       relatedHeading="Compare All Alternatives"
       relatedDescription="See how Suprascribe stacks up against Rocket Money, YNAB, Bobby, and every other subscription tracker in one place."
-      relatedPages={[
-        { href: '/compare/rocket-money', label: 'Suprascribe vs Rocket Money' },
-        {
-          href: '/subscription-tracker-without-bank-account',
-          label: 'Tracker With No Bank Linking',
-        },
-        { href: '/free-subscription-tracker', label: 'Track Subscriptions for Free' },
-      ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">
         <div className="space-y-8">
@@ -210,7 +184,7 @@ export default function RocketMoneyAlternativePage() {
           <p>
             <strong className="text-foreground">Monthly fee.</strong> The premium tier costs $4–$12
             per month depending on what you pay, which means you&apos;re adding another recurring
-            charge to manage your recurring charges. Suprascribe Pro is a one-time purchase - no
+            charge to manage your recurring charges. Suprascribe PRO is a one-time purchase - no
             ongoing commitment.
           </p>
           <p>
@@ -230,7 +204,7 @@ export default function RocketMoneyAlternativePage() {
             <li>• No credit card, no bank access, no recurring fee</li>
           </ul>
           <p className="text-xs text-muted-foreground pt-1">
-            Pro (one-time) adds email auto-discovery, renewal reminders, calendar view, search, and
+            PRO (one-time) adds email auto-discovery, renewal reminders, calendar view, search, and
             unsubscribe assistance.
           </p>
         </div>

@@ -1,10 +1,11 @@
 import { SEOPage } from '@/components/shared/SEOPage'
 import { SEOSection } from '@/components/shared/SEOSection'
 import { faqItems } from '@/lib/config/faq'
-import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
+import { breadcrumbSchema, faqPageSchema, softwareApplicationSchema } from '@/lib/utils/schema'
 import { Bell, CalendarDays, Search, Zap } from 'lucide-react'
 import type { Metadata } from 'next'
 import { buildMetadata } from '@/lib/utils/metadata'
+import { buildProOfferJsonLd } from '@/lib/config/pricing'
 
 export const metadata: Metadata = buildMetadata({
   title: 'Free Subscription Manager - Organize, Cancel & Track',
@@ -16,9 +17,9 @@ export const metadata: Metadata = buildMetadata({
 const managerFaqItems = faqItems.filter((item) =>
   [
     'Is Suprascribe really free?',
-    "What's the difference between Basic and Pro?",
+    "What's the difference between Basic and PRO?",
     'How do renewal reminders work?',
-    'Is Pro really a one-time payment?',
+    'Is PRO really a one-time payment?',
     'How do I cancel a subscription I forgot about?',
     'Does Suprascribe work on iPhone and Android?',
   ].includes(item.question),
@@ -27,31 +28,11 @@ const managerFaqItems = faqItems.filter((item) =>
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
-    {
-      '@type': 'SoftwareApplication',
-      name: 'Suprascribe',
-      applicationCategory: 'FinanceApplication',
-      operatingSystem: 'Web',
-      url: 'https://www.suprascribe.com',
+    softwareApplicationSchema({
       description:
         'Free subscription manager to organize, cancel, and track all your recurring payments without connecting a bank account.',
-      offers: [
-        {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'EUR',
-          name: 'Basic',
-          description: 'Free forever - core subscription management',
-        },
-        {
-          '@type': 'Offer',
-          price: '10',
-          priceCurrency: 'EUR',
-          name: 'Pro',
-          description: 'One-time purchase - reminders, calendar, auto-discovery',
-        },
-      ],
-    },
+      proOffer: buildProOfferJsonLd(),
+    }),
     faqPageSchema(managerFaqItems),
     breadcrumbSchema(
       'Free Subscription Manager',
@@ -66,27 +47,27 @@ const managementFeatures = [
     title: 'Find Everything',
     description:
       'Auto-discovery scans Gmail, Outlook, and iCloud to surface subscriptions you forgot you signed up for.',
-    tier: 'Pro',
+    tier: 'PRO',
   },
   {
     icon: <Bell className="h-6 w-6" />,
     title: 'Renewal Reminders',
     description:
       "Get an email before each renewal so you can decide whether to keep or cancel before you're charged.",
-    tier: 'Pro',
+    tier: 'PRO',
   },
   {
     icon: <CalendarDays className="h-6 w-6" />,
     title: 'Calendar View',
     description:
       'See upcoming renewals on a calendar. Know exactly when money leaves your account each month.',
-    tier: 'Pro',
+    tier: 'PRO',
   },
   {
     icon: <Zap className="h-6 w-6" />,
     title: 'Quick Unsubscribe',
     description: 'Navigate cancellation flows faster with built-in unsubscribe assistance.',
-    tier: 'Pro',
+    tier: 'PRO',
   },
 ]
 
@@ -94,6 +75,7 @@ export default function FreeSubscriptionManagerPage() {
   return (
     <SEOPage
       jsonLd={jsonLd}
+      path="/free-subscription-manager"
       title="The Free Subscription Manager That Puts You in Control"
       description="Most subscription managers cost a monthly fee. Suprascribe is a free subscription manager that does not - and never will. Manage unlimited subscriptions from your dashboard, set renewal reminders, view a billing calendar, and cancel what you no longer need."
       primaryCta={{ href: '/login?tab=signup', label: 'Start Managing for Free' }}
@@ -101,12 +83,6 @@ export default function FreeSubscriptionManagerPage() {
       faqItems={managerFaqItems}
       relatedHeading="Want Automatic Discovery Too?"
       relatedDescription="Suprascribe scans your inbox to find subscriptions you might have missed - no manual entry needed."
-      relatedPages={[
-        { href: '/free-subscription-tracker', label: 'Track Subscriptions for Free' },
-        { href: '/subscription-management-app', label: 'Subscription Management App' },
-        { href: '/subscription-cost-calculator', label: 'Subscription Cost Calculator' },
-        { href: '/subscription-tracking-for-freelancers', label: 'Tracking for Freelancers' },
-      ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">
         <div className="space-y-10">
@@ -116,7 +92,7 @@ export default function FreeSubscriptionManagerPage() {
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
               The irony of most subscription managers is that they charge you monthly to manage your
-              other monthly charges. Suprascribe charges once for Pro - or nothing at all for the
+              other monthly charges. Suprascribe charges once for PRO - or nothing at all for the
               core features.
             </p>
           </div>
@@ -145,7 +121,7 @@ export default function FreeSubscriptionManagerPage() {
               <li>• Multi-currency support</li>
             </ul>
             <p className="text-xs text-muted-foreground pt-1">
-              Pro (one-time purchase) adds auto-discovery, reminders, calendar view, search, and
+              PRO (one-time purchase) adds auto-discovery, reminders, calendar view, search, and
               unsubscribe assistance.
             </p>
           </div>
@@ -163,10 +139,10 @@ export default function FreeSubscriptionManagerPage() {
             Most tools either charge monthly themselves (defeating the purpose) or require
             connecting your bank account (a significant privacy trade-off). Suprascribe takes a
             different approach: email scanning finds subscriptions without financial data access,
-            and the Pro upgrade is a single payment - not another recurring charge.
+            and the PRO upgrade is a single payment - not another recurring charge.
           </p>
           <p>
-            The free tier covers the basics for most people. Pro adds the automated discovery and
+            The free tier covers the basics for most people. PRO adds the automated discovery and
             proactive reminders that make the tool genuinely powerful for heavy subscription users.
           </p>
         </div>

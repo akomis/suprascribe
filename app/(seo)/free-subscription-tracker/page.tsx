@@ -2,7 +2,7 @@ import { CompetitorTable } from '@/components/landing/CompetitorTable'
 import { SEOPage } from '@/components/shared/SEOPage'
 import { Separator } from '@/components/ui/separator'
 import { faqItems } from '@/lib/config/faq'
-import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
+import { breadcrumbSchema, faqPageSchema, softwareApplicationSchema } from '@/lib/utils/schema'
 import type { Metadata } from 'next'
 import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
@@ -28,22 +28,10 @@ const trackerFaqItems = faqItems.filter((item) =>
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
-    {
-      '@type': 'SoftwareApplication',
-      name: 'Suprascribe',
-      applicationCategory: 'FinanceApplication',
-      operatingSystem: 'Web',
-      url: 'https://www.suprascribe.com',
+    softwareApplicationSchema({
       description:
         'Free subscription tracker that scans Gmail, Outlook, and iCloud to find all your recurring payments automatically.',
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'EUR',
-        name: 'Basic',
-        description: 'Free forever - unlimited subscription tracking',
-      },
-    },
+    }),
     faqPageSchema(trackerFaqItems),
     breadcrumbSchema(
       'Free Subscription Tracker',
@@ -56,6 +44,7 @@ export default function FreeSubscriptionTrackerPage() {
   return (
     <SEOPage
       jsonLd={jsonLd}
+      path="/free-subscription-tracker"
       title="The Free Subscription Tracker That Finds Subscriptions For You"
       description="Suprascribe is a free subscription tracker that scans your Gmail, Outlook, or iCloud inbox to surface every recurring charge - streaming services, SaaS tools, memberships - without touching your bank account. The core tracker is free, forever."
       primaryCta={{ href: '/login?tab=signup', label: 'Start Tracking for Free' }}
@@ -63,16 +52,6 @@ export default function FreeSubscriptionTrackerPage() {
       faqItems={trackerFaqItems}
       relatedHeading="Also Looking For a Full Subscription Manager?"
       relatedDescription="Suprascribe tracks and manages - cancel, organize, set reminders, and view a spending calendar. All in one place."
-      relatedPages={[
-        {
-          href: '/subscription-tracker-without-bank-account',
-          label: 'Tracker With No Bank Linking',
-        },
-        { href: '/subscription-management-app', label: 'Full Subscription Manager' },
-        { href: '/rocket-money-alternative', label: 'Rocket Money Alternative' },
-        { href: '/subscription-cost-calculator', label: 'Subscription Cost Calculator' },
-        { href: '/subscription-tracking-for-families', label: 'Tracking for Families' },
-      ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">
         <div className="space-y-8">
@@ -87,8 +66,8 @@ export default function FreeSubscriptionTrackerPage() {
               <div className="text-4xl font-bold text-muted-foreground/30">1</div>
               <h3 className="font-semibold">Connect Your Inbox</h3>
               <p className="text-sm text-muted-foreground">
-                Link Gmail, Outlook, or iCloud via OAuth. No password shared - only subscription
-                emails are scanned.
+                Link Gmail or Outlook via OAuth, or iCloud over IMAP. No account password shared -
+                only subscription emails are scanned.
               </p>
             </div>
             <div className="space-y-2 text-center">
