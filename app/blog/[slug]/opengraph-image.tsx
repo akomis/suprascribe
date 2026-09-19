@@ -3,6 +3,8 @@ import { ImageResponse } from 'next/og'
 
 // fallow-ignore-next-line unused-export
 export const runtime = 'edge'
+// Next requires a static export here, so it cannot name the individual post.
+export const alt = 'Suprascribe blog article'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 

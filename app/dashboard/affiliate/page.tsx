@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { BackButton } from '@/components/shared/BackButton'
 import { SupportButton } from '@/components/shared/SupportButton'
+import { formatPrice, isPricingCurrency } from '@/lib/config/pricing'
 import { Check, Copy, Link, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -17,10 +18,25 @@ interface Affiliate {
   created_at: string
 }
 
+interface CurrencyEarnings {
+  /** Lowercase ISO-4217, as Stripe reports it on the charge. */
+  currency: string
+  total: number
+  pending: number
+}
+
 interface Stats {
   conversions: number
-  totalCommission: number
-  pendingCommission: number
+  /** One entry per currency a commission was earned in - they are never summed together. */
+  earnings: CurrencyEarnings[]
+}
+
+/** Uses our own price formatter for the currencies we sell in, and a plain code suffix otherwise. */
+function formatCommission(amount: number, currency: string): string {
+  if (isPricingCurrency(currency)) {
+    return formatPrice(Math.round(amount * 100), currency)
+  }
+  return `${amount.toFixed(2)} ${currency.toUpperCase()}`
 }
 
 export default function AffiliatePage() {
@@ -71,7 +87,7 @@ export default function AffiliatePage() {
               Affiliate Program
             </CardTitle>
             <CardDescription>
-              Earn commission for every user you refer who upgrades to Pro. Affiliate links and
+              Earn commission for every user you refer who upgrades to PRO. Affiliate links and
               commission percentages are managed by us - reach out and we&apos;ll get you set up.
             </CardDescription>
           </CardHeader>
@@ -108,23 +124,28 @@ export default function AffiliatePage() {
 
       <Card>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
+          <div className="space-y-4">
+            <div className="text-center">
               <p className="text-2xl font-bold">{stats?.conversions ?? '-'}</p>
               <p className="text-xs text-muted-foreground mt-1">Conversions</p>
             </div>
-            <div>
-              <p className="text-2xl font-bold">
-                {stats ? `$${stats.totalCommission.toFixed(2)}` : '-'}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">Total earned</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold">
-                {stats ? `$${stats.pendingCommission.toFixed(2)}` : '-'}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">Pending payout</p>
-            </div>
+
+            {(stats?.earnings.length ? stats.earnings : [null]).map((earnings, index) => (
+              <div key={earnings?.currency ?? index} className="grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <p className="text-2xl font-bold">
+                    {earnings ? formatCommission(earnings.total, earnings.currency) : '-'}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Total earned</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">
+                    {earnings ? formatCommission(earnings.pending, earnings.currency) : '-'}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Pending payout</p>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

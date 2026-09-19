@@ -91,7 +91,7 @@ export function toMonthlyCost(price: number, period: string): number {
 
 /**
  * Format a date string for display using the browser's locale (e.g. "Jan 15, 2024").
- * Use formatDisplayDate (lib/utils/date.ts) for fixed English ordinal format ("January 15th, 2024").
+ * Use formatDisplayDate (lib/utils/date-display.ts) for fixed English ordinal format ("January 15th, 2024").
  */
 export function formatLocalizedDate(dateString: string): string {
   const date = new Date(dateString)
@@ -167,6 +167,18 @@ export function isDuplicateSubscription(
   const ee = normalizeDateForComparison(existing.end_date)
   if (!ds || !es || !de || !ee) return false
   return ds === es && de === ee
+}
+
+/**
+ * Counts distinct services in a discovery result.
+ *
+ * A scan returns one entry per billing charge, so a service billed monthly shows
+ * up many times. Every screen groups those charges under the service, so the
+ * stored "subscriptions found" count follows the same rule - otherwise a run
+ * reports 19 while the list it links to shows 10.
+ */
+export function countDistinctServices(subscriptions: { service_name: string }[]): number {
+  return new Set(subscriptions.map((sub) => sub.service_name)).size
 }
 
 export function isSubscriptionActive(startDate: string, endDate: string): boolean {

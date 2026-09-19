@@ -186,11 +186,13 @@
   }
 }
 
-@keyframes badge-scroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
+/* ShinyText sets its animation inline, so redefining the keyframes is what parks the
+   sweep at its resting position instead of fighting the inline style for priority. */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes shiny-text {
+    from,
+    to {
+      background-position: 150% center;
+    }
   }
 }

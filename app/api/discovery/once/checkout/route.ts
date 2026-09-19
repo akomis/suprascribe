@@ -1,12 +1,15 @@
-import { ONCE_SCAN_PRICE_CENTS, PRO_CURRENCY, STRIPE_API_VERSION } from '@/lib/config/stripe'
+import { getOnceScanPriceCents } from '@/lib/config/pricing'
+import { CHECKOUT_CONSENT, STRIPE_API_VERSION } from '@/lib/config/stripe'
+import { currencyFromRequest } from '@/lib/pricing/server'
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
 // Creates the one-time Stripe Checkout Session for the anonymous discovery
 // funnel. No user/account involved. The `purpose` metadata lets the PRO webhook
-// ignore this payment so it never grants a Pro tier.
+// ignore this payment so it never grants a PRO tier.
 export async function POST(request: NextRequest) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || new URL(request.url).origin
+  const currency = currencyFromRequest(request)
 
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: STRIPE_API_VERSION })
@@ -16,8 +19,11 @@ export async function POST(request: NextRequest) {
       line_items: [
         {
           price_data: {
-            currency: PRO_CURRENCY,
-            unit_amount: ONCE_SCAN_PRICE_CENTS,
+            currency,
+            unit_amount: getOnceScanPriceCents(currency),
+            // The advertised price is what the customer pays: any VAT is already
+            // inside it rather than added on top at checkout.
+            tax_behavior: 'inclusive',
             product_data: {
               name: 'One-time subscription discovery',
               description:
@@ -27,6 +33,7 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
+      ...CHECKOUT_CONSENT,
       metadata: { purpose: 'one_time_discovery' },
       payment_intent_data: { metadata: { purpose: 'one_time_discovery' } },
       success_url: `${baseUrl}/one-time-scan?session_id={CHECKOUT_SESSION_ID}`,

@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     if (!hasAccess) {
       return NextResponse.json(
-        { error: 'Email support is only available for Pro users' },
+        { error: 'Email support is only available for PRO users' },
         { status: 403 },
       )
     }

@@ -9,7 +9,7 @@ import Link from 'next/link'
 export const metadata: Metadata = buildMetadata({
   title: 'Terms of Service & Privacy Policy',
   description:
-    'Read the Suprascribe Terms of Service and Privacy Policy. We do not sell your data, do not store email content, and give you full control over your data at all times.',
+    'The Suprascribe Terms of Service and Privacy Policy. We do not sell your data, do not store email content, and leave you in control of it at all times.',
   path: '/terms-and-privacy',
 })
 
@@ -24,13 +24,15 @@ export default function TermsAndPrivacyPage() {
             </Button>
           </Link>
           <h1 className="text-4xl font-bold tracking-tight">Terms of Service & Privacy Policy</h1>
-          <p className="mt-2 text-muted-foreground">Last updated: July 15, 2026</p>
+          <p className="mt-2 text-muted-foreground">Last updated: September 8, 2026</p>
         </div>
 
         <div className="space-y-8">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">Terms of Service</CardTitle>
+              <CardTitle as="h2" className="text-2xl">
+                Terms of Service
+              </CardTitle>
             </CardHeader>
             <CardContent className="prose prose-gray max-w-none space-y-6">
               <section>
@@ -46,7 +48,7 @@ export default function TermsAndPrivacyPage() {
                 <h3 className="text-lg font-semibold">2. Description of Service</h3>
                 <p className="text-muted-foreground">
                   Suprascribe is a platform designed to help you discover and manage your
-                  subscriptions across various services. We provide both free (Basic) and paid (Pro)
+                  subscriptions across various services. We provide both free (Basic) and paid (PRO)
                   features to help you track recurring billing services.
                 </p>
               </section>
@@ -64,19 +66,19 @@ export default function TermsAndPrivacyPage() {
               <section>
                 <h3 className="text-lg font-semibold">4. Pricing and Payment</h3>
                 <p className="text-muted-foreground">
-                  The Basic plan is free forever. The Pro plan is available as a one-time purchase.
+                  The Basic plan is free forever. The PRO plan is available as a one-time purchase.
                   All payments are processed securely through our payment processor. The one-time
-                  payment grants you lifetime access to Pro features.
+                  payment grants you lifetime access to PRO features.
                 </p>
               </section>
 
               <section>
                 <h3 className="text-lg font-semibold">5. Refund Policy</h3>
                 <p className="text-muted-foreground">
-                  Suprascribe offers refunds on the one-time Pro purchase strictly in cases of
+                  Suprascribe offers refunds on the one-time PRO purchase strictly in cases of
                   demonstrable product failure. A refund shall be granted where a technical fault,
                   error, or defect attributable to the service prevented the product from
-                  functioning as intended and rendered you unable to use the Pro features for which
+                  functioning as intended and rendered you unable to use the PRO features for which
                   payment was made.
                 </p>
                 <p className="text-muted-foreground">
@@ -144,7 +146,9 @@ export default function TermsAndPrivacyPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">Privacy Policy</CardTitle>
+              <CardTitle as="h2" className="text-2xl">
+                Privacy Policy
+              </CardTitle>
             </CardHeader>
             <CardContent className="prose prose-gray max-w-none space-y-6">
               <section>
@@ -205,7 +209,8 @@ export default function TermsAndPrivacyPage() {
                   <li>To protect our rights and prevent fraud</li>
                   <li>
                     With service providers who assist in operating our platform (under strict
-                    confidentiality agreements)
+                    confidentiality agreements), including PostHog for product analytics, hosted in
+                    the European Union
                   </li>
                 </ul>
               </section>
@@ -243,9 +248,40 @@ export default function TermsAndPrivacyPage() {
               <section>
                 <h3 className="text-lg font-semibold">8. Cookies and Tracking</h3>
                 <p className="text-muted-foreground">
-                  We use cookies and similar tracking technologies to track activity on our service
-                  and hold certain information. You can instruct your browser to refuse all cookies
-                  or to indicate when a cookie is being sent.
+                  We do not use analytics or advertising cookies. Our product analytics are provided
+                  by PostHog, hosted in the European Union, running in cookieless mode: it stores
+                  nothing on your device &mdash; no cookies, no local storage, no session storage
+                  &mdash; and visitors are counted using a privacy-preserving hash calculated on
+                  PostHog&apos;s servers. If you are signed in, the usage events we record are
+                  associated with your account.
+                </p>
+                <p className="text-muted-foreground">
+                  The cookies we do set are strictly necessary to operate the service:
+                </p>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-4">
+                  <li>
+                    Authentication cookies (<code>sb-…-auth-token</code>) &mdash; keep you signed in
+                  </li>
+                  <li>
+                    <code>suprascribe_pricing_currency</code> &mdash; remembers which currency
+                    prices are shown in, for up to one year
+                  </li>
+                  <li>
+                    <code>referral_code</code> &mdash; credits the referral you arrived through, for
+                    up to 30 days, and is only set if you follow a referral link
+                  </li>
+                  <li>
+                    <code>discovery_state</code>, <code>discovery_flow</code>,{' '}
+                    <code>discovery_token_google</code>, <code>discovery_token_microsoft</code> and{' '}
+                    <code>discovery_entitlement</code> &mdash; short-lived cookies (between one and
+                    fifteen minutes) that secure the email discovery sign-in flow and confirm
+                    payment for a one-time scan
+                  </li>
+                </ul>
+                <p className="text-muted-foreground">
+                  You can instruct your browser to refuse all cookies or to indicate when a cookie
+                  is being sent. Blocking the cookies above will prevent you from signing in and
+                  using email discovery.
                 </p>
               </section>
 

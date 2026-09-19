@@ -1,5 +1,3 @@
-'use client'
-
 interface Badge {
   href: string
   imgSrc: string
@@ -91,13 +89,6 @@ export const BADGES: Badge[] = [
     href: 'https://beamtools.com',
     imgSrc: 'https://beamtools.com/assets/images/badge.png',
     alt: 'Beam Tools',
-    width: 0,
-    height: 54,
-  },
-  {
-    href: 'https://saashubdirectory.com',
-    imgSrc: 'https://saashubdirectory.com/assets/images/badge.png',
-    alt: 'SaaS Hub Directory',
     width: 0,
     height: 54,
   },
@@ -235,13 +226,6 @@ export const BADGES: Badge[] = [
     height: 54,
   },
   {
-    href: 'https://shinylaunch.com',
-    imgSrc: 'https://shinylaunch.com/static/images/badge.png',
-    alt: 'ShinyLaunch',
-    width: 0,
-    height: 54,
-  },
-  {
     href: 'https://appalist.com',
     imgSrc: 'https://appalist.com/assets/images/badge.png',
     alt: 'Appa List',
@@ -340,13 +324,6 @@ export const BADGES: Badge[] = [
     height: 58,
   },
   {
-    href: 'https://goodaitools.com/ai/suprascribe',
-    imgSrc: 'https://goodaitools.com/assets/images/badge.png',
-    alt: 'Good AI Tools',
-    width: 0,
-    height: 54,
-  },
-  {
     href: 'https://buildlist.io',
     imgSrc: 'https://buildlist.io/badge.svg',
     alt: 'Featured on Buildlist',
@@ -355,35 +332,19 @@ export const BADGES: Badge[] = [
   },
 ]
 
-export function BadgesCarousel() {
+export function BadgeLinks() {
   if (BADGES.length === 0) return null
 
-  // Single badge - no carousel needed
-  if (BADGES.length === 1) {
-    const b = BADGES[0]
-    return (
-      <div className="flex justify-center pt-6">
-        <a href={b.href} target="_blank" rel="noopener noreferrer">
-          <img src={b.imgSrc} alt={b.alt} width={b.width} height={b.height} loading="lazy" />
-        </a>
-      </div>
-    )
-  }
-
-  const duration = `${Math.max(30, BADGES.length * 1.5)}s`
-
   return (
-    <div className="opacity-0 relative w-full overflow-hidden pt-6 mask-[linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-      <div
-        className="flex gap-6 w-max"
-        style={{ animation: `badge-scroll ${duration} linear infinite`, willChange: 'transform' }}
-      >
-        {BADGES.map((b, i) => (
+    <div aria-hidden="true" inert className="opacity-0 h-0 w-full overflow-x-auto">
+      <div className="flex gap-6 w-max">
+        {BADGES.map((b) => (
           <a
-            key={i}
+            key={b.href}
             href={b.href}
             target="_blank"
             rel="noopener noreferrer"
+            tabIndex={-1}
             className="shrink-0 flex items-center"
           >
             <img

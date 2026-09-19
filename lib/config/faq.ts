@@ -20,9 +20,9 @@ export const faqItems: FAQItem[] = [
       'Suprascribe supports Gmail (via OAuth), Outlook/Hotmail (via OAuth), and iCloud Mail (via IMAP with an app-specific password). You can connect any provider through IMAP.',
   },
   {
-    question: "What's the difference between Basic and Pro?",
+    question: "What's the difference between Basic and PRO?",
     answer:
-      'Basic gives you manual subscription management, complete history, and multi-currency support. Pro adds auto-discovery (scans your inbox to find subscriptions automatically), quick unsubscribe, search/sort/group, renewal reminders, a calendar view, and email support - all for a one-time payment.',
+      'Basic gives you manual subscription management, complete history, and multi-currency support. PRO adds auto-discovery (scans your inbox to find subscriptions automatically), quick unsubscribe, search/sort/group, renewal reminders, a calendar view, and email support - all for a one-time payment.',
   },
   {
     question: 'Is my data safe and private?',
@@ -30,9 +30,9 @@ export const faqItems: FAQItem[] = [
       'Yes. Suprascribe is open source so you can verify exactly how your data is handled. We never sell your data, never read unrelated emails, and never store email content - never will. All subscription data is stored securely in your account only.',
   },
   {
-    question: 'Is Pro really a one-time payment?',
+    question: 'Is PRO really a one-time payment?',
     answer:
-      'Absolutely. Pay once and own Pro features forever - no recurring charges, no subscription. If you ever need to manage subscriptions, you should not have to pay one yourself.',
+      'Absolutely. Pay once and own PRO features forever - no recurring charges, no subscription. If you ever need to manage subscriptions, you should not have to pay one yourself.',
   },
   {
     question: 'Can I use Suprascribe without connecting my email?',
@@ -42,7 +42,7 @@ export const faqItems: FAQItem[] = [
   {
     question: 'How do renewal reminders work?',
     answer:
-      'Pro users can set renewal reminders for their subscriptions. Suprascribe will notify you through email before a renewal date so you have time to decide whether to keep or cancel the service.',
+      'PRO users can set renewal reminders for their subscriptions. Suprascribe will notify you through email before a renewal date so you have time to decide whether to keep or cancel the service.',
   },
   {
     question: 'Is Suprascribe open source?',
@@ -57,7 +57,7 @@ export const faqItems: FAQItem[] = [
   {
     question: 'How do I find all my subscriptions?',
     answer:
-      "The easiest way is to use Suprascribe's email auto-discovery (Pro feature). Connect your Gmail, Outlook, or iCloud account and Suprascribe scans for subscription-related emails automatically, building your list without any manual work. If you prefer not to connect email, you can add subscriptions manually from the dashboard.",
+      "The easiest way is to use Suprascribe's email auto-discovery (PRO feature). Connect your Gmail, Outlook, or iCloud account and Suprascribe scans for subscription-related emails automatically, building your list without any manual work. If you prefer not to connect email, you can add subscriptions manually from the dashboard.",
   },
   {
     question: 'What is the best free app to track subscriptions?',
@@ -68,6 +68,16 @@ export const faqItems: FAQItem[] = [
     question: 'Can Suprascribe detect subscriptions from Gmail?',
     answer:
       'Yes. Suprascribe connects to Gmail via OAuth and scans for subscription-related emails - receipts, billing confirmations, and renewal notices. Only emails matching subscription patterns are analyzed; unrelated emails are never read or stored.',
+  },
+  {
+    question: 'Can Suprascribe detect subscriptions from Outlook?',
+    answer:
+      'Yes. Suprascribe connects to Outlook, Hotmail, and Live accounts via Microsoft OAuth with read-only mail permission, and scans for subscription-related emails - receipts, billing confirmations, and renewal notices. Only emails matching subscription patterns are analyzed; unrelated emails are never read or stored.',
+  },
+  {
+    question: 'Can Suprascribe detect subscriptions from iCloud Mail?',
+    answer:
+      'Yes. Apple does not offer a public OAuth API for iCloud Mail, so Suprascribe connects over IMAP using an app-specific password you generate at appleid.apple.com. That password grants mail access only and can be revoked from your Apple ID at any time. As with every provider, only subscription-related emails are analyzed and no email content is stored.',
   },
   {
     question: 'Does Suprascribe work on iPhone and Android?',
@@ -82,12 +92,12 @@ export const faqItems: FAQItem[] = [
   {
     question: 'Is Suprascribe on the App Store or Google Play?',
     answer:
-      'No. Suprascribe is a web app, so there is nothing to download from the App Store or Google Play. Open it in your browser and install it to your home screen or desktop - on iPhone use Share then Add to Home Screen, on Android or desktop Chrome use the install prompt in the address bar. Installed, it runs in its own window with an app icon and gives you exactly the same experience as a store-downloaded app, while updating automatically with no store approval delays. Staying off the stores also avoids their commission on every purchase, which is a cost that would otherwise be passed on to you - it is part of how Pro stays a low one-time payment.',
+      'No. Suprascribe is a web app, so there is nothing to download from the App Store or Google Play. Open it in your browser and install it to your home screen or desktop - on iPhone use Share then Add to Home Screen, on Android or desktop Chrome use the install prompt in the address bar. Installed, it runs in its own window with an app icon and gives you exactly the same experience as a store-downloaded app, while updating automatically with no store approval delays. Staying off the stores also avoids their commission on every purchase, which is a cost that would otherwise be passed on to you - it is part of how PRO stays a low one-time payment.',
   },
   {
     question: 'How do I cancel a subscription I forgot about?',
     answer:
-      "Once Suprascribe discovers or you add a subscription, you can view the service name and billing details. Pro users get access to quick unsubscribe assistance to help navigate cancellation. For many services, going directly to the provider's account settings is the fastest route - Suprascribe gives you the information you need to do that.",
+      "Once Suprascribe discovers or you add a subscription, you can view the service name and billing details. PRO users get access to quick unsubscribe assistance to help navigate cancellation. For many services, going directly to the provider's account settings is the fastest route - Suprascribe gives you the information you need to do that.",
   },
   {
     question: 'How does Suprascribe compare to Mint for subscription tracking?',
@@ -137,7 +147,7 @@ export const faqItems: FAQItem[] = [
   {
     question: 'How do I keep track of SaaS renewals so they do not auto-renew?',
     answer:
-      'Annual plans are the ones that catch people out, because the renewal arrives eleven months after anyone last thought about the tool. Put every subscription into one list with its renewal date, then set a renewal reminder a few days ahead so the decision to keep or cancel happens before the charge, not after. Suprascribe Pro sends those reminders by email and shows all renewal dates on a calendar.',
+      'Annual plans are the ones that catch people out, because the renewal arrives eleven months after anyone last thought about the tool. Put every subscription into one list with its renewal date, then set a renewal reminder a few days ahead so the decision to keep or cancel happens before the charge, not after. Suprascribe PRO sends those reminders by email and shows all renewal dates on a calendar.',
   },
   {
     question: 'How do I track software spend at an early-stage startup?',
@@ -147,7 +157,7 @@ export const faqItems: FAQItem[] = [
   {
     question: 'How do I stop free trials from turning into paid subscriptions?',
     answer:
-      'Record the trial the day you start it, with the date it converts. Trials rarely send a warning before the first charge, but they almost always send a signup confirmation, which is why an inbox scan catches them. Suprascribe Pro can set a reminder before the conversion date so you decide deliberately instead of discovering the charge a month later.',
+      'Record the trial the day you start it, with the date it converts. Trials rarely send a warning before the first charge, but they almost always send a signup confirmation, which is why an inbox scan catches them. Suprascribe PRO can set a reminder before the conversion date so you decide deliberately instead of discovering the charge a month later.',
   },
   {
     question: 'How do I separate business and personal subscriptions?',
@@ -172,12 +182,12 @@ export const faqItems: FAQItem[] = [
   {
     question: 'How can students keep track of subscriptions on a small budget?',
     answer:
-      'Start from your inbox rather than your bank app, because most student subscriptions bill through an app store or PayPal under a merchant name that tells you nothing. Scan the address you signed up with - usually a personal Gmail plus a university address - and you get one list with the real monthly total. Suprascribe tracks unlimited subscriptions for free, and Pro is a one-time payment rather than another recurring charge.',
+      'Start from your inbox rather than your bank app, because most student subscriptions bill through an app store or PayPal under a merchant name that tells you nothing. Scan the address you signed up with - usually a personal Gmail plus a university address - and you get one list with the real monthly total. Suprascribe tracks unlimited subscriptions for free, and PRO is a one-time payment rather than another recurring charge.',
   },
   {
     question: 'What happens to my student discount when I graduate?',
     answer:
-      'Student pricing is time-limited and verification-based. When the discount period ends or re-verification fails, the plan usually converts to the full adult price automatically and the first full-price charge is the only notice you get. Record each student plan with the date its discount expires and set a reminder ahead of it, so you decide whether the full price is worth it before it is charged. Suprascribe Pro sends those reminders by email and shows every renewal on a calendar.',
+      'Student pricing is time-limited and verification-based. When the discount period ends or re-verification fails, the plan usually converts to the full adult price automatically and the first full-price charge is the only notice you get. Record each student plan with the date its discount expires and set a reminder ahead of it, so you decide whether the full price is worth it before it is charged. Suprascribe PRO sends those reminders by email and shows every renewal on a calendar.',
   },
   {
     question: 'What is the best open source personal finance app?',

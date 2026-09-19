@@ -85,7 +85,7 @@ export default function DemoOverview() {
         <div className="px-4 pt-4 pb-8 rounded-2xl border bg-background overflow-hidden">
           <DemoControls />
           <div className="-mx-3 sm:-mx-4 -mb-3 sm:-mb-4">
-            <DemoInsights />
+            <DemoInsights hideNextExpiring />
           </div>
         </div>
       </InsightsSettingsProvider>

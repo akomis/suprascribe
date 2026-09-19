@@ -19,17 +19,17 @@ export interface FeatureDefinition {
 }
 
 export const Features = {
-  basic_subscriptions: {
-    key: 'basic_subscriptions',
-    name: 'Subscription Management',
-    description: 'Dashboard with subscriptions and insights',
-    tier: TIER.BASIC,
-    enabled: true,
-  },
   manual_add: {
     key: 'manual_add',
     name: 'Manual Add',
-    description: 'Create and manage (unlimited) subscriptions manually',
+    description: 'Add unlimited subscriptions manually',
+    tier: TIER.BASIC,
+    enabled: true,
+  },
+  basic_subscriptions: {
+    key: 'basic_subscriptions',
+    name: 'Subscription Management',
+    description: 'Dashboard with totals and insights',
     tier: TIER.BASIC,
     enabled: true,
   },
@@ -50,14 +50,14 @@ export const Features = {
   pwa_install: {
     key: 'pwa_install',
     name: 'Install as App',
-    description: 'Install as a desktop or mobile app (PWA)',
+    description: 'Install as a desktop or mobile app',
     tier: TIER.BASIC,
     enabled: true,
   },
   auto_discovery: {
     key: 'auto_discovery',
     name: 'Auto Discovery',
-    description: `Discover active & past subscriptions automatically through Gmail, Outlook and iCloud (or any other provider through IMAP)`,
+    description: `Discover active & past subscriptions automatically through Gmail, Outlook, iCloud or IMAP`,
     tier: TIER.PRO,
     enabled: true,
     moreInfoLink: {
@@ -129,7 +129,7 @@ export const TierFeatures: Record<TierType, FeatureKey[]> = {
 
 export const TierNames: Record<TierType, string> = {
   BASIC: 'Basic',
-  PRO: 'Pro',
+  PRO: 'PRO',
 }
 
 export function isFeatureEnabled(feature: FeatureKey): boolean {

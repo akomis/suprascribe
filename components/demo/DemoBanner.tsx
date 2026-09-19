@@ -1,4 +1,4 @@
-import { TierBadge } from '@/components/dashboard/settings/TierBadge'
+import { ProTierBadge } from '@/components/shared/ProTierBadge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
@@ -7,7 +7,7 @@ export function DemoBanner() {
     <div className="sticky top-0 z-50 bg-primary text-primary-foreground py-2 px-4">
       <div className="container mx-auto flex items-center justify-between max-w-[1000px]">
         <div className="flex items-center gap-2">
-          <TierBadge forceTier="PRO" />
+          <ProTierBadge />
           <span className="text-xs sm:text-sm font-medium">Demo</span>
         </div>
         <Link href="/login?tab=signup">
