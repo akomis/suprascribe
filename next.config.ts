@@ -21,6 +21,14 @@ const securityHeaders = [
 
 const nextConfig = {
   poweredByHeader: false,
+  // Put metadata in <head> for every user agent, not just the ones on Next's built-in
+  // HTML-limited list. On dynamic routes Next 15 streams metadata into <body> by default,
+  // and that list leaves out Googlebot, Screaming Frog and the AI crawlers - so /login
+  // (dynamic, it reads searchParams) served its `noindex` outside <head> to all of them.
+  // The only dynamic routes are /login and /dashboard/*, whose metadata is a static
+  // object, so blocking on it costs nothing. Revisit if one of them grows a slow
+  // generateMetadata.
+  htmlLimitedBots: /.*/,
   turbopack: {
     root: path.join(__dirname, '..'),
   },
@@ -64,6 +72,16 @@ const nextConfig = {
         source: '/.well-known/microsoft-identity-association',
         headers: [
           { key: 'Content-Type', value: 'application/json; charset=utf-8' },
+          { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
+          { key: 'Cache-Control', value: 'public, max-age=86400' },
+        ],
+      },
+      {
+        // IndexNow key file. Its name is its contents; rotating the key means
+        // renaming public/<key>.txt, rewriting it, and updating this source.
+        source: '/87ba2ab97f619db3326326912d92d6eb.txt',
+        headers: [
+          { key: 'Content-Type', value: 'text/plain; charset=utf-8' },
           { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
           { key: 'Cache-Control', value: 'public, max-age=86400' },
         ],

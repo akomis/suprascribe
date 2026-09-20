@@ -76,7 +76,6 @@ export function SubscriptionCalculator() {
   const [rows, setRows] = React.useState<Row[]>(INITIAL_ROWS)
   const [isPresetDialogOpen, setPresetDialogOpen] = React.useState(false)
   const { currency, setCurrency, currencySymbol, formatCurrency } = useCurrency()
-  const hasTrackedTotal = React.useRef(false)
 
   const usedNames = new Set(rows.map((row) => row.name.trim().toLowerCase()))
   const availablePresets = PRESETS.filter((preset) => !usedNames.has(preset.name.toLowerCase()))
@@ -88,18 +87,6 @@ export function SubscriptionCalculator() {
   const yearlyTotal = monthlyTotal * 12
   const weeklyTotal = (monthlyTotal * 12) / 52
   const pricedCount = rows.filter((row) => parsePrice(row.price) > 0).length
-
-  React.useEffect(() => {
-    if (hasTrackedTotal.current || monthlyTotal <= 0) return
-    hasTrackedTotal.current = true
-    import('posthog-js').then(({ default: posthog }) =>
-      posthog.capture('calculator_total_viewed', {
-        subscription_count: pricedCount,
-        monthly_total: Math.round(monthlyTotal * 100) / 100,
-        currency,
-      }),
-    )
-  }, [monthlyTotal, pricedCount, currency])
 
   const updateRow = (id: string, patch: Partial<Row>) => {
     setRows((current) => current.map((row) => (row.id === id ? { ...row, ...patch } : row)))

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -11,24 +11,36 @@ import { useRouter } from 'next/navigation'
 interface PublicContactFormProps {
   title: string
   description: string
-  initialSubject?: string
-  initialMessage?: string
 }
 
-export function PublicContactForm({
-  title,
-  description,
-  initialSubject,
-  initialMessage,
-}: PublicContactFormProps) {
+export function PublicContactForm({ title, description }: PublicContactFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    subject: initialSubject ?? '',
-    message: initialMessage ?? '',
+    subject: '',
+    message: '',
   })
+
+  /**
+   * `?subject=` and `?message=` prefill the form - `buildMissingLinkContactHref` sends people
+   * here with both already written.
+   *
+   * Read from `window.location` in an effect rather than from the page's `searchParams` or
+   * `useSearchParams`. Either of those makes the route dynamic, and Next.js streams a
+   * dynamic page's metadata into the body instead of blocking on it, which put this page's
+   * title, description and canonical outside `<head>` for crawlers that do not run JS.
+   * Reading the query on the client keeps the route prerendered and the form in the static
+   * HTML. It runs once on mount, before anyone can have typed.
+   */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const subject = params.get('subject') ?? ''
+    const message = params.get('message') ?? ''
+    if (!subject && !message) return
+    setFormData((current) => ({ ...current, subject, message }))
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

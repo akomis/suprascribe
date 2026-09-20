@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import type { TierType } from '@/lib/config/features'
 import { accountKeys, insightKeys, subscriptionKeys, STALE_TIME } from './query-keys'
@@ -22,7 +21,15 @@ export function useAccountTier() {
   })
 }
 
+// The Supabase browser client is imported where it is used rather than at the top of
+// this module on purpose. `useAccountTier` below is a plain fetch of /api/user/tier and
+// carries no auth dependency, but it is reached - through `useFeatureAccess` - from the
+// landing page's demo showcase, so a static import here put the whole ~250kB SDK into
+// the bundle of every page that shows a screenshot. These two mutations only ever run
+// from account settings, where the SDK is already loaded and the import resolves from
+// cache.
 async function updateEmail(newEmail: string): Promise<void> {
+  const { createClient } = await import('@/lib/supabase/client')
   const supabase = createClient()
   const { data } = await supabase.auth.getUser()
   if (!data.user) throw new Error('Not signed in')
@@ -56,6 +63,7 @@ export function useDeleteAccount() {
   return useMutation({
     mutationFn: deleteAccountRequest,
     onSuccess: async () => {
+      const { createClient } = await import('@/lib/supabase/client')
       const supabase = createClient()
       toast.success('Account deleted')
       await supabase.auth.signOut()

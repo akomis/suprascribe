@@ -1,5 +1,4 @@
 import { withAuth } from '@/lib/api/withAuth'
-import { captureEvent } from '@/lib/posthog-server'
 import { encryptApiKey, getKeyHint } from '@/lib/utils/server-crypto'
 import { validateApiKey, type LLMProvider, DEFAULT_MODELS } from '@/lib/services/ai-provider'
 import { getUserTier } from '@/lib/supabase/tier'
@@ -30,7 +29,7 @@ export const GET = withAuth(async (_req, { user, supabase }) => {
 export const POST = withAuth(async (request, { user, supabase }) => {
   const tier = await getUserTier(supabase, user.id)
   if (tier !== 'PRO') {
-    return NextResponse.json({ error: 'BYOK requires a Pro subscription' }, { status: 403 })
+    return NextResponse.json({ error: 'BYOK requires a PRO subscription' }, { status: 403 })
   }
 
   const {
@@ -94,15 +93,13 @@ export const POST = withAuth(async (request, { user, supabase }) => {
     )
   }
 
-  void captureEvent(user.id, 'byok_api_key_added', { provider, model })
-
   return NextResponse.json({ success: true, keyHint, keyId: insertedKey?.id })
 })
 
 export const PUT = withAuth(async (request, { user, supabase }) => {
   const tier = await getUserTier(supabase, user.id)
   if (tier !== 'PRO') {
-    return NextResponse.json({ error: 'BYOK requires a Pro subscription' }, { status: 403 })
+    return NextResponse.json({ error: 'BYOK requires a PRO subscription' }, { status: 403 })
   }
 
   const body = await request.json()
@@ -148,8 +145,6 @@ export const PUT = withAuth(async (request, { user, supabase }) => {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  void captureEvent(user.id, 'byok_api_key_activated', { key_id: keyId })
-
   return NextResponse.json({ success: true })
 })
 
@@ -179,8 +174,6 @@ export const DELETE = withAuth(async (request, { user, supabase }) => {
   if (settings?.active_key_id === keyId) {
     await supabase.from('USER_SETTINGS').update({ active_key_id: null }).eq('user_id', user.id)
   }
-
-  void captureEvent(user.id, 'byok_api_key_removed', { key_id: keyId })
 
   return NextResponse.json({ success: true })
 })

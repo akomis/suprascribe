@@ -10,7 +10,7 @@ import { buildMetadata } from '@/lib/utils/metadata'
 export const metadata: Metadata = buildMetadata({
   title: 'Privacy & Safety - How Email Discovery Works',
   description:
-    'Learn exactly how Suprascribe accesses your email to find subscriptions. We use read-only OAuth 2.0, never store email content, and ignore everything unrelated to recurring billing.',
+    'Exactly how Suprascribe reads your email to find subscriptions: read-only OAuth 2.0, no email content stored, and nothing unrelated to billing kept.',
   path: '/safety',
 })
 import { ArrowLeft, Database, Eye, Lock, Mail, Shield } from 'lucide-react'
@@ -117,7 +117,7 @@ export default function SafetyPage() {
                     not retained by us afterwards
                   </li>
                   <li>
-                    On the Pro plan you can supply your own API key, in which case the analysis runs
+                    On the PRO plan you can supply your own API key, in which case the analysis runs
                     through the provider and model you choose
                   </li>
                 </ul>

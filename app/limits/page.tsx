@@ -1,8 +1,9 @@
 import { ConfigureApiKeyButton } from '@/components/ConfigureApiKeyButton'
+import { BackButton } from '@/components/shared/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MAX_TOTAL_DISCOVERIES } from '@/lib/utils/discovery-rate-limit'
-import { ArrowLeft, HelpCircle, Infinity, Key, Shield, Timer, Zap } from 'lucide-react'
+import { HelpCircle, Infinity, Key, Shield, Timer, Zap } from 'lucide-react'
 import type { Metadata } from 'next'
 import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
@@ -10,7 +11,7 @@ import Link from 'next/link'
 export const metadata: Metadata = buildMetadata({
   title: 'Auto Discovery - How It Works & BYOK',
   description:
-    'Learn how Auto Discovery finds your subscriptions from Gmail, Outlook and iCloud. Pro includes a discovery allowance, and BYOK lets you use your own AI API key for unlimited scans.',
+    'How Auto Discovery finds subscriptions in Gmail, Outlook and iCloud. PRO includes a discovery allowance; BYOK lets you use your own AI key instead.',
   path: '/limits',
 })
 
@@ -19,11 +20,7 @@ export default function LimitsPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto max-w-4xl py-12 px-4 md:px-8">
         <div className="mb-8">
-          <Link href="/dashboard">
-            <Button variant="ghost" className="mb-4">
-              <ArrowLeft /> Back to Dashboard
-            </Button>
-          </Link>
+          <BackButton size="default" className="mb-4" />
           <div className="flex items-center gap-3 mb-4">
             <Timer className="h-10 w-10 text-primary" />
             <h1 className="text-4xl font-bold tracking-tight">Auto Discovery</h1>
@@ -36,7 +33,7 @@ export default function LimitsPage() {
         <div className="space-y-8">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl flex items-center gap-2">
+              <CardTitle as="h2" className="text-2xl flex items-center gap-2">
                 <HelpCircle className="h-6 w-6" />
                 Why Do We Have Limits?
               </CardTitle>
@@ -53,12 +50,12 @@ export default function LimitsPage() {
                   Total Discovery Limit
                 </h3>
                 <p className="text-muted-foreground">
-                  Pro users can run up to <strong>{MAX_TOTAL_DISCOVERIES} discoveries total</strong>{' '}
+                  PRO users can run up to <strong>{MAX_TOTAL_DISCOVERIES} discoveries total</strong>{' '}
                   using our AI infrastructure. Each time you scan an email account (Gmail, Outlook,
                   or iCloud) counts as one discovery.
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
-                  <li>Pro includes {MAX_TOTAL_DISCOVERIES} discoveries using our infrastructure</li>
+                  <li>PRO includes {MAX_TOTAL_DISCOVERIES} discoveries using our infrastructure</li>
                   <li>You can use any combination of email providers</li>
                   <li>After reaching the limit, configure BYOK for unlimited discoveries</li>
                 </ul>
@@ -68,7 +65,7 @@ export default function LimitsPage() {
 
           <Card id="byok" className="border-primary/50">
             <CardHeader>
-              <CardTitle className="text-2xl flex items-center gap-2">
+              <CardTitle as="h2" className="text-2xl flex items-center gap-2">
                 <Key className="h-6 w-6" />
                 Unlimited Discoveries with BYOK
               </CardTitle>
@@ -119,7 +116,7 @@ export default function LimitsPage() {
               <p className="text-muted-foreground">
                 The {MAX_TOTAL_DISCOVERIES} discovery limit is designed to be generous for typical
                 use. Most users only need to discover once per email account. If you&apos;ve found
-                subscriptions you missed, you can always add them manually at any time. Pro users
+                subscriptions you missed, you can always add them manually at any time. PRO users
                 can configure BYOK for unlimited discoveries beyond the included allowance. Still
                 have questions?
               </p>
@@ -128,9 +125,7 @@ export default function LimitsPage() {
                 <Button variant="outline" asChild>
                   <Link href="/contact">Contact Us</Link>
                 </Button>
-                <Button variant="outline" asChild>
-                  <Link href="/dashboard">Back to Dashboard</Link>
-                </Button>
+                <BackButton variant="outline" size="default" />
               </div>
             </CardContent>
           </Card>

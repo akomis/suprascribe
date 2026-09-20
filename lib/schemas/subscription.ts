@@ -19,7 +19,7 @@ export const BILLING_PERIODS = ['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'] as c
 const DiscoveredSubscriptionSchema = z.object({
   service_name: z
     .string()
-    .describe('Service name with plan tier (e.g., "Netflix Premium", "Claude Pro")'),
+    .describe('Service name with plan tier (e.g., "Netflix Premium", "Claude PRO")'),
   price: z
     .number()
     .describe(

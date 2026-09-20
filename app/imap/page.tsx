@@ -1,3 +1,4 @@
+import { BackButton } from '@/components/shared/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -10,7 +11,7 @@ import Link from 'next/link'
 export const metadata: Metadata = buildMetadata({
   title: 'IMAP Setup Guide - Connect Any Email Provider',
   description:
-    'Step-by-step guide to configure IMAP access for Gmail, Outlook, iCloud, and other email providers. Learn how to generate app-specific passwords for secure email discovery.',
+    'Configure IMAP access for Gmail, Outlook, iCloud and other providers, and generate the app-specific passwords that keep email discovery secure.',
   path: '/imap',
 })
 
@@ -103,9 +104,7 @@ export default function ImapGuidePage() {
       <div className="container max-w-4xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
-            ← Back to Dashboard
-          </Link>
+          <BackButton className="-ml-3 text-muted-foreground" />
           <h1 className="text-3xl font-bold mt-4 mb-2">IMAP Setup Guide</h1>
           <p className="text-muted-foreground">
             Learn how to generate app-specific passwords and configure IMAP access for your email
@@ -116,7 +115,7 @@ export default function ImapGuidePage() {
         {/* What is IMAP Section */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>What is IMAP?</CardTitle>
+            <CardTitle as="h2">What is IMAP?</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <p>
@@ -263,7 +262,7 @@ export default function ImapGuidePage() {
           <TabsContent value="other" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Other Email Providers</CardTitle>
+                <CardTitle as="h2">Other Email Providers</CardTitle>
                 <CardDescription>
                   Using a different email provider? Here&apos;s what you need
                 </CardDescription>
@@ -346,7 +345,9 @@ export default function ImapGuidePage() {
         {/* Troubleshooting */}
         <Card className="mt-6 border-orange-500/20">
           <CardHeader>
-            <CardTitle className="text-base">Troubleshooting Connection Issues</CardTitle>
+            <CardTitle as="h2" className="text-base">
+              Troubleshooting Connection Issues
+            </CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-3">
             <p>Having trouble connecting? Here are common solutions:</p>
@@ -395,7 +396,9 @@ export default function ImapGuidePage() {
         {/* Security Notice */}
         <Card className="mt-6 border-primary/20">
           <CardHeader>
-            <CardTitle className="text-base">Security & Privacy</CardTitle>
+            <CardTitle as="h2" className="text-base">
+              Security &amp; Privacy
+            </CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-2">
             <p>
@@ -420,9 +423,7 @@ export default function ImapGuidePage() {
 
         {/* Back Button */}
         <div className="mt-8 text-center">
-          <Button asChild>
-            <Link href="/dashboard">Back to Dashboard</Link>
-          </Button>
+          <BackButton variant="default" size="default" />
         </div>
       </div>
     </div>

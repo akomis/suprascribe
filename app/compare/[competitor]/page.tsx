@@ -23,10 +23,11 @@ export async function generateMetadata({
   if (!competitor) return {}
 
   // absoluteTitle: the title already leads with the brand, so the root template's
-  // "| Suprascribe" suffix would render it twice.
+  // "| Suprascribe" suffix would render it twice. A colon and "Compared" rather than
+  // " - ... Comparison" keeps the longest competitor name inside the SERP's ~60 characters.
   return buildMetadata({
     title: `Suprascribe vs ${competitor.name}`,
-    absoluteTitle: `Suprascribe vs ${competitor.name} - Subscription Tracker Comparison`,
+    absoluteTitle: `Suprascribe vs ${competitor.name}: Subscription Tracker Compared`,
     description: competitor.metaDescription,
     path: `/compare/${slug}`,
   })
@@ -78,7 +79,7 @@ export default async function CompetitorPage({
             name: `What is the best alternative to ${competitor.name}?`,
             acceptedAnswer: {
               '@type': 'Answer',
-              text: `Suprascribe is the top alternative to ${competitor.name}. It offers unlimited free subscription tracking, automatic discovery via email scanning (no bank access), and a one-time Pro upgrade with no recurring fees. ${competitor.verdict}`,
+              text: `Suprascribe is the top alternative to ${competitor.name}. It offers unlimited free subscription tracking, automatic discovery via email scanning (no bank access), and a one-time PRO upgrade with no recurring fees. ${competitor.verdict}`,
             },
           },
         ],
@@ -104,46 +105,39 @@ export default async function CompetitorPage({
     ],
   }
 
+  // Every cell reads a verified field on the competitor record. Do not infer these from the
+  // suprascribeWins copy - an unmentioned advantage is not the same as the competitor having it.
   const featureRows = [
     {
       feature: 'Email auto-discovery',
       suprascribe: true,
-      them: competitor.suprascribeWins.some((w) => w.label === 'Email auto-discovery')
-        ? false
-        : null,
+      them: competitor.discoverySource === 'email',
       suprascribeDetail: 'Scans Gmail, Outlook, iCloud, and IMAP automatically',
     },
     {
       feature: 'No bank account required',
       suprascribe: true,
-      them: !competitor.suprascribeWins.some((w) => w.label.toLowerCase().includes('bank')),
+      them: !competitor.requiresBankLinking,
     },
     {
       feature: 'Web-based (any browser/device)',
       suprascribe: true,
-      them: !competitor.suprascribeWins.some(
-        (w) => w.label.toLowerCase().includes('web') || w.label.toLowerCase().includes('platform'),
-      ),
+      them: competitor.isWebBased,
     },
     {
       feature: 'Free unlimited tier',
       suprascribe: true,
-      them: !competitor.suprascribeWins.some(
-        (w) =>
-          w.label.toLowerCase().includes('free') || w.label.toLowerCase().includes('unlimited'),
-      ),
+      them: competitor.hasUnlimitedFree,
     },
     {
       feature: 'One-time purchase option',
       suprascribe: true,
-      them:
-        !competitor.isSubscription &&
-        !competitor.suprascribeWins.some((w) => w.label.toLowerCase().includes('one-time')),
+      them: competitor.hasOneTimeOption,
     },
     {
       feature: 'Open source',
       suprascribe: true,
-      them: !competitor.suprascribeWins.some((w) => w.label.toLowerCase().includes('open source')),
+      them: competitor.isOpenSource,
     },
   ]
 
@@ -151,7 +145,7 @@ export default async function CompetitorPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '<') }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <div className="flex flex-col px-4 md:px-8">
         <div className="container mx-auto px-4 pt-8">
@@ -191,12 +185,14 @@ export default async function CompetitorPage({
 
         <section className="container mx-auto px-4 py-8 max-w-3xl">
           <div className="space-y-8">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Pricing</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Suprascribe vs {competitor.name} Pricing
+            </h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="border rounded-lg p-5 space-y-3">
                 <p className="font-semibold">Suprascribe</p>
                 <p className="text-muted-foreground text-sm">
-                  Basic free forever. Pro is a one-time purchase - no recurring fees.
+                  Basic free forever. PRO is a one-time purchase - no recurring fees.
                 </p>
               </div>
               <div className="border rounded-lg p-5 space-y-3">
@@ -215,7 +211,9 @@ export default async function CompetitorPage({
 
         <section className="container mx-auto px-4 py-8 max-w-3xl">
           <div className="space-y-8">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Feature Comparison</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              {competitor.name} Feature Comparison
+            </h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -264,17 +262,16 @@ export default async function CompetitorPage({
                 <h2 className="text-xl font-bold tracking-tight">
                   What {competitor.name} Does Well
                 </h2>
-                <ul className="space-y-2">
-                  {competitor.strengths.map((strength) => (
-                    <li key={strength} className="text-muted-foreground text-sm flex gap-2">
-                      <span className="mt-0.5 shrink-0">•</span>
-                      {strength}
-                    </li>
-                  ))}
-                </ul>
+                {competitor.whatTheyDoWell.split('\n\n').map((paragraph, i) => (
+                  <p key={i} className="text-muted-foreground leading-relaxed">
+                    {paragraph}
+                  </p>
+                ))}
               </div>
               <div className="space-y-4">
-                <h2 className="text-xl font-bold tracking-tight">Where Suprascribe Wins</h2>
+                <h2 className="text-xl font-bold tracking-tight">
+                  Where Suprascribe Beats {competitor.name}
+                </h2>
                 <ul className="space-y-3">
                   {competitor.suprascribeWins.map((win) => (
                     <li key={win.label} className="text-sm flex items-start gap-2">
@@ -301,7 +298,9 @@ export default async function CompetitorPage({
 
         <section className="container mx-auto px-4 py-8 max-w-3xl">
           <div className="space-y-6">
-            <h2 className="text-xl font-bold tracking-tight">Also Compare</h2>
+            <h2 className="text-xl font-bold tracking-tight">
+              Other Trackers Worth Comparing to {competitor.name}
+            </h2>
             <div className="flex flex-wrap gap-2">
               {otherCompetitors.map((c) => (
                 <Link key={c.slug} href={`/compare/${c.slug}`}>
@@ -332,7 +331,9 @@ export default async function CompetitorPage({
 
         <section className="container mx-auto px-4 py-8 max-w-3xl text-center">
           <div className="space-y-4">
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Ready to Switch?</h2>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+              Ready to Switch from {competitor.name}?
+            </h2>
             <p className="text-muted-foreground">
               Suprascribe is free to start. No credit card, no recurring fees.
             </p>
