@@ -59,6 +59,10 @@ const LOGO_POSITIONS: LogoPosition[] = [
   },
 ]
 
+// Delay before the logo fade-in starts, so the hero copy lands first
+const FADE_IN_DELAY_MS = 500
+const FADE_IN_STAGGER_MS = 200
+
 const MASK =
   'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%), radial-gradient(ellipse 100% 80% at 50% 0%, black 20%, transparent 100%)'
 
@@ -78,15 +82,15 @@ export function StaticGridBackground({ cellSize = 80 }: { cellSize?: number }) {
       {LOGO_POSITIONS.map((logo, i) => (
         <div
           key={logo.url}
-          className={`absolute group pointer-events-auto ${logo.showOnMobile ? '' : 'hidden sm:block'}`}
+          className={`logo-fade-in absolute group pointer-events-auto ${logo.showOnMobile ? '' : 'hidden sm:block'}`}
           style={{
             left: `${logo.x}%`,
             top: `${logo.y}%`,
             width: `${cellSize}px`,
             height: `${cellSize}px`,
             transform: 'translate(-50%, -50%)',
-            // Static fade-in animation with reduced motion
-            animation: `fadeIn 0.6s ease-out ${i * 80}ms both`,
+            // Staggered fade-in; disabled under prefers-reduced-motion below
+            animation: `fadeIn 0.6s ease-out ${FADE_IN_DELAY_MS + i * FADE_IN_STAGGER_MS}ms both`,
           }}
         >
           <div className="flex h-full w-full items-center justify-center opacity-60 grayscale rounded-2xl overflow-hidden transition-all duration-500 md:group-hover:grayscale-0 md:group-hover:opacity-90">
@@ -106,6 +110,16 @@ export function StaticGridBackground({ cellSize = 80 }: { cellSize?: number }) {
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          /* !important is required to beat the inline animation shorthand */
+          .logo-fade-in {
+            animation: none !important;
+            opacity: 1;
+          }
+          .logo-fade-in * {
+            transition: none !important;
+          }
         }
       `}</style>
     </div>

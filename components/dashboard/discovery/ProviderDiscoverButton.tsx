@@ -15,7 +15,14 @@ type ProviderDiscoverButtonProps = {
   disabled?: boolean
   isLoading?: boolean
   className?: string
+  /** Why the button is locked. Setting it locks the button. */
   tooltipContent?: string | null
+  /**
+   * Where a locked button leads instead of running a scan - the upgrade dialog, for
+   * a tier lock. Without it a locked button stays inert, which is what a rate limit
+   * wants: waiting is the only way out of that one.
+   */
+  onLockedClick?: () => void
 }
 
 function ProviderDiscoverButton({
@@ -27,19 +34,21 @@ function ProviderDiscoverButton({
   isLoading = false,
   className,
   tooltipContent,
+  onLockedClick,
 }: ProviderDiscoverButtonProps) {
-  const isRateLimited = !!tooltipContent
+  // Covers both locks this button carries: out of discoveries, and not on PRO.
+  const isLocked = !!tooltipContent
 
   const button = (
     <Button
       variant="outline"
       className={cn(
         'aspect-square h-16 w-16 sm:h-24 sm:w-24 md:h-32 md:w-32 flex flex-col items-center justify-center gap-1 sm:gap-2 hover:scale-105 transition-transform disabled:cursor-not-allowed',
-        isRateLimited && 'opacity-50',
+        isLocked && 'opacity-50',
         className,
       )}
-      onClick={onClick}
-      disabled={disabled || isLoading || isRateLimited}
+      onClick={isLocked ? onLockedClick : onClick}
+      disabled={disabled || isLoading || (isLocked && !onLockedClick)}
     >
       {isLoading ? (
         <Spinner className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
@@ -57,7 +66,7 @@ function ProviderDiscoverButton({
     </Button>
   )
 
-  if (isRateLimited) {
+  if (isLocked) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>

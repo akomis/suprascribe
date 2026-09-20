@@ -11,14 +11,11 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { ShinyText } from '@/components/landing/ShinyText'
-import dynamic from 'next/dynamic'
-const UpgradeButton = dynamic(
-  () => import('@/components/UpgradeButton').then((m) => m.UpgradeButton),
-  { ssr: false },
-)
+import { UpgradeButton } from '@/components/UpgradeButton'
 import { FeatureDefinition } from '@/lib/config/features'
 import { formatDiscountLabel, getDiscountStatus, type DiscountStatus } from '@/lib/config/discount'
-import { PRO_DISCOUNT_PERCENT } from '@/lib/config/stripe'
+import { getProDiscountPercent, type PriceByCurrency } from '@/lib/config/pricing'
+import { usePricingCurrency } from '@/lib/hooks/usePricingCurrency'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -26,10 +23,15 @@ import { useEffect, useState } from 'react'
 interface TierCardProps {
   name: string
   description: string
-  /** Full price. Shown as-is, or struck through next to `discountPrice` while the discount runs. */
-  price: string
-  /** Discounted price. Only used while the discount is active - pass together with `discount`. */
-  discountPrice?: string
+  /**
+   * Full price in cents, in every currency. Shown as-is, or struck through next to
+   * `discountPriceCents` while the discount runs. A map rather than a formatted
+   * string because the card picks the visitor's currency itself - the server render
+   * it comes from is cached and shared, so it cannot know which one to pick.
+   */
+  priceCents: PriceByCurrency
+  /** Discounted price in cents. Only used while the discount is active - pass together with `discount`. */
+  discountPriceCents?: PriceByCurrency
   /**
    * Discount state as resolved on the server. The card re-resolves it after mount and
    * every minute after that, so a page cached from before the deadline still drops
@@ -42,6 +44,8 @@ interface TierCardProps {
   buttonVariant?: 'default' | 'outline'
   href?: string
   isUpgradeButton?: boolean
+  /** PostHog `location` for the upgrade click. */
+  upgradeLocation?: string
   badge?: string
   highlighted?: boolean
   checkmarkColor?: string
@@ -71,8 +75,8 @@ function useLiveDiscountStatus(initial: DiscountStatus | undefined) {
 export function TierCard({
   name,
   description,
-  price,
-  discountPrice,
+  priceCents,
+  discountPriceCents,
   discount,
   period,
   features,
@@ -80,16 +84,20 @@ export function TierCard({
   buttonVariant = 'outline',
   href,
   isUpgradeButton = false,
+  upgradeLocation = 'landing_pricing',
   badge,
   highlighted = false,
   checkmarkColor = 'text-muted-foreground',
   additionalNote,
 }: TierCardProps) {
   const status = useLiveDiscountStatus(discount)
-  const discountActive = Boolean(status?.active && discountPrice)
-  const discountLabel = status ? formatDiscountLabel(status, PRO_DISCOUNT_PERCENT) : null
-  const displayPrice = discountActive ? discountPrice! : price
-  const struckPrice = discountActive ? price : null
+  const { currency, format } = usePricingCurrency()
+
+  const fullCents = priceCents[currency]
+  const discountActive = Boolean(status?.active && discountPriceCents)
+  const discountLabel = status ? formatDiscountLabel(status, getProDiscountPercent(currency)) : null
+  const displayPrice = format(discountActive ? discountPriceCents![currency] : fullCents)
+  const struckPrice = discountActive ? format(fullCents) : null
 
   return (
     <Card className={cn('relative h-full', highlighted && 'border-primary')}>
@@ -142,11 +150,12 @@ export function TierCard({
       <CardFooter className="mt-auto">
         {isUpgradeButton ? (
           <UpgradeButton
+            // The card is the price, so there is nothing to show first.
+            checkout
             text={buttonText}
             variant={buttonVariant as any}
             fullWidth={true}
-            hideIfPro={true}
-            location="landing_pricing"
+            location={upgradeLocation}
           />
         ) : (
           <Link href={href!} className="w-full">

@@ -23,20 +23,19 @@ export function SetupBYOKPrompt() {
             Automatically find subscriptions from your email inbox, with quick unsubscribe and
             renewal reminders.
           </p>
-          <p className="text-sm text-muted-foreground">Available on Pro.</p>
+          <p className="text-sm text-muted-foreground">Available on PRO.</p>
         </div>
 
         {pendingTeaser && (
           <UpgradeButton
             size="sm"
             variant="default"
-            hideIfPro={false}
             location="byok_prompt_teaser"
             text={`Import ${teaserCount} discovered subscription${teaserCount !== 1 ? 's' : ''}`}
           />
         )}
 
-        <UpgradeButton size="sm" hideIfPro={false} location="byok_prompt" />
+        <UpgradeButton size="sm" location="byok_prompt" />
       </div>
     </div>
   )

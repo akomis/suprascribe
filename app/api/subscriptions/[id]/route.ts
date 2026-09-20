@@ -60,11 +60,6 @@ export const PUT = withAuth<Params>(async (request, { user, supabase, params }) 
       return NextResponse.json({ error: result.error }, { status: result.status })
     }
 
-    void captureEvent(user.id, 'subscription_updated', {
-      subscription_id: subscriptionId,
-      price: result.subscription.price,
-    })
-
     return NextResponse.json({ data: result.subscription }, { status: 200 })
   } catch (error) {
     return NextResponse.json(
@@ -120,13 +115,6 @@ export const PATCH = withAuth<Params>(async (request, { user, supabase, params }
         { error: `Error updating subscription: ${updateError.message}` },
         { status: 500 },
       )
-    }
-
-    if (typeof updateData.auto_renew === 'boolean') {
-      void captureEvent(user.id, 'subscription_auto_renew_toggled', {
-        subscription_id: subscriptionId,
-        auto_renew: updateData.auto_renew,
-      })
     }
 
     return NextResponse.json({ data: updatedSubscription }, { status: 200 })

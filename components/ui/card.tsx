@@ -28,9 +28,18 @@ function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
+/**
+ * `as` exists for cards that are a page's real sections. Rendered as a `div` the title carries
+ * no outline weight, which left pages jumping straight from `<h1>` to `<h3>`; pass `as="h2"`
+ * (or another heading) where the card heads a section rather than decorating one.
+ */
+function CardTitle({
+  className,
+  as: Component = 'div',
+  ...props
+}: React.ComponentProps<'div'> & { as?: 'div' | 'h2' | 'h3' | 'h4' }) {
   return (
-    <div
+    <Component
       data-slot="card-title"
       className={cn('leading-none font-semibold', className)}
       {...props}

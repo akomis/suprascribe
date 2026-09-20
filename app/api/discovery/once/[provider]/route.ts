@@ -4,6 +4,7 @@ import { estimateCostUsd, recordAnalytics } from '@/lib/services/discovery-analy
 import { discover } from '@/lib/services/subscription-discovery'
 import { createServiceClient } from '@/lib/supabase/server'
 import type { DiscoveryResponse } from '@/lib/types/discovery'
+import { countDistinctServices } from '@/lib/utils'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Anonymous, payment-gated discovery for the one-time funnel. No Supabase auth,
@@ -103,7 +104,7 @@ export async function POST(
       status: 'discovered',
       discovered_at: new Date().toISOString(),
       email_scanned: email,
-      subscriptions_found: subscriptions.length,
+      subscriptions_found: countDistinctServices(subscriptions),
     })
     .eq('stripe_payment_intent_id', entitlement.pi)
 

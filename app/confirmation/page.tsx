@@ -1,5 +1,6 @@
 'use client'
 
+import { StaticGridBackground } from '@/components/landing/StaticGridBackground'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { getEnabledFeaturesByTier, TIER } from '@/lib/config/features'
@@ -27,16 +28,17 @@ export default function PaymentSuccessPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md  text-center space-y-6">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden px-4">
+      <StaticGridBackground />
+      <div className="relative z-10 w-full max-w-lg text-center space-y-6">
         <div className="flex justify-center">
           <CheckCircle2 className="w-16 h-16 text-green-500" />
         </div>
 
         <h1 className="text-3xl font-bold">PRO Activated</h1>
 
-        <div className="w-fit mx-auto bg-gradient-to-r from-purple-600/10 to-blue-600/10 rounded-lg px-6 py-4 space-y-2">
-          <ul className="text-sm space-y-2 text-left">
+        <div className="w-fit mx-auto border bg-black/79 rounded-lg px-6 py-4 space-y-2">
+          <ul className="text-md space-y-2 text-left">
             {proFeatures.map((feature) => (
               <li key={feature.key}>• {feature.description}</li>
             ))}

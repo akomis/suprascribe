@@ -45,7 +45,7 @@ const DEMO_ITEMS: DemoItem[] = [
     active: true,
   },
   {
-    service_name: 'GitHub Pro',
+    service_name: 'GitHub PRO',
     service_url: 'https://github.com',
     price: 4.0,
     currency: 'USD',

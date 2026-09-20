@@ -2,12 +2,14 @@
 
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import { ONCE_SCAN_PRICE_DISPLAY } from '@/lib/config/stripe'
+import { getOnceScanPriceCents } from '@/lib/config/pricing'
+import { usePricingCurrency } from '@/lib/hooks/usePricingCurrency'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
 export function PayCta() {
   const [loading, setLoading] = useState(false)
+  const { currency, format } = usePricingCurrency()
 
   const onClick = async () => {
     setLoading(true)
@@ -27,7 +29,7 @@ export function PayCta() {
 
   return (
     <Button size="lg" onClick={onClick} disabled={loading} className="min-w-[220px]">
-      {loading ? <Spinner /> : `Scan 1 inbox for ${ONCE_SCAN_PRICE_DISPLAY}`}
+      {loading ? <Spinner /> : `Scan 1 inbox for ${format(getOnceScanPriceCents(currency))}`}
     </Button>
   )
 }

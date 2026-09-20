@@ -3,7 +3,10 @@ import { type Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Login',
-  robots: { index: false, follow: false },
+  // noindex keeps the page out of results; follow is deliberate. ~86 internal links point
+  // here (every signup CTA), and nofollow stopped that PageRank dead instead of letting it
+  // flow on through the logo link to / and the link to /terms-and-privacy.
+  robots: { index: false, follow: true },
 }
 
 export default async function LoginPage({

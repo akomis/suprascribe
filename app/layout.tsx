@@ -3,7 +3,9 @@ import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { CurrencyProvider } from '@/lib/hooks/useCurrency'
+import { PricingCurrencyProvider } from '@/lib/hooks/usePricingCurrency'
 import { PWAInstallProvider } from '@/providers/PWAInstallProvider'
+import { UpgradeDialogProvider } from '@/providers/UpgradeDialogProvider'
 import { cn } from '@/lib/utils'
 import localFont from 'next/font/local'
 import { Suspense } from 'react'
@@ -15,12 +17,13 @@ const GeistSans = localFont({
   display: 'optional',
 })
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
+import { buildProOfferJsonLd, DEFAULT_CURRENCY } from '@/lib/config/pricing'
 import { GITHUB_URL } from '@/lib/config/urls'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 const siteDescription =
-  'Suprascribe finds and tracks all your subscriptions by scanning Gmail, Outlook, iCloud, or any IMAP inbox. Free forever, one-time Pro upgrade.'
+  'Suprascribe finds and tracks all your subscriptions by scanning Gmail, Outlook, iCloud, or any IMAP inbox. Free forever, one-time PRO upgrade.'
 
 export const viewport: Viewport = {
   themeColor: '#000000',
@@ -90,15 +93,13 @@ const jsonLd = {
         {
           '@type': 'Offer',
           price: '0',
-          priceCurrency: 'USD',
+          priceCurrency: DEFAULT_CURRENCY.toUpperCase(),
           name: 'Basic',
           description: 'Free forever - core subscription tracking features',
         },
         {
-          '@type': 'Offer',
-          price: '20',
-          priceCurrency: 'USD',
-          name: 'Pro',
+          ...buildProOfferJsonLd(),
+          name: 'PRO',
           description: 'One-time purchase for advanced features',
         },
       ],
@@ -116,21 +117,25 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '<') }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
         />
       </head>
       <body className={cn(GeistSans.variable, 'antialiased')}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <TooltipProvider>
             <CurrencyProvider>
-              <PWAInstallProvider>
-                <main>{children}</main>
-                <Suspense fallback={null}>
-                  <AffiliateTracker />
-                </Suspense>
-                <Toaster />
-                <ServiceWorkerRegistration />
-              </PWAInstallProvider>
+              <PricingCurrencyProvider>
+                <PWAInstallProvider>
+                  <UpgradeDialogProvider>
+                    <main>{children}</main>
+                    <Suspense fallback={null}>
+                      <AffiliateTracker />
+                    </Suspense>
+                    <Toaster />
+                    <ServiceWorkerRegistration />
+                  </UpgradeDialogProvider>
+                </PWAInstallProvider>
+              </PricingCurrencyProvider>
             </CurrencyProvider>
           </TooltipProvider>
         </ThemeProvider>

@@ -50,6 +50,10 @@ export function isOneTimePayment(sub: Pick<DiscoveredSubscription, 'period'>): b
   return !sub.period
 }
 
+// Heading of the discovery-results section that collects the one-time charges,
+// kept apart from the active/past split, which only describes a recurring one.
+export const ONE_TIME_SECTION_LABEL = 'Recurring'
+
 // Restores the span of a recurring receipt that arrived without an end_date:
 // one billing cycle from the charge date. Without this the segment cannot join
 // its timeline, because it looks like a zero-length period.

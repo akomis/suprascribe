@@ -1,7 +1,8 @@
 'use client'
 
 import { getDiscountStatus, type DiscountStatus } from '@/lib/config/discount'
-import { PRO_FULL_PRICE_DISPLAY, PRO_DISCOUNT_PRICE_DISPLAY } from '@/lib/config/stripe'
+import { PRICING } from '@/lib/config/pricing'
+import { usePricingCurrency } from '@/lib/hooks/usePricingCurrency'
 import { cn } from '@/lib/utils'
 import { useEffect, useState } from 'react'
 
@@ -15,10 +16,12 @@ interface ProPriceProps {
 /**
  * PRO price with the struck-through full price next to it while the discount
  * runs, and the full price alone once it ends. Client-side so a page cached
- * from before the deadline still corrects itself for the visitor.
+ * from before the deadline still corrects itself for the visitor - and so it
+ * lands in the visitor's own currency, which the cached HTML cannot know.
  */
 export function ProPrice({ discount, className, strikeClassName }: ProPriceProps) {
   const [status, setStatus] = useState(discount)
+  const { currency, format } = usePricingCurrency()
 
   useEffect(() => {
     const update = () => setStatus(getDiscountStatus())
@@ -27,13 +30,16 @@ export function ProPrice({ discount, className, strikeClassName }: ProPriceProps
     return () => clearInterval(interval)
   }, [])
 
+  const fullPrice = format(PRICING[currency].proFullCents)
+  const discountPrice = format(PRICING[currency].proDiscountCents)
+
   return (
     <span className={className}>
-      {status.active ? PRO_DISCOUNT_PRICE_DISPLAY : PRO_FULL_PRICE_DISPLAY}
+      {status.active ? discountPrice : fullPrice}
       {status.active && (
         <>
           {' '}
-          <span className={cn('line-through', strikeClassName)}>{PRO_FULL_PRICE_DISPLAY}</span>
+          <span className={cn('line-through', strikeClassName)}>{fullPrice}</span>
         </>
       )}
     </span>

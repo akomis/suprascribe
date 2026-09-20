@@ -1,9 +1,6 @@
-import {
-  getProPriceCents,
-  PRO_CURRENCY,
-  PRO_PRODUCT_IMAGE_URL,
-  STRIPE_API_VERSION,
-} from '@/lib/config/stripe'
+import { getProPriceCents } from '@/lib/config/pricing'
+import { CHECKOUT_CONSENT, PRO_PRODUCT_IMAGE_URL, STRIPE_API_VERSION } from '@/lib/config/stripe'
+import { currencyFromRequest } from '@/lib/pricing/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
@@ -51,9 +48,13 @@ export async function GET(request: NextRequest) {
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: STRIPE_API_VERSION })
 
+    const currency = currencyFromRequest(request)
+
     const metadata = {
       purpose: 'pro_upgrade',
       user_id: user.id,
+      // Recorded so the charged currency is readable off the payment intent alone.
+      currency,
       ...(validReferralCode ? { referral_code: validReferralCode } : {}),
     }
 
@@ -64,8 +65,11 @@ export async function GET(request: NextRequest) {
       line_items: [
         {
           price_data: {
-            currency: PRO_CURRENCY,
-            unit_amount: getProPriceCents(),
+            currency,
+            unit_amount: getProPriceCents(currency),
+            // The advertised price is what the customer pays: any VAT is already
+            // inside it rather than added on top at checkout.
+            tax_behavior: 'inclusive',
             product_data: {
               name: 'Suprascribe PRO',
               description:
@@ -76,6 +80,7 @@ export async function GET(request: NextRequest) {
           quantity: 1,
         },
       ],
+      ...CHECKOUT_CONSENT,
       metadata,
       payment_intent_data: { metadata },
       success_url: `${baseUrl}/confirmation?session_id={CHECKOUT_SESSION_ID}`,

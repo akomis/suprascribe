@@ -1,29 +1,15 @@
-'use client'
-
 import { Button } from '@/components/ui/button'
-import { createClient } from '@/lib/supabase/client'
-import { User } from '@supabase/supabase-js'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
 
+/**
+ * The hero's call to action. Deliberately has no idea whether anyone is signed in:
+ * middleware redirects visitors carrying a Supabase auth cookie from `/` straight to
+ * `/dashboard`, so this only ever renders for logged-out visitors. Resolving the
+ * session here as well would only re-derive what the redirect already settled, and
+ * would cost the marketing page a client component and a hydration pass to render a
+ * button nobody ever sees.
+ */
 export function LandingCTA() {
-  const [user, setUser] = useState<User | null>(null)
-
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null))
-  }, [])
-
-  if (user) {
-    return (
-      <Link href="/dashboard">
-        <Button size="lg" className="text-sm sm:text-base">
-          Go to Dashboard
-        </Button>
-      </Link>
-    )
-  }
-
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="flex items-center">

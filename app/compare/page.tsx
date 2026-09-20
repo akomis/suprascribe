@@ -10,9 +10,9 @@ import { buildMetadata } from '@/lib/utils/metadata'
 import Link from 'next/link'
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Suprascribe vs. Alternatives - Subscription Tracker Comparison',
+  title: 'Subscription Tracker Comparison',
   description:
-    'Compare Suprascribe to popular subscription trackers and managers. See how we stack up against ReSubs, Bobby, Rocket Money, YNAB, and more on price, features, and privacy.',
+    'Compare Suprascribe to popular subscription trackers. How it stacks up against ReSubs, Bobby, Rocket Money, YNAB and more on price, features, privacy.',
   path: '/compare',
 })
 
@@ -91,6 +91,65 @@ export default function ComparePage() {
                 </div>
               </Link>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <Separator className="data-[orientation=horizontal]:w-[40vw] mx-auto" />
+
+      <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">
+        <div className="space-y-8">
+          <div className="space-y-3">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              What actually separates these tools
+            </h2>
+            <p className="text-muted-foreground">
+              Subscription trackers look alike on a feature list and behave very differently in
+              practice. Four differences decide which one suits you, and every comparison page here
+              is written against them.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold tracking-tight">
+                How the subscriptions get found
+              </h3>
+              <p className="text-muted-foreground">
+                Manual trackers wait for you to type each one in, which works right up until you
+                forget the charge you were trying to catch. Automatic ones either read your bank
+                feed through Plaid or read your inbox for receipts. Suprascribe reads the inbox: the
+                receipt names the service, and no account number is involved.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold tracking-tight">What the free tier really is</h3>
+              <p className="text-muted-foreground">
+                A free tier capped at five subscriptions is a trial with a longer expiry date - the
+                cap bites at roughly the point the tool starts being useful. Suprascribe&apos;s free
+                tier has no subscription limit; PRO adds automatic discovery and the convenience
+                features, once.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold tracking-tight">Recurring fee or one payment</h3>
+              <p className="text-muted-foreground">
+                Paying a monthly fee to a tool whose job is to cut your monthly fees is a strange
+                arrangement, and it is the norm in this category. Suprascribe&apos;s PRO upgrade is
+                a single payment.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold tracking-tight">Where it runs</h3>
+              <p className="text-muted-foreground">
+                Several of the trackers here are iOS-only or Android-only, so a household on mixed
+                devices cannot share a list. Suprascribe runs in any browser, and the source is on
+                GitHub if you would rather audit it or host it yourself.
+              </p>
+            </div>
           </div>
         </div>
       </section>

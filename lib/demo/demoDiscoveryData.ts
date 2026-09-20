@@ -57,7 +57,7 @@ export const DEMO_DISCOVERED_SUBSCRIPTIONS: DiscoveredSubscription[] = [
     auto_renew: true,
   },
   {
-    service_name: 'GitHub Pro',
+    service_name: 'GitHub PRO',
     service_url: 'github.com',
     unsubscribe_url: 'https://github.com/settings/billing/summary',
     price: 4,
@@ -150,7 +150,7 @@ const DISCOVERY_POOL: ServiceTemplate[] = [
     period: 'YEARLY',
   },
   {
-    service_name: 'GitHub Pro',
+    service_name: 'GitHub PRO',
     service_url: 'github.com',
     unsubscribe_url: 'https://github.com/settings/billing/summary',
     price: 4,

@@ -1,14 +1,15 @@
 'use client'
 
 import type { DiscoveredSubscription } from '@/lib/types/forms'
-import type { DiscoveryResponse } from '@/lib/types/discovery'
+import type { DiscoveryResponse, TeaserPreviewGroup } from '@/lib/types/discovery'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useInvalidateDiscoveryRuns } from './useDiscoveryRuns'
+import { useInvalidateTeaserStatus } from './useTeaserStatus'
 
 export interface DiscoveryTeaser {
   subscriptionsFound: number
-  preview: DiscoveredSubscription[]
+  preview: TeaserPreviewGroup[]
   email: string
   emailCount: number
 }
@@ -28,6 +29,7 @@ export interface DiscoveryCoreReturn {
 
 export function useDiscoveryCore(): DiscoveryCoreReturn {
   const invalidateDiscoveryRuns = useInvalidateDiscoveryRuns()
+  const invalidateTeaserStatus = useInvalidateTeaserStatus()
   const [isDiscovering, setIsDiscovering] = useState(false)
   const [discoveredSubscriptions, setDiscoveredSubscriptions] = useState<DiscoveredSubscription[]>(
     [],
@@ -38,8 +40,24 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
   const lastFetchFnRef = useRef<(() => Promise<DiscoveryResponse>) | null>(null)
+  // Guards against a second scan overlapping the first (double-click, retry
+  // while the original request is still open, a second tab). Two overlapping
+  // scans race for the same free-scan slot server-side, and the loser pays for
+  // a scan it can never store. A ref, not `isDiscovering`, because the state
+  // update is not visible to a call made in the same tick.
+  const inFlightRef = useRef(false)
+  // Set once a run comes back in teaser mode (or is refused because the free
+  // scan is already spent): the cached teaser status no longer matches the
+  // server, and until it is refetched the dashboard keeps offering the email
+  // provider buttons, so a second click only earns a limit-reached warning.
+  // The refetch waits for clearDiscovery because dropping `canRunFreeTeaser`
+  // unmounts the provider selection - and with it the dialog still showing
+  // the teaser result.
+  const teaserStatusStaleRef = useRef(false)
 
   const runDiscovery = async (fetchFn: () => Promise<DiscoveryResponse>) => {
+    if (inFlightRef.current) return
+    inFlightRef.current = true
     lastFetchFnRef.current = fetchFn
     setIsDiscovering(true)
     setError(null)
@@ -50,6 +68,7 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
 
       if (!data.success) {
         if (data.kind === 'rate_limited') {
+          teaserStatusStaleRef.current = true
           setWarning(data.error)
         } else {
           const msg = data.error || 'Discovery failed'
@@ -61,9 +80,10 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
       }
 
       if (data.teaser) {
+        teaserStatusStaleRef.current = true
         setTeaser({
           subscriptionsFound: data.subscriptionsFound,
-          preview: data.preview.map((sub) => ({ ...sub, source_email: data.email })),
+          preview: data.preview,
           email: data.email,
           emailCount: data.emailCount,
         })
@@ -95,6 +115,7 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
       setError(errorMessage)
       toast.error('Discovery Failed', { description: errorMessage })
     } finally {
+      inFlightRef.current = false
       setIsDiscovering(false)
     }
   }
@@ -112,6 +133,11 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
     setError(null)
     setWarning(null)
     lastFetchFnRef.current = null
+
+    if (teaserStatusStaleRef.current) {
+      teaserStatusStaleRef.current = false
+      invalidateTeaserStatus()
+    }
   }
 
   return {

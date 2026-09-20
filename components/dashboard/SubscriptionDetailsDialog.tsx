@@ -4,6 +4,7 @@ import { EditBillingDialog } from '@/components/dashboard/EditBillingDialog'
 import { SubscriptionBadge } from '@/components/dashboard/SubscriptionBadge'
 import { SubscriptionForm } from '@/components/dashboard/SubscriptionForm'
 import SubscriptionHistory from '@/components/dashboard/SubscriptionHistory'
+import { ProGate } from '@/components/shared/ProGate'
 import { UnsubscribeButton } from '@/components/shared/UnsubscribeButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -155,6 +156,15 @@ function SubscriptionHeader({
   onOpenServiceUrl,
   onUnsubscribeOpened,
 }: SubscriptionHeaderProps) {
+  const unsubscribeButton = (
+    <UnsubscribeButton
+      serviceName={subscription.subscription_service?.name ?? ''}
+      unsubscribeUrl={subscription.subscription_service?.unsubscribe_url}
+      surface="dashboard"
+      onUnsubscribeOpened={onUnsubscribeOpened}
+    />
+  )
+
   return (
     <DialogHeader>
       <div className="flex flex-row items-start justify-between gap-4 pt-4">
@@ -208,14 +218,14 @@ function SubscriptionHeader({
             )}
           </div>
         </div>
-        {!isPast && hasQuickUnsubscribe && (
-          <UnsubscribeButton
-            serviceName={subscription.subscription_service?.name ?? ''}
-            unsubscribeUrl={subscription.subscription_service?.unsubscribe_url}
-            surface="dashboard"
-            onUnsubscribeOpened={onUnsubscribeOpened}
-          />
-        )}
+        {/* The locked branch goes through ProGate rather than being hidden, but access
+            still comes from the injected flag - the demo grants it without a tier. */}
+        {!isPast &&
+          (hasQuickUnsubscribe ? (
+            unsubscribeButton
+          ) : (
+            <ProGate feature="quick_unsubscribe">{unsubscribeButton}</ProGate>
+          ))}
       </div>
     </DialogHeader>
   )

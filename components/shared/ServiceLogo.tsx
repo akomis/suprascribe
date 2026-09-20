@@ -52,12 +52,17 @@ export function ServiceLogo({
 
   if (src) {
     if (naturalSize) {
+      // `width`/`height` are the cap, not the logo's real size - the style below keeps its
+      // natural aspect ratio. They are set anyway so the browser reserves a box before the
+      // image loads, which is what stops the row shifting as logos arrive (CLS).
       return (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={src}
           alt={`${name} logo`}
           loading="lazy"
+          width={size}
+          height={size}
           style={{ maxWidth: size, maxHeight: size, width: 'auto', height: 'auto' }}
           className={cn('object-contain', className)}
           onLoad={handleLoad}

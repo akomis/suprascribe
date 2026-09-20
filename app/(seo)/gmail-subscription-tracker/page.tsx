@@ -1,15 +1,16 @@
 import { SEOPage } from '@/components/shared/SEOPage'
 import { SEOSection } from '@/components/shared/SEOSection'
 import { faqItems } from '@/lib/config/faq'
-import { breadcrumbSchema, faqPageSchema } from '@/lib/utils/schema'
+import { breadcrumbSchema, faqPageSchema, softwareApplicationSchema } from '@/lib/utils/schema'
 import { Mail, Search, Shield, Zap } from 'lucide-react'
+import Image from 'next/image'
 import type { Metadata } from 'next'
 import { buildMetadata } from '@/lib/utils/metadata'
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Gmail Subscription Tracker - Find All Subscriptions in Your Inbox',
+  title: 'Gmail Subscription Tracker - Free Scan',
   description:
-    'Automatically find every subscription buried in your Gmail. Suprascribe scans Gmail via OAuth to surface recurring payments - no bank access, no password shared, free forever.',
+    'Find every subscription buried in your Gmail. Suprascribe scans it via OAuth to surface recurring payments - no bank access, no password shared, free.',
   path: '/gmail-subscription-tracker',
 })
 
@@ -27,22 +28,10 @@ const gmailFaqItems = faqItems.filter((item) =>
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
-    {
-      '@type': 'SoftwareApplication',
-      name: 'Suprascribe',
-      applicationCategory: 'FinanceApplication',
-      operatingSystem: 'Web',
-      url: 'https://www.suprascribe.com',
+    softwareApplicationSchema({
       description:
         'Gmail subscription tracker that scans your inbox via OAuth to automatically find and list every recurring payment - no bank access required.',
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'EUR',
-        name: 'Basic',
-        description: 'Free forever - unlimited subscription tracking',
-      },
-    },
+    }),
     faqPageSchema(gmailFaqItems),
     breadcrumbSchema(
       'Gmail Subscription Tracker',
@@ -82,16 +71,14 @@ export default function GmailSubscriptionTrackerPage() {
   return (
     <SEOPage
       jsonLd={jsonLd}
-      title="Gmail Subscription Tracker: Find Every Subscription Hidden in Your Inbox"
+      path="/gmail-subscription-tracker"
+      title="Gmail Subscription Tracker: Find Every Hidden Subscription"
       description="Suprascribe is a Gmail subscription tracker that reads the receipts, billing confirmations, and renewal notices already sitting in your inbox. It connects via OAuth and builds your complete subscription list - for free, with no bank access required."
       primaryCta={{ href: '/login?tab=signup', label: 'Connect Gmail for Free' }}
       secondaryCta={{ href: '/demo', label: 'See the Demo' }}
       faqItems={gmailFaqItems}
-      relatedHeading="Tracking Subscriptions Is Just the Start"
+      relatedHeading="Beyond the Gmail Scan"
       relatedDescription="Once you have your complete list, manage it all in one place - cancel, set reminders, and track spending over time."
-      relatedPages={[
-        { href: '/free-subscription-manager', label: 'Manage Subscriptions for Free' },
-      ]}
     >
       <section className="container mx-auto px-4 py-12 sm:py-20 max-w-3xl">
         <div className="space-y-10">
@@ -116,10 +103,25 @@ export default function GmailSubscriptionTrackerPage() {
               </div>
             ))}
           </div>
+
+          <figure className="space-y-2 mx-auto max-w-sm">
+            <Image
+              src="/blog/autodiscovery-inbox-providers.png"
+              alt="Suprascribe inbox connection screen offering Gmail, Outlook and iCloud"
+              width={712}
+              height={801}
+              className="rounded-lg border w-full h-auto"
+              sizes="(max-width: 768px) 100vw, 384px"
+            />
+            <figcaption className="text-xs text-muted-foreground text-center">
+              Pick Gmail on the connection screen. There is no bank or card option anywhere in the
+              flow.
+            </figcaption>
+          </figure>
         </div>
       </section>
 
-      <SEOSection title="Why Email Beats Bank Linking">
+      <SEOSection title="Why Scanning Gmail Beats Linking Your Bank">
         <div className="space-y-5 text-muted-foreground">
           <p>
             Most subscription detection tools - Rocket Money, PocketGuard - require connecting your

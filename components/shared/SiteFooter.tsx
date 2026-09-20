@@ -4,11 +4,11 @@ import Link from 'next/link'
 
 const links = [
   { href: '/terms-and-privacy', label: 'Terms & Privacy' },
+  { href: '/safety', label: 'Safety' },
+  { href: '/limits', label: 'Limits' },
   { href: '/blog', label: 'Blog' },
   { href: '/subscription-cost-calculator', label: 'Calculator' },
   { href: '/faq', label: 'FAQ' },
-  { href: '/safety', label: 'Safety' },
-  { href: '/limits', label: 'Limits' },
 ]
 
 const socials = [
@@ -53,10 +53,10 @@ export function SiteFooter() {
   return (
     <footer className="border-t py-4 sm:py-6">
       <div className="container mx-auto px-2 sm:px-4">
-        <div className="flex flex-col items-center justify-between gap-2 sm:gap-3 md:flex-row">
-          <div className="flex flex-col items-center gap-3 sm:gap-4 md:flex-row">
+        <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+          <div className="flex flex-col items-center gap-4 md:flex-row">
             <SuprascribeLogo />
-            <div className="flex items-center gap-3 sm:gap-4 text-muted-foreground">
+            <div className="flex items-center gap-4 text-muted-foreground">
               {socials.map((social) => (
                 <a
                   key={social.href}
@@ -78,7 +78,7 @@ export function SiteFooter() {
               ))}
             </div>
           </div>
-          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-4 text-sm text-muted-foreground">
             {links.map((link) => (
               <Link
                 key={link.href}

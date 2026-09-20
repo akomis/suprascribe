@@ -1,18 +1,22 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { TierBadge } from '../dashboard/settings/TierBadge'
 import { cn } from '@/lib/utils'
 
 interface SuprascribeLogoProps {
   className?: string
-  showTier?: boolean
   size?: number
   layout?: 'row' | 'column'
 }
 
+/**
+ * Home link, used in the site footer and so present on every marketing, SEO and blog
+ * page. It deliberately renders nothing account-aware: pairing it with `TierBadge`
+ * here made every one of those pages statically import the badge, its hooks and the
+ * whole Supabase browser SDK, for a badge only the dashboard ever showed. The
+ * dashboard composes the two itself instead.
+ */
 export function SuprascribeLogo({
   className = '',
-  showTier = false,
   size = 24,
   layout = 'row',
 }: SuprascribeLogoProps) {
@@ -37,7 +41,6 @@ export function SuprascribeLogo({
             priority
           />
         </Link>
-        {showTier && <TierBadge />}
       </div>
     </div>
   )

@@ -8,6 +8,7 @@ import { PWAInstallRow } from '@/components/dashboard/settings/PWAInstallRow'
 import { RemindersDialog } from '@/components/dashboard/settings/RemindersDialog'
 import { ThemePicker } from '@/components/dashboard/settings/ThemePicker'
 import { ClientOnly } from '@/components/shared/ClientOnly'
+import { ProGate } from '@/components/shared/ProGate'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -16,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { isFeatureEnabled } from '@/lib/config/features'
-import { useFeatureAccess } from '@/lib/hooks/useFeatureAccess'
 import { createClient } from '@/lib/supabase/client'
 import { SupportButton } from '@/components/shared/SupportButton'
 import { Bell, Key, Link2, Settings, User } from 'lucide-react'
@@ -33,9 +33,6 @@ function ControlPanelInner() {
   const [byokOpen, setByokOpen] = React.useState(false)
   const [remindersOpen, setRemindersOpen] = React.useState(false)
   const [passwordChangeMode, setPasswordChangeMode] = React.useState(false)
-  const { hasAccess: hasEmailSupport } = useFeatureAccess('email_support')
-  const { hasAccess: hasByokAccess } = useFeatureAccess('auto_discovery')
-  const { hasAccess: hasReminderAccess } = useFeatureAccess('renewal_reminders')
 
   React.useEffect(() => {
     // Use setTimeout to avoid synchronous setState during effect
@@ -99,7 +96,7 @@ function ControlPanelInner() {
               <ThemePicker triggerClassName="w-full" />
             </div>
           </div>
-          {hasByokAccess && (
+          <ProGate feature="auto_discovery" className="w-full">
             <Button
               variant="outline"
               type="button"
@@ -110,8 +107,8 @@ function ControlPanelInner() {
               <Key className="h-4 w-4" />
               AI API Keys (BYOK)
             </Button>
-          )}
-          {hasReminderAccess && (
+          </ProGate>
+          <ProGate feature="renewal_reminders" className="w-full">
             <Button
               variant="outline"
               type="button"
@@ -122,7 +119,7 @@ function ControlPanelInner() {
               <Bell className="h-4 w-4" />
               Renewal Reminders
             </Button>
-          )}
+          </ProGate>
           {isFeatureEnabled('pwa_install') && <PWAInstallRow />}
           <Button
             variant="outline"
@@ -148,9 +145,9 @@ function ControlPanelInner() {
           <DropdownMenuSeparator />
 
           <div className="flex gap-2">
-            {hasEmailSupport && (
-              <SupportButton className="flex-1 justify-center gap-2 text-muted-foreground font-normal" />
-            )}
+            <ProGate feature="email_support" className="flex-1">
+              <SupportButton className="w-full justify-center gap-2 text-muted-foreground font-normal" />
+            </ProGate>
             <LogoutButton
               variant="secondary"
               className="flex-1 text-destructive hover:bg-destructive/10 hover:text-destructive text-xs sm:text-sm"

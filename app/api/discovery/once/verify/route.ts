@@ -1,4 +1,5 @@
-import { ONCE_SCAN_PRICE_CENTS, PRO_CURRENCY, STRIPE_API_VERSION } from '@/lib/config/stripe'
+import { getOnceScanPriceCents, isPricingCurrency } from '@/lib/config/pricing'
+import { STRIPE_API_VERSION } from '@/lib/config/stripe'
 import {
   ENTITLEMENT_COOKIE,
   ENTITLEMENT_TTL_SECONDS,
@@ -28,11 +29,18 @@ export async function POST(request: NextRequest) {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: STRIPE_API_VERSION })
     const session = await stripe.checkout.sessions.retrieve(sessionId)
 
+    // The amount to expect depends on the currency the session was created in, so
+    // it has to be looked up rather than compared against a single constant - a
+    // fixed check would reject every non-euro payment after the customer had paid.
+    const expectedCents = isPricingCurrency(session.currency)
+      ? getOnceScanPriceCents(session.currency)
+      : null
+
     const valid =
       session.payment_status === 'paid' &&
       session.metadata?.purpose === 'one_time_discovery' &&
-      session.amount_total === ONCE_SCAN_PRICE_CENTS &&
-      session.currency === PRO_CURRENCY
+      expectedCents !== null &&
+      session.amount_total === expectedCents
 
     if (!valid) {
       return NextResponse.json({ ok: false, error: 'Payment not verified' }, { status: 402 })

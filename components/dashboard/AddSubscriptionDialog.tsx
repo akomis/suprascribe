@@ -25,6 +25,11 @@ export type AddSubscriptionActions = {
     isPending: boolean
     error: Error | null
   }
+  /**
+   * Whether the auto-discover view can be opened at all. Not the same as having
+   * access to run a scan: a BASIC user who has spent their free scan still opens
+   * the view, which shows the locked providers and the upgrade path.
+   */
   autoDiscoverEnabled: boolean
   AutoDiscoverComponent?: React.ComponentType<{ onComplete?: () => void }>
 }
@@ -103,8 +108,6 @@ export function AddSubscriptionDialogBase({
             <AddSubscriptionOptions
               onSelectAutoDiscover={handleSelectAutoDiscover}
               onSelectManual={handleSelectManual}
-              forceDisableAutoDiscovery={!actions.autoDiscoverEnabled}
-              disabledTooltipMessage="Email discovery requires sign-in"
             />
           </div>
         )}
@@ -143,7 +146,7 @@ export default function AddSubscriptionDialog({
   hideTrigger = false,
 }: Omit<AddSubscriptionDialogBaseProps, 'actions'> = {}) {
   const createSubscriptionMutation = useCreateSubscription()
-  const { hasAccess: autoDiscoverEnabled } = useAutoDiscoveryAccess()
+  const { isEnabled: autoDiscoverEnabled } = useAutoDiscoveryAccess()
 
   return (
     <AddSubscriptionDialogBase

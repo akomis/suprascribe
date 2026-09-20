@@ -25,18 +25,34 @@ export async function GET() {
 
   const { data: conversions } = await supabaseAdmin
     .from('AFFILIATE_CONVERSIONS')
-    .select('commission_amount, status')
+    .select('commission_amount, currency, status')
     .eq('affiliate_code', affiliate.code)
 
   const rows = conversions ?? []
-  const totalCommission = rows.reduce((sum, r) => sum + Number(r.commission_amount), 0)
-  const pendingCommission = rows
-    .filter((r) => r.status === 'pending')
-    .reduce((sum, r) => sum + Number(r.commission_amount), 0)
+
+  // Commissions are earned in whatever currency the referred customer paid in, and
+  // we sell in more than one. Summing them into a single number would add euros to
+  // dollars, so each currency is totalled separately.
+  const byCurrency = new Map<string, { total: number; pending: number }>()
+  for (const row of rows) {
+    const currency = row.currency ?? 'eur'
+    const amount = Number(row.commission_amount)
+    const entry = byCurrency.get(currency) ?? { total: 0, pending: 0 }
+    entry.total += amount
+    if (row.status === 'pending') entry.pending += amount
+    byCurrency.set(currency, entry)
+  }
+
+  const round = (value: number) => Math.round(value * 100) / 100
 
   return NextResponse.json({
     conversions: rows.length,
-    totalCommission: Math.round(totalCommission * 100) / 100,
-    pendingCommission: Math.round(pendingCommission * 100) / 100,
+    earnings: [...byCurrency.entries()]
+      .map(([currency, { total, pending }]) => ({
+        currency,
+        total: round(total),
+        pending: round(pending),
+      }))
+      .sort((a, b) => a.currency.localeCompare(b.currency)),
   })
 }

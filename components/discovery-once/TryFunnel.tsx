@@ -161,7 +161,7 @@ export function TryFunnel() {
             </Link>{' '}
             to import these into a dashboard - your scan stays on this device until you do. Renewal
             reminders, search, sort &amp; group, and more automatic subscription discoveries come
-            with Pro.
+            with PRO.
           </p>
         )}
         <Button variant="outline" onClick={() => setStep('intro')}>

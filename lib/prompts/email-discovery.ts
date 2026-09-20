@@ -42,10 +42,10 @@ MERGING RULES (CRITICAL):
 - Merge ALL receipts for the SAME subscription (same service name, same or similar price) into ONE entry
 - This includes consecutive months: Jan, Feb, Mar receipts for "Netflix" → single Netflix entry
 - For merged entries: use EARLIEST start_date and LATEST end_date across THAT ENTRY'S receipts
-- Different plan tiers = separate entries (e.g., "Claude Pro" at $20 vs "Claude Max" at $200)
+- Different plan tiers = separate entries (e.g., "Claude PRO" at $20 vs "Claude Max" at $200)
 - An upgrade or downgrade is two entries, each covering only its own months: a
-  customer on Pro Jan-Mar, Max Apr-Jun, then Pro again from Jul gives a Max
-  entry ending in June and a Pro entry - never one entry spanning everything
+  customer on PRO Jan-Mar, Max Apr-Jun, then PRO again from Jul gives a Max
+  entry ending in June and a PRO entry - never one entry spanning everything
 - Small price variations (e.g., $19.99 vs $20.00) are the same subscription - use the most common price
 - ONE INVOICE IS ONE ENTRY. An invoice showing a line item, a subtotal, a tax or
   VAT line and a total is describing a SINGLE payment. Report the TOTAL actually
@@ -65,7 +65,7 @@ MERGING RULES (CRITICAL):
 
 SERVICE NAME RULES (CRITICAL):
 - The service name MUST contain the actual product/brand name (e.g., "Netflix", "Spotify", "Midjourney", "Railway")
-- Include plan tier words (Pro, Plus, Premium, Basic, Max, etc.) AFTER the product name
+- Include plan tier words (PRO, Plus, Premium, Basic, Max, etc.) AFTER the product name
 - ALWAYS REMOVE generic suffixes from END: Plan, Subscription, Membership, Tier, Account
 - Remove corporate suffixes wherever they appear: Inc, Corp, LLC, Ltd, Limited,
   GmbH, SRL, SARL, SAS, BV, NV, AB, Oy, ApS, Pty, PLC, AG
@@ -79,10 +79,10 @@ SERVICE NAME RULES (CRITICAL):
 - Use the ACTUAL product or company name from the email. Never substitute a
   competitor's name because it is more familiar (e.g., do not label Anthropic or
   Claude receipts as "OpenAI")
-- Use product name not company name (e.g., "Claude Pro" not "Anthropic")
+- Use product name not company name (e.g., "Claude PRO" not "Anthropic")
 - For domain registrations: use ONLY the registrar/provider name (e.g., "Namecheap", "GoDaddy", "Cloudflare") - NOT the domain name
-- WRONG: "Basic", "Pro", "Premium", "Max" (tier words alone are INVALID - always include the product name)
-- RIGHT: "Midjourney Basic", "Railway Pro", "Claude Max", "Netflix Premium"
+- WRONG: "Basic", "PRO", "Premium", "Max" (tier words alone are INVALID - always include the product name)
+- RIGHT: "Midjourney Basic", "Railway PRO", "Claude Max", "Netflix Premium"
 - If product name is unclear, extract it from the FROM address domain or email body
 
 PRICE & BILLING_PERIOD:
@@ -119,7 +119,7 @@ DATES (YYYY-MM-DD format) - THE MOST COMMON MISTAKE IS HERE:
 - start_date: EARLIEST billing/payment date among that plan's own receipts
 - end_date: LATEST next billing date among that plan's own receipts
 - NEVER copy a date from a different plan, even from the same company. If
-  "Claude Pro" has receipts through August but "Claude Max" receipts stop in
+  "Claude PRO" has receipts through August but "Claude Max" receipts stop in
   June, then Claude Max's end_date is in June - it does NOT inherit August
 - A plan the customer moved off of has an end_date in the past. That is correct
   and expected: report it as it is rather than extending it to look current

@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
-import posthog from 'posthog-js'
 import { useState } from 'react'
 
 type Provider = 'google' | 'azure' | 'apple'
@@ -70,7 +69,6 @@ export function SSOButton({ provider, disabled }: SSOButtonProps) {
 
   const handleSignIn = async () => {
     setLoading(true)
-    posthog.capture('sso_sign_in_initiated', { provider })
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOAuth({
       provider,

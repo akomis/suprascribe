@@ -24,7 +24,7 @@ export default function FAQPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '<') }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
       />
       <div className="container mx-auto px-4 py-16 sm:py-24 max-w-2xl">
         <div className="space-y-10">
@@ -51,7 +51,7 @@ export default function FAQPage() {
             </p>
           </div>
 
-          <FAQSection items={faqItems} />
+          <FAQSection items={faqItems} heading="Common questions about Suprascribe" />
         </div>
       </div>
     </>

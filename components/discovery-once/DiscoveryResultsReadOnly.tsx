@@ -13,7 +13,7 @@ import {
   isSubscriptionActive,
 } from '@/lib/utils'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
-import { isOneTimePayment } from '@/lib/utils/subscription-period-extension'
+import { isOneTimePayment, ONE_TIME_SECTION_LABEL } from '@/lib/utils/subscription-period-extension'
 import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 
@@ -138,15 +138,19 @@ export function DiscoveryResultsReadOnly({
     )
   }
 
-  const groups = groupByService(subscriptions)
-  const activeGroups = groups.filter((g) => g.active)
-  const pastGroups = groups.filter((g) => !g.active)
+  // One-time charges get their own section: the active/past split below only
+  // describes a recurring one.
+  const recurringGroups = groupByService(subscriptions.filter((sub) => !isOneTimePayment(sub)))
+  const oneTimeGroups = groupByService(subscriptions.filter(isOneTimePayment))
+  const activeGroups = recurringGroups.filter((g) => g.active)
+  const pastGroups = recurringGroups.filter((g) => !g.active)
+  const serviceCount = new Set(subscriptions.map((sub) => sub.service_name)).size
 
   return (
     <div className="w-full max-w-xl flex flex-col gap-4">
       <div className="text-center space-y-1">
         <h2 className="text-xl font-semibold">
-          We found {groups.length} subscription{groups.length !== 1 ? 's' : ''}
+          We found {serviceCount} subscription{serviceCount !== 1 ? 's' : ''}
         </h2>
         {emailScanned && (
           <div className="flex justify-center pt-1">
@@ -191,6 +195,18 @@ export function DiscoveryResultsReadOnly({
               ))}
             </div>
           )}
+        </>
+      )}
+
+      {oneTimeGroups.length > 0 && (
+        <>
+          <Separator />
+          <span className="text-sm text-muted-foreground">{ONE_TIME_SECTION_LABEL}</span>
+          <div className="flex flex-col gap-2">
+            {oneTimeGroups.map((group) => (
+              <ServiceRow key={group.serviceName} group={group} />
+            ))}
+          </div>
         </>
       )}
 

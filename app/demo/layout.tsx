@@ -5,7 +5,7 @@ import { buildMetadata } from '@/lib/utils/metadata'
 export const metadata: Metadata = buildMetadata({
   title: 'Live Demo - See Suprascribe in Action',
   description:
-    'Try Suprascribe without signing up. Explore the subscription dashboard, test spending insights, and see how the subscription manager works - no account needed.',
+    'Try Suprascribe without signing up. Explore the dashboard, test spending insights, and see how the subscription manager works - no account needed.',
   path: '/demo',
 })
 

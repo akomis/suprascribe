@@ -5,6 +5,7 @@ import { ImapDiscoveryHandler } from '@/components/dashboard/discovery/ImapDisco
 import ProviderDiscoverButton from '@/components/dashboard/discovery/ProviderDiscoverButton'
 import { redirectToOAuth } from '@/lib/discovery/oauth-redirect'
 import { useDiscoveryRuns } from '@/lib/hooks/discovery/useDiscoveryRuns'
+import { useTeaserStatus } from '@/lib/hooks/discovery/useTeaserStatus'
 import { useImapDiscovery } from '@/lib/hooks/discovery/useImapDiscovery'
 import { useAutoDiscoveryAccess } from '@/lib/hooks/useAutoDiscoveryAccess'
 import { useBYOKSettings } from '@/lib/hooks/useBYOKSettings'
@@ -19,6 +20,8 @@ import { Badge } from '../ui/badge'
 import { Spinner } from '../ui/spinner'
 import { DiscoveryDialog } from './discovery/DiscoveryDialog'
 import { ExhaustedDiscoveriesMessage } from './discovery/ExhaustedDiscoveriesMessage'
+import { SetupBYOKPrompt } from './discovery/SetupBYOKPrompt'
+import { TeaserUsedCard } from './discovery/TeaserUsedCard'
 
 function DiscoveryCard({
   hasByokActive,
@@ -137,7 +140,12 @@ export function EmailProviderSelection() {
   const [isGoogleConfigured, setIsGoogleConfigured] = React.useState(false)
   const [isMicrosoftConfigured, setIsMicrosoftConfigured] = React.useState(false)
 
-  const { canRunFreeTeaser } = useAutoDiscoveryAccess()
+  const {
+    hasAccess: hasDiscoveryAccess,
+    canRunFreeTeaser,
+    isLoading: isAccessLoading,
+  } = useAutoDiscoveryAccess()
+  const { status: teaserStatus } = useTeaserStatus()
   const { rateLimitInfo, isLoading: isRateLimitLoading } = useDiscoveryRuns()
   const { keys, activeKeyId, isLoading: isByokLoading } = useBYOKSettings()
   const { aiProvider, aiModel, isLoadingAI, isByok: hasByokActive } = useDiscoveryAIProvider()
@@ -153,7 +161,7 @@ export function EmailProviderSelection() {
     startDiscovery,
   } = useImapDiscovery()
 
-  const isLoadingSettings = isRateLimitLoading || isByokLoading
+  const isLoadingSettings = isRateLimitLoading || isByokLoading || isAccessLoading
   const activeKey = keys.find((k) => k.id === activeKeyId)
   const globalRateLimitTooltip =
     !hasByokActive && rateLimitInfo ? formatRateLimitTooltip(rateLimitInfo) : null
@@ -219,6 +227,14 @@ export function EmailProviderSelection() {
         <div className="fade-on-mount flex flex-col gap-4 rounded-lg border border-dashed p-4 items-center justify-center min-h-[200px] w-[300px] md:w-[450px]">
           <Spinner className="size-8" />
         </div>
+      ) : !hasDiscoveryAccess ? (
+        // Letting a BASIC user start another scan here would only earn them a
+        // limit-reached warning, so the providers stay visible but locked.
+        teaserStatus?.freeScanUsed ? (
+          <TeaserUsedCard />
+        ) : (
+          <SetupBYOKPrompt />
+        )
       ) : isExhausted ? (
         <ExhaustedDiscoveriesMessage rateLimitInfo={rateLimitInfo} />
       ) : (

@@ -132,7 +132,7 @@ const _DATA_CLASSIFICATION = {
       "A Basic user's full set of discovered subscriptions, held server-side until they upgrade and claim it",
     storageLocation: 'DISCOVERY_TEASERS.payload_encrypted column',
     protectionMechanism:
-      'Encrypted at rest with ENCRYPTION_SECRET; RLS enabled with no policies, so only the service role can read it; decrypted server-side only after a Pro tier check; expires 30 days after creation',
+      'Encrypted at rest with ENCRYPTION_SECRET; RLS enabled with no policies, so only the service role can read it; decrypted server-side only after a PRO tier check; expires 30 days after creation',
   },
 
   DISCOVERY_COST_TELEMETRY: {
