@@ -29,7 +29,12 @@ export interface DiscoveredSubscription {
   category?: Database['public']['Enums']['SUBSCRIPTION_CATEGORY']
   currency?: string
   price: number
-  period?: BillingPeriod
+  /**
+   * Always set. Discovery only ever produces recurring charges now - the
+   * cadence classifier drops anything it cannot put on a cycle - so there is no
+   * longer such a thing as a discovered entry without a billing period.
+   */
+  period: BillingPeriod
   start_date: string
   end_date: string
   service_url?: string

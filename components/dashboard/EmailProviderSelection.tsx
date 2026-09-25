@@ -123,7 +123,7 @@ function DiscoveryCard({
         <Lock className="size-12 h-fit mt-1" />
         <div className="flex flex-col gap-2 items-start">
           <p className="text-xs text-muted-foreground text-start">
-            We read the subject, sender and body of emails matching our billing search, and an AI
+            We only read subject, sender and body of emails matching our billing search, and an AI
             model extracts the subscription details. Your emails are never stored, and neither are
             your credentials.
           </p>
@@ -156,6 +156,7 @@ export function EmailProviderSelection() {
     emailCount,
     error,
     warning,
+    warningKind,
     clearDiscovery,
     retry,
     startDiscovery,
@@ -268,6 +269,7 @@ export function EmailProviderSelection() {
         emailCount={emailCount}
         error={error}
         warning={warning}
+        warningKind={warningKind}
         clearDiscovery={clearDiscovery}
         retry={retry}
         providerName="iCloud"

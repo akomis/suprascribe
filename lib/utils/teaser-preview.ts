@@ -1,7 +1,6 @@
 import type { TeaserPreviewEntry, TeaserPreviewGroup } from '@/lib/types/discovery'
 import type { DiscoveredSubscription } from '@/lib/types/forms'
 import { isSubscriptionActive } from '@/lib/utils'
-import { isOneTimePayment } from '@/lib/utils/subscription-period-extension'
 
 function newestFirst(a: DiscoveredSubscription, b: DiscoveredSubscription): number {
   return new Date(b.end_date).getTime() - new Date(a.end_date).getTime()
@@ -20,10 +19,9 @@ function toEntry(sub: DiscoveredSubscription): TeaserPreviewEntry {
  * Collapses a discovery result into the cards a locked teaser may show.
  *
  * Grouping happens here rather than on the client because the teaser withholds
- * the dates that decide which charge is the newest. Every service gets one card:
- * its recurring charges collapse to the newest one - the older ones are the same
- * subscription billed again - while each one-time purchase stays its own entry,
- * as in the full results.
+ * the dates that decide which charge is the newest. Every service gets one card
+ * per run: consecutive charges have already been collapsed upstream, so what
+ * arrives here is one entry per continuous subscription, newest first.
  *
  * Entries carry price, period and active state only; nothing the upgrade is
  * meant to unlock.
@@ -37,22 +35,20 @@ export function buildTeaserPreview(subscriptions: DiscoveredSubscription[]): Tea
 
   return Array.from(byService.entries())
     .map(([serviceName, list]) => {
-      const recurring = list.filter((sub) => !isOneTimePayment(sub)).sort(newestFirst)
-      const oneTime = list.filter(isOneTimePayment).sort(newestFirst)
-      const entries = [...recurring.slice(0, 1), ...oneTime].map(toEntry)
+      // The newest run is the one that describes the subscription today; the
+      // older ones are the same service before it lapsed and restarted.
+      const entries = [...list].sort(newestFirst).slice(0, 1).map(toEntry)
 
       return {
         service_name: serviceName,
         service_url: list.find((sub) => sub.service_url)?.service_url,
         entries,
         is_active: entries.some((entry) => entry.is_active),
-        hasRecurring: recurring.length > 0,
       }
     })
     .sort((a, b) => {
-      // Services that only ever charged once sit after the recurring ones.
-      if (a.hasRecurring !== b.hasRecurring) return a.hasRecurring ? -1 : 1
+      // Live subscriptions first: they are what the upgrade is for.
+      if (a.is_active !== b.is_active) return a.is_active ? -1 : 1
       return a.service_name.localeCompare(b.service_name)
     })
-    .map(({ hasRecurring: _hasRecurring, ...group }) => group)
 }

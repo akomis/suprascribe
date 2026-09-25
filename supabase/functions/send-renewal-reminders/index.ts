@@ -39,6 +39,7 @@ async function sendReminderForUser(
     .select('id, price, currency, end_date, subscription_service:SUBSCRIPTION_SERVICES(name)')
     .eq('user_id', user_id)
     .eq('auto_renew', true)
+    .is('deleted_at', null)
     .eq('end_date', targetDateStr)
 
   if (subsError) return { sent: false, error: `User ${user_id}: ${subsError.message}` }
@@ -53,13 +54,16 @@ async function sendReminderForUser(
   const subject = `Renewal Reminder: ${plural(subs.length, 'subscription')} renewing in ${plural(reminder_days_before, 'day')}`
 
   try {
-    await resend.emails.send({
+    // resend@2 returns API failures in `error` instead of throwing
+    const { error: sendError } = await resend.emails.send({
       from: 'Suprascribe <reminders@suprascribe.com>',
       to: [userData.user.email],
       subject,
       html: buildReminderEmail(subs, reminder_days_before, targetDateStr),
       text: buildReminderEmailText(subs, reminder_days_before, targetDateStr),
     })
+    if (sendError)
+      return { sent: false, error: `User ${user_id}: Failed to send email - ${sendError.message}` }
     return { sent: true }
   } catch (e: unknown) {
     return {
@@ -73,25 +77,42 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) return jsonResponse({ error: 'Unauthorized' }, 401)
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    // Only callers holding a project secret key may trigger sends. The cron job
+    // sends one on `apikey` (secret keys are not JWTs, so verify_jwt is off).
+    const secretKeys = Object.values(
+      JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}') as Record<string, string>,
     )
+    const apiKey = req.headers.get('apikey')
+    if (!apiKey || !secretKeys.includes(apiKey)) return jsonResponse({ error: 'Unauthorized' }, 401)
+
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, apiKey)
     const resend = new Resend(Deno.env.get('RESEND_API_KEY')!)
     const today = new Date()
 
-    const { data: usersWithReminders, error: usersError } = await supabase
+    const { data: enabledSettings, error: usersError } = await supabase
       .from('USER_SETTINGS')
-      .select('user_id, reminder_days_before, USER_TIERS!inner(tier)')
+      .select('user_id, reminder_days_before')
       .eq('email_reminders_enabled', true)
-      .eq('USER_TIERS.tier', 'PRO')
 
     if (usersError) throw new Error(`Failed to fetch users: ${usersError.message}`)
-    if (!usersWithReminders?.length)
+    if (!enabledSettings?.length)
       return jsonResponse({ message: 'No users with reminders enabled', sent: 0 })
+
+    // USER_SETTINGS and USER_TIERS have no FK between them, so filter PRO users in a second query
+    const { data: proTiers, error: tiersError } = await supabase
+      .from('USER_TIERS')
+      .select('user_id')
+      .eq('tier', 'PRO')
+      .in(
+        'user_id',
+        enabledSettings.map((s) => s.user_id),
+      )
+
+    if (tiersError) throw new Error(`Failed to fetch tiers: ${tiersError.message}`)
+    const proUserIds = new Set((proTiers ?? []).map((t) => t.user_id))
+    const usersWithReminders = enabledSettings.filter((s) => proUserIds.has(s.user_id))
+    if (!usersWithReminders.length)
+      return jsonResponse({ message: 'No PRO users with reminders enabled', sent: 0 })
 
     let emailsSent = 0
     const errors: string[] = []

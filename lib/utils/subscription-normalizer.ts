@@ -1,13 +1,6 @@
-import type { Database } from '@/lib/database.types'
 import type { DiscoveredSubscription } from '@/lib/types/forms'
-import { BILLING_PERIODS, SUBSCRIPTION_CATEGORIES } from '@/lib/schemas/subscription'
 import { STORE_URL_HOSTNAMES } from '@/lib/config/urls'
-import { isOneTimePayment } from '@/lib/utils/subscription-period-extension'
-
-type BillingPeriod = (typeof BILLING_PERIODS)[number]
-type SubscriptionCategory = Database['public']['Enums']['SUBSCRIPTION_CATEGORY']
-
-const VALID_CATEGORIES: SubscriptionCategory[] = [...SUBSCRIPTION_CATEGORIES]
+import { CORPORATE_SUFFIXES, STANDALONE_TIER_WORDS } from '@/lib/utils/service-key'
 
 const GENERIC_SERVICE_NAMES = [
   'payment',
@@ -37,72 +30,39 @@ const SERVICE_NAME_SUFFIX_BLOCKLIST = [
   'billing',
 ]
 
-// Legal-entity suffixes, stripped so an invoice made out to the company reads as
-// the product the user recognises: "There's An AI For That SRL" is the same
-// thing as "There's An AI For That". The prompt asks for this too, but a receipt
-// that quotes the registered name tends to win, so it is enforced here as well.
-//
-// Deliberately excludes ambiguous short words that end real product names -
-// "Co", "AS", "SA", "KG", "Spa" - where stripping would damage a legitimate
-// name more often than it would clean one up.
-const CORPORATE_SUFFIXES = [
-  'inc',
-  'incorporated',
-  'corp',
-  'corporation',
-  'llc',
-  'ltd',
-  'limited',
-  'gmbh',
-  'srl',
-  'sarl',
-  'sas',
-  'bv',
-  'nv',
-  'ab',
-  'oy',
-  'oyj',
-  'aps',
-  'pty',
-  'plc',
-  'ag',
+// The billing cycle is not part of the service's name. Stage A is told to put it
+// in stated_period and nowhere else, and does not reliably obey - "SocialClaw
+// Starter Monthly", "Apify monthly" - and the catalog is full of the same thing
+// from the old pipeline ("Canva Pro - Monthly", "Clideo Month"). Stripping it
+// also collapses "CapCut ... Monthly" and "CapCut ... Yearly" onto one service,
+// which is right: the cycle lives in the period column, not in the name.
+
+// Names whose cycle word IS the brand. No structural rule separates "Texas
+// Monthly" from "Nebula MONTHLY" - both are two words ending in a cycle - so
+// the ones that turn up get listed. Checked against the whole name, lowercased.
+const CYCLE_WORD_IS_THE_BRAND = new Set(['texas monthly'])
+
+// The adverb form only ever means a billing cycle.
+const CYCLE_ADVERBS = ['monthly', 'yearly', 'annually', 'annual', 'weekly', 'quarterly']
+
+// The noun form is a unit of time and turns up inside real names - "London
+// Fashion Week", "Shark Week" - so it only counts as billing when a number
+// comes with it. Every genuine case in the catalog has one: "Canva Pro 1
+// Month", "NordVPN 12-month", "GeekSquad 3-Year", "Restoro - 1 Year".
+const CYCLE_NOUNS = ['month', 'year', 'week', 'quarter']
+
+const SEP = '[\\s,:|\u2013\u2014-]'
+// "for 1 month", "per year". "Bi-Monthly" and "Semi-Annual" go with the cycle
+// rather than being left behind as a dangling "Bi".
+const CYCLE_LEAD = `(?:(?:for|per)\\s+)?(?:(?:bi|semi|tri)[\\s-]*)?`
+// The count is taken with the cycle, hyphen and all, or "NordVPN 12-month"
+// becomes "NordVPN 12".
+const CYCLE_COUNT = `(?:\\d+[\\s-]*)`
+
+const TRAILING_CYCLE_PATTERNS = [
+  new RegExp(`${SEP}+${CYCLE_LEAD}${CYCLE_COUNT}?(?:${CYCLE_ADVERBS.join('|')})\\.?$`, 'i'),
+  new RegExp(`${SEP}+${CYCLE_LEAD}${CYCLE_COUNT}(?:${CYCLE_NOUNS.join('|')})s?\\.?$`, 'i'),
 ]
-
-const STANDALONE_TIER_WORDS = [
-  'basic',
-  'pro',
-  'plus',
-  'premium',
-  'free',
-  'standard',
-  'enterprise',
-  'team',
-  'max',
-  'starter',
-  'lite',
-  'advanced',
-  'ultimate',
-  'business',
-  'personal',
-  'individual',
-  'family',
-  'student',
-]
-
-// Credit and token top-ups are single charges, but the model keeps labelling
-// them MONTHLY because repeat purchases from one company look like a cadence.
-// A name carrying one of these words is treated as a one-off unless the email
-// explicitly said it auto-renews, which is how a genuine "monthly credits
-// allowance" plan keeps its billing period.
-// Kept deliberately narrow. "Pack" and "Bundle" are excluded despite reading as
-// one-off wording, because real recurring plans are named that way ("Disney
-// Bundle", "Family Pack") and a false positive here silently drops a
-// subscription's billing period.
-const ONE_TIME_NAME_PATTERN = /\b(credits?|tokens?|top[\s-]?ups?|recharges?|refills?)\b/i
-
-function looksLikeOneTimePurchase(name: string): boolean {
-  return ONE_TIME_NAME_PATTERN.test(name)
-}
 
 export type NormalizationResult =
   { ok: true; subscription: DiscoveredSubscription } | { ok: false; field: string; reason: string }
@@ -214,7 +174,13 @@ function sanitize(subscription: DiscoveredSubscription): NormalizationResult {
 
 function cleanServiceName(name: string): string {
   if (!name) return name
-  const original = name.trim()
+  // A trailing ellipsis is a card-statement descriptor the bank cut short
+  // ("Ancestry.com Operati..."). Drop the marker but KEEP the stub: these are
+  // real subscriptions - one in the catalog is a live $24.99/mo auto-renewing
+  // plan - so rejecting the name would delete money the user is still paying.
+  // The remainder is enough for serviceKey to match it to a fuller sibling.
+  const original = name.trim().replace(/\s*(\.{2,}|…)$/, '')
+  if (CYCLE_WORD_IS_THE_BRAND.has(original.toLowerCase())) return original
   let cleaned = original
   let changed = true
   while (changed) {
@@ -230,26 +196,23 @@ function cleanServiceName(name: string): string {
         break
       }
     }
+
+    if (!changed) {
+      for (const pattern of TRAILING_CYCLE_PATTERNS) {
+        if (!pattern.test(cleaned)) continue
+        cleaned = cleaned.replace(pattern, '').trim()
+        changed = true
+        break
+      }
+    }
   }
+
+  // "Canva Pro -" and "EMBY |" once the cycle behind them is gone.
+  cleaned = cleaned.replace(/[\s,:|\u2013\u2014-]+$/, '').trim()
   // Stripping the suffix left only a tier word ("PRO", "Max") or nothing at all,
   // neither of which is a usable service name - keep what we started with.
   if (!cleaned || STANDALONE_TIER_WORDS.includes(cleaned.toLowerCase())) return original
   return cleaned
-}
-
-// Absence is meaningful: the model is told to omit billing_period for one-time
-// purchases and credits, so an undefined result marks a non-recurring charge.
-// Defaulting it to MONTHLY here would make every one-off look like a plan.
-function toBillingPeriodEnum(raw?: string | null): BillingPeriod | undefined {
-  const upper = (raw ?? '').toUpperCase()
-  if (upper === 'WEEKLY' || upper === 'MONTHLY' || upper === 'QUARTERLY' || upper === 'YEARLY') {
-    return upper as BillingPeriod
-  }
-  return undefined
-}
-
-function isDateString(value?: string | null): value is string {
-  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
 }
 
 function isStoreUrl(url: string): boolean {
@@ -261,134 +224,23 @@ function isStoreUrl(url: string): boolean {
   }
 }
 
-export function normalizeDiscoveredSubscription(raw: {
-  service_name: string
-  price: number
-  start_date: string
-  end_date?: string | null
-  auto_renew?: boolean | null
-  category?: string | null
-  billing_period?: string | null
-  currency?: string | null
-  service_url?: string | null
-  unsubscribe_url?: string | null
-  payment_method?: string | null
-  is_trial?: boolean | null
-  trial_end_date?: string | null
-  next_billing_date?: string | null
-  receipt_url?: string | null
-}): NormalizationResult {
-  if (!raw.service_name) return { ok: false, field: 'service_name', reason: 'Missing service name' }
-  if (!raw.price || raw.price === 0)
-    return { ok: false, field: 'price', reason: 'Missing or zero price' }
-  if (!raw.start_date) return { ok: false, field: 'start_date', reason: 'Missing start date' }
-
-  const isOneTime = looksLikeOneTimePurchase(raw.service_name) && raw.auto_renew !== true
-
-  // A one-off charge covers no span, so any end_date the model attached - often
-  // the date of a later, separate top-up - is dropped along with the period.
-  const endDate = isOneTime
-    ? raw.start_date
-    : raw.end_date || raw.next_billing_date || raw.start_date
-  let autoRenew = raw.auto_renew ?? false
-
-  if (endDate === raw.start_date) autoRenew = false
-  if (new Date(endDate) < new Date()) autoRenew = false
-
-  const category =
-    raw.category && VALID_CATEGORIES.includes(raw.category as SubscriptionCategory)
-      ? (raw.category as SubscriptionCategory)
-      : undefined
-
-  const period = isOneTime ? undefined : toBillingPeriodEnum(raw.billing_period)
-
-  const candidate = {
-    service_name: cleanServiceName(raw.service_name),
-    price: raw.price,
-    period,
-    currency: raw.currency ?? undefined,
-    start_date: raw.start_date,
-    end_date: endDate,
-    category,
-    service_url: raw.service_url && !isStoreUrl(raw.service_url) ? raw.service_url : undefined,
-    unsubscribe_url: raw.unsubscribe_url ?? undefined,
-    payment_method: raw.payment_method ?? undefined,
-    auto_renew: autoRenew,
-    is_trial: raw.is_trial ?? undefined,
-    // Only kept when it parses; a malformed trial date must not fail the whole
-    // candidate, since the subscription itself is still perfectly usable.
-    trial_end_date: isDateString(raw.trial_end_date) ? raw.trial_end_date : undefined,
-    receipt_url: raw.receipt_url ?? undefined,
-  }
-
-  return sanitize(candidate)
-}
-
-// Collapses entries describing the exact same billing period, which happens
-// when one service's receipts reach the model in more than one chunk. Date
-// ranges are deliberately NOT merged here: joining two ranges into one span
-// would erase any gap between them, and consolidateSubscriptionPeriods needs
-// those gaps to tell a continuous subscription from a lapsed-then-restarted
-// one. Only metadata is filled in across the duplicates.
-export function deduplicateAndMerge(
-  subscriptions: DiscoveredSubscription[],
-): DiscoveredSubscription[] {
-  const acc = new Map<string, DiscoveredSubscription>()
-
-  for (const sub of subscriptions) {
-    const endDate = sub.end_date || sub.start_date
-    const key = [
-      sub.service_name.toLowerCase().trim(),
-      sub.price,
-      sub.period ?? 'MONTHLY',
-      sub.start_date,
-      endDate,
-    ].join('_')
-
-    const existing = acc.get(key)
-
-    if (!existing) {
-      acc.set(key, { ...sub, end_date: endDate })
-      continue
-    }
-
-    acc.set(key, {
-      ...existing,
-      category: existing.category || sub.category,
-      currency: existing.currency || sub.currency,
-      service_url: existing.service_url || sub.service_url,
-      unsubscribe_url: existing.unsubscribe_url || sub.unsubscribe_url,
-      payment_method: existing.payment_method || sub.payment_method,
-      auto_renew: existing.auto_renew || sub.auto_renew,
-    })
-  }
-
-  return Array.from(acc.values())
-}
-
 /**
- * Drops one-time purchases that appear only once for a service.
+ * Final sanity pass over a subscription the cadence classifier produced.
  *
- * A single credit top-up or token purchase is not a recurring subscription;
- * showing it would clutter the discovery results. When the same service has
- * multiple one-time purchases, it indicates a repeating top-up pattern and
- * they are kept.
+ * The classifier decides recurrence; this decides whether the result is fit to
+ * store. Name cleaning lives here rather than in the classifier because the
+ * display name and the grouping key are different things: the key ignores
+ * punctuation and case to match receipts, while the name is what the user reads.
  */
-export function filterSingletonOneTimePayments(
-  subscriptions: DiscoveredSubscription[],
-): DiscoveredSubscription[] {
-  const oneTimeCounts = new Map<string, number>()
-
-  for (const sub of subscriptions) {
-    if (isOneTimePayment(sub)) {
-      const key = sub.service_name.toLowerCase().trim()
-      oneTimeCounts.set(key, (oneTimeCounts.get(key) ?? 0) + 1)
-    }
-  }
-
-  return subscriptions.filter((sub) => {
-    if (!isOneTimePayment(sub)) return true
-    const key = sub.service_name.toLowerCase().trim()
-    return (oneTimeCounts.get(key) ?? 0) > 1
+export function normalizeClassifiedSubscription(
+  subscription: DiscoveredSubscription,
+): NormalizationResult {
+  return sanitize({
+    ...subscription,
+    service_name: cleanServiceName(subscription.service_name),
+    service_url:
+      subscription.service_url && !isStoreUrl(subscription.service_url)
+        ? subscription.service_url
+        : undefined,
   })
 }

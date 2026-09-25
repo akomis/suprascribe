@@ -1,18 +1,15 @@
 import { EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
 import { PAYMENT_PROCESSOR_HOSTNAMES } from '@/lib/config/urls'
 import { BATCH_ANALYSIS_SYSTEM_PROMPT } from '@/lib/prompts/email-discovery'
-import { BatchEmailAnalysisResultSchema } from '@/lib/schemas/subscription'
+import { ChargeExtractionResultSchema, type Charge, type RawCharge } from '@/lib/schemas/charge'
 import type { DiscoveredSubscription } from '@/lib/types/forms'
 import type { EmailData } from '@/lib/types/email'
 import { stripHtmlFromEmail } from '@/lib/utils/email-html-parser'
 import { mapWithConcurrency } from '@/lib/utils/concurrency'
-import {
-  deduplicateAndMerge,
-  filterSingletonOneTimePayments,
-  normalizeDiscoveredSubscription,
-} from '@/lib/utils/subscription-normalizer'
+import { mentionsRecurrence } from '@/lib/utils/recurrence-language'
+import { classifyCharges, type ClassificationVerdict } from '@/lib/services/charge-classifier'
+import { normalizeClassifiedSubscription } from '@/lib/utils/subscription-normalizer'
 import { generateObject, NoObjectGeneratedError, type LanguageModel } from 'ai'
-import type { z } from 'zod'
 import { createModel, type ProviderConfig } from './ai-provider'
 
 export type { EmailData }
@@ -133,6 +130,14 @@ export interface AnalysisUnit {
   text: string
   emailCount: number
   estimatedTokens: number
+  /**
+   * The emails this unit rendered, in the order their "EMAIL n" markers appear.
+   * A charge cites its email_index, and that index is resolved against this
+   * array in code - so the sending domain, the received date and the
+   * List-Unsubscribe header are read off the envelope we hold rather than
+   * asked of the model, which cannot then get them wrong.
+   */
+  emails: EmailData[]
 }
 
 export function estimateTokens(text: string): number {
@@ -237,6 +242,10 @@ export function renderSenderSection(
   group: SenderGroup,
   emails: EmailData[],
   partOf?: { part: number; total: number },
+  // EMAIL n numbering runs across the whole unit, not the section. A batched
+  // tail unit holds several sections, and restarting at 1 in each would give
+  // the model several different emails all labelled EMAIL 1 to cite.
+  indexOffset = 0,
 ): string {
   const slice = partOf ? ` - PART ${partOf.part} OF ${partOf.total}, DATE-ORDERED SLICE` : ''
 
@@ -248,11 +257,11 @@ and never merge two emails just because they share this sender.`
     : `=== SENDER DOMAIN: ${group.domain} (${emails.length} emails${slice}) ===`
 
   return `${header}
-${emails.map(renderEmail).join('\n\n')}`
+${emails.map((email, i) => renderEmail(email, indexOffset + i)).join('\n\n')}`
 }
 
-function unitFrom(label: string, text: string, emailCount: number): AnalysisUnit {
-  return { label, text, emailCount, estimatedTokens: estimateTokens(text) }
+function unitFrom(label: string, text: string, emails: EmailData[]): AnalysisUnit {
+  return { label, text, emailCount: emails.length, estimatedTokens: estimateTokens(text), emails }
 }
 
 /**
@@ -285,7 +294,7 @@ function splitOversizedGroup(group: SenderGroup, budget: number): AnalysisUnit[]
     return unitFrom(
       `${group.domain} (${partOf.part}/${partOf.total})`,
       renderSenderSection(group, slice, finished.length > 1 ? partOf : undefined),
-      slice.length,
+      slice,
     )
   })
 }
@@ -305,17 +314,17 @@ export function buildAnalysisUnits(groups: SenderGroup[]): AnalysisUnit[] {
     estimateTokens(BATCH_ANALYSIS_SYSTEM_PROMPT)
 
   const units: AnalysisUnit[] = []
-  let tail: { text: string; emailCount: number; tokens: number; domains: string[] } | null = null
+  let tail: { text: string; emails: EmailData[]; tokens: number; domains: string[] } | null = null
 
   const flushTail = () => {
     if (!tail) return
-    units.push(unitFrom(`tail: ${tail.domains.join(', ')}`, tail.text, tail.emailCount))
+    units.push(unitFrom(`tail: ${tail.domains.join(', ')}`, tail.text, tail.emails))
     tail = null
   }
 
   for (const group of groups) {
-    const text = renderSenderSection(group, group.emails)
-    const tokens = estimateTokens(text)
+    const standalone = renderSenderSection(group, group.emails)
+    const tokens = estimateTokens(standalone)
 
     if (tokens > budget) {
       flushTail()
@@ -324,19 +333,20 @@ export function buildAnalysisUnits(groups: SenderGroup[]): AnalysisUnit[] {
     }
 
     if (tokens > TAIL_SECTION_MAX_TOKENS) {
-      units.push(unitFrom(group.domain, text, group.emails.length))
+      units.push(unitFrom(group.domain, standalone, group.emails))
       continue
     }
 
     if (tail && tail.tokens + tokens > TAIL_BATCH_MAX_TOKENS) flushTail()
 
     if (!tail) {
-      tail = { text, emailCount: group.emails.length, tokens, domains: [group.domain] }
+      tail = { text: standalone, emails: [...group.emails], tokens, domains: [group.domain] }
       continue
     }
 
-    tail.text += `\n\n${text}`
-    tail.emailCount += group.emails.length
+    // Continue the unit's EMAIL numbering where the previous section left off.
+    tail.text += `\n\n${renderSenderSection(group, group.emails, undefined, tail.emails.length)}`
+    tail.emails.push(...group.emails)
     tail.tokens += tokens
     tail.domains.push(group.domain)
   }
@@ -382,7 +392,7 @@ export function repairTruncatedSubscriptionsJson(text: string): string | null {
       depth++
     } else if (char === '}' || char === ']') {
       depth--
-      // Root object is depth 1, the subscriptions array depth 2, so an element
+      // Root object is depth 1, the charges array depth 2, so an element
       // object closing brings us back to depth 2.
       if (char === '}' && depth === 2) lastElementEnd = i
     }
@@ -392,8 +402,6 @@ export function repairTruncatedSubscriptionsJson(text: string): string | null {
 
   return `${text.slice(0, lastElementEnd + 1)}]}`
 }
-
-type RawSubscription = z.infer<typeof BatchEmailAnalysisResultSchema>['subscriptions'][number]
 
 /**
  * Runs one unit through the model, retrying when the response comes back
@@ -405,7 +413,7 @@ async function generateUnitAnalysis(
   unit: AnalysisUnit,
   model: Parameters<typeof generateObject>[0]['model'],
   maxOutputTokens: number | undefined,
-): Promise<{ subscriptions: RawSubscription[]; usage: TokenUsage }> {
+): Promise<{ charges: RawCharge[]; usage: TokenUsage }> {
   const system = BATCH_ANALYSIS_SYSTEM_PROMPT
   const timeout = calculateTimeout(unit.estimatedTokens)
   const usage: TokenUsage = { inputTokens: 0, outputTokens: 0 }
@@ -417,7 +425,7 @@ async function generateUnitAnalysis(
       const result = await withTimeout(
         generateObject({
           model,
-          schema: BatchEmailAnalysisResultSchema,
+          schema: ChargeExtractionResultSchema,
           system,
           prompt: unit.text,
           temperature: EMAIL_DISCOVERY_CONFIG.analysisModel.temperature,
@@ -436,7 +444,7 @@ async function generateUnitAnalysis(
       usage.inputTokens += result.usage?.inputTokens || 0
       usage.outputTokens += result.usage?.outputTokens || 0
 
-      return { subscriptions: result.object.subscriptions, usage }
+      return { charges: result.object.charges, usage }
     } catch (error) {
       if (!NoObjectGeneratedError.isInstance(error)) throw error
 
@@ -456,20 +464,20 @@ async function generateUnitAnalysis(
     )
   }
 
-  let salvaged: RawSubscription[]
+  let salvaged: RawCharge[]
   try {
-    salvaged = BatchEmailAnalysisResultSchema.parse(JSON.parse(repaired)).subscriptions
+    salvaged = ChargeExtractionResultSchema.parse(JSON.parse(repaired)).charges
   } catch (error) {
     throw new Error(
       `Unit ${unit.label} salvage failed: ${error instanceof Error ? error.message : 'unknown error'}`,
     )
   }
 
-  return { subscriptions: salvaged, usage }
+  return { charges: salvaged, usage }
 }
 
 /** A unit whose analysis could not be recovered, so its emails yielded nothing. */
-interface FailedUnit {
+export interface FailedUnit {
   label: string
   emailCount: number
   error: string
@@ -477,6 +485,22 @@ interface FailedUnit {
 
 export interface BatchAnalysisResult {
   subscriptions: DiscoveredSubscription[]
+  /** Every merchant group's outcome, drops included, for telemetry and review. */
+  verdicts: ClassificationVerdict[]
+  /** Charges the model reported, before the recurrence decision. */
+  chargeCount: number
+  /** Analysis units sent to the model. Only comparable to failedUnits.length. */
+  unitCount: number
+  /** Senders whose analysis could not be recovered, so their emails yielded nothing. */
+  failedUnits: FailedUnit[]
+  /**
+   * Recurring subscriptions the normalizer then threw out - an unusable name, an
+   * absurd price, an unparseable date. Counted because the classifier already
+   * called these real, so a rejection here is a loss the verdicts do not show.
+   */
+  rejectedCount: number
+  /** Charges discarded as balance top-ups rather than subscription payments. */
+  creditPurchases: number
   totalUsage: TokenUsage
 }
 
@@ -486,8 +510,31 @@ export interface BatchAnalysisResult {
  */
 interface UnitOutcome {
   unit: AnalysisUnit
-  subscriptions: DiscoveredSubscription[]
+  charges: Charge[]
   failure?: FailedUnit
+}
+
+/**
+ * Joins what the model read to what the envelope already told us.
+ *
+ * The model cites the "EMAIL n" it read a charge from, and everything that can
+ * be known without reading the body - sending domain, opt-out header - is
+ * attached here from our own copy of that email. Facts we hold are never asked
+ * of a model that could get them wrong.
+ *
+ * That includes whether the email mentions recurring at all, which is how the
+ * classifier tells a stated billing period apart from an invented one.
+ */
+function attachEnvelope(raw: RawCharge, unit: AnalysisUnit): Charge | null {
+  const email = unit.emails[raw.email_index - 1]
+  if (!email) return null
+
+  return {
+    ...raw,
+    sender_domain: extractSenderDomain(email.from),
+    list_unsubscribe: email.listUnsubscribe,
+    recurrence_language: mentionsRecurrence(`${email.subject}\n${email.body}`),
+  }
 }
 
 async function runUnit(
@@ -497,19 +544,18 @@ async function runUnit(
   totalUsage: TokenUsage,
 ): Promise<UnitOutcome> {
   try {
-    const { subscriptions: raw, usage } = await generateUnitAnalysis(unit, model, maxOutputTokens)
+    const { charges: raw, usage } = await generateUnitAnalysis(unit, model, maxOutputTokens)
 
     totalUsage.inputTokens += usage.inputTokens
     totalUsage.outputTokens += usage.outputTokens
 
-    const subscriptions: DiscoveredSubscription[] = []
-
-    for (const sub of raw) {
-      const result = normalizeDiscoveredSubscription(sub)
-      if (result.ok) subscriptions.push(result.subscription)
+    const charges: Charge[] = []
+    for (const candidate of raw) {
+      const charge = attachEnvelope(candidate, unit)
+      if (charge) charges.push(charge)
     }
 
-    return { unit, subscriptions }
+    return { unit, charges }
   } catch (error) {
     // One unit is one sender, so a failure here costs that vendor and nothing
     // else. The caller is told which, rather than the scan quietly shrinking.
@@ -518,7 +564,7 @@ async function runUnit(
 
     return {
       unit,
-      subscriptions: [],
+      charges: [],
       failure: { label: unit.label, emailCount: unit.emailCount, error: message },
     }
   }
@@ -530,6 +576,12 @@ export async function analyzeEmailsBatch(
 ): Promise<BatchAnalysisResult> {
   const empty: BatchAnalysisResult = {
     subscriptions: [],
+    verdicts: [],
+    chargeCount: 0,
+    unitCount: 0,
+    failedUnits: [],
+    rejectedCount: 0,
+    creditPurchases: 0,
     totalUsage: { inputTokens: 0, outputTokens: 0 },
   }
 
@@ -553,12 +605,33 @@ export async function analyzeEmailsBatch(
     runUnit(unit, model, maxOutputTokens, totalUsage),
   )
 
-  const subscriptions = filterSingletonOneTimePayments(
-    deduplicateAndMerge(outcomes.flatMap((o) => o.subscriptions)),
-  )
+  const charges = outcomes.flatMap((o) => o.charges)
+
+  // Classified once over the whole scan rather than per unit. A merchant's
+  // history can arrive split across units - an oversized sender sliced by date,
+  // or receipts reaching us both directly and through a payment processor - and
+  // only the full set shows the cadence that says whether it recurs at all.
+  const { subscriptions: classified, verdicts, creditPurchases } = classifyCharges(charges)
+
+  // A classified subscription can still be unusable - a name that is only
+  // punctuation, an absurd price, a date the parser cannot read. Rejections are
+  // counted rather than silently dropped.
+  const subscriptions: DiscoveredSubscription[] = []
+  let rejectedCount = 0
+  for (const candidate of classified) {
+    const result = normalizeClassifiedSubscription(candidate)
+    if (result.ok) subscriptions.push(result.subscription)
+    else rejectedCount += 1
+  }
 
   return {
     subscriptions,
+    verdicts,
+    chargeCount: charges.length,
+    unitCount: units.length,
+    failedUnits: outcomes.flatMap((o) => (o.failure ? [o.failure] : [])),
+    rejectedCount,
+    creditPurchases,
     totalUsage,
   }
 }

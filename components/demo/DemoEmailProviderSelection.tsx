@@ -59,7 +59,7 @@ export function DemoEmailProviderSelection({
       <div className="flex rounded-xl gap-4 items-start bg-muted p-4">
         <Lock className="size-12 h-fit mt-1" />
         <p className="text-xs text-muted-foreground text-start">
-          We read the subject, sender and body of emails matching our billing search, and an AI
+          We only read subject, sender and body of emails matching our billing search, and an AI
           model extracts the subscription details. Your emails are never stored, and neither are
           your credentials.
         </p>

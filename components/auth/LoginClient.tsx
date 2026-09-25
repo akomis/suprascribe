@@ -3,6 +3,7 @@
 import { SSOButton } from '@/components/auth/SSOButton'
 import { SuprascribeLogo } from '@/components/landing/SuprascribeLogo'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
@@ -34,6 +35,8 @@ function AuthView({
   onSubmit,
   onForgotPassword,
   serverError,
+  acceptedTerms,
+  onAcceptedTermsChange,
 }: {
   activeTab: 'signin' | 'signup'
   onTabChange: (tab: 'signin' | 'signup') => void
@@ -44,8 +47,11 @@ function AuthView({
   onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>
   onForgotPassword: () => void
   serverError: string | null
+  acceptedTerms: boolean
+  onAcceptedTermsChange: (accepted: boolean) => void
 }) {
   const isDisabled = loading || (activeTab === 'signup' && signedUp)
+  const needsTerms = activeTab === 'signup' && !acceptedTerms
   return (
     <>
       <div className="space-y-4">
@@ -124,12 +130,34 @@ function AuthView({
               <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>
             )}
           </div>
+          {activeTab === 'signup' && (
+            <div className="flex items-end justify-start gap-2">
+              <Checkbox
+                id="accept-terms"
+                checked={acceptedTerms}
+                onCheckedChange={(checked) => onAcceptedTermsChange(checked === true)}
+                disabled={isDisabled}
+                className="mt-0.5"
+              />
+              <Label
+                htmlFor="accept-terms"
+                className="text-xs font-normal leading-snug text-muted-foreground"
+              >
+                <span>
+                  I agree to the{' '}
+                  <Link href="/terms-and-privacy" className="underline hover:text-foreground">
+                    Terms of Service and Privacy Policy
+                  </Link>
+                </span>
+              </Label>
+            </div>
+          )}
         </div>
 
         <div>
           <Button
             type="submit"
-            disabled={isDisabled}
+            disabled={isDisabled || needsTerms}
             data-loading={loading ? 'true' : 'false'}
             aria-busy={loading}
             variant={activeTab === 'signin' ? 'default' : 'secondary'}
@@ -139,16 +167,6 @@ function AuthView({
             <span>{loading ? '' : activeTab === 'signin' ? 'Sign in' : 'Sign up'}</span>
           </Button>
         </div>
-
-        {activeTab === 'signup' && (
-          <p className="text-center text-xs text-muted-foreground">
-            By signing up, you agree to our{' '}
-            <Link href="/terms-and-privacy" className="underline hover:text-foreground">
-              Terms of Service and Privacy Policy
-            </Link>
-            .
-          </p>
-        )}
 
         {serverError && (
           <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4">
@@ -241,6 +259,7 @@ export function LoginClient({ initialTab, errorParam }: LoginClientProps) {
   const [forgotEmail, setForgotEmail] = useState('')
   const [resetSent, setResetSent] = useState(false)
   const [forgotLoading, setForgotLoading] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -308,6 +327,11 @@ export function LoginClient({ initialTab, errorParam }: LoginClientProps) {
     if (activeTab === 'signin') {
       await handleSignIn(email, password)
     } else {
+      if (!acceptedTerms) {
+        setServerError('You must agree to the Terms of Service and Privacy Policy.')
+        setLoading(false)
+        return
+      }
       await handleSignUp(email, password)
     }
   })
@@ -358,6 +382,8 @@ export function LoginClient({ initialTab, errorParam }: LoginClientProps) {
             onSubmit={onSubmit}
             onForgotPassword={openForgotPassword}
             serverError={serverError}
+            acceptedTerms={acceptedTerms}
+            onAcceptedTermsChange={setAcceptedTerms}
           />
         )}
       </div>

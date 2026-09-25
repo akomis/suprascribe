@@ -6,14 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import type { CurrencyCode } from '@/lib/hooks/useCurrency'
 import type { BillingPeriod, DiscoveredSubscription } from '@/lib/types/forms'
-import {
-  cn,
-  formatDateRangeWithDuration,
-  formatLocalizedDate,
-  isSubscriptionActive,
-} from '@/lib/utils'
+import { cn, formatDateRangeWithDuration, isSubscriptionActive } from '@/lib/utils'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
-import { isOneTimePayment, ONE_TIME_SECTION_LABEL } from '@/lib/utils/subscription-period-extension'
 import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 
@@ -61,11 +55,8 @@ function groupByService(subs: DiscoveredSubscription[]): ServiceGroup[] {
 
 function ServiceRow({ group }: { group: ServiceGroup }) {
   const { latest } = group
-  const periodSuffix = latest.period ? PERIOD_SUFFIX[latest.period] : ''
-  const oneTime = isOneTimePayment(latest)
-  const dateLabel = oneTime
-    ? formatLocalizedDate(latest.start_date)
-    : formatDateRangeWithDuration(latest.start_date, latest.end_date)
+  const periodSuffix = PERIOD_SUFFIX[latest.period]
+  const dateLabel = formatDateRangeWithDuration(latest.start_date, latest.end_date)
 
   return (
     <div className="flex items-center gap-3 rounded-lg border p-3">
@@ -75,16 +66,10 @@ function ServiceRow({ group }: { group: ServiceGroup }) {
       <div className="flex flex-1 flex-col min-w-0">
         <div className="flex items-center gap-2 min-w-0">
           <span className="font-medium truncate">{group.serviceName}</span>
-          {oneTime ? (
+          {!group.active && (
             <Badge variant="outline" className="text-[10px] shrink-0">
-              One-time
+              Past
             </Badge>
-          ) : (
-            !group.active && (
-              <Badge variant="outline" className="text-[10px] shrink-0">
-                Past
-              </Badge>
-            )
           )}
         </div>
         {latest.price > 0 && (
@@ -138,12 +123,9 @@ export function DiscoveryResultsReadOnly({
     )
   }
 
-  // One-time charges get their own section: the active/past split below only
-  // describes a recurring one.
-  const recurringGroups = groupByService(subscriptions.filter((sub) => !isOneTimePayment(sub)))
-  const oneTimeGroups = groupByService(subscriptions.filter(isOneTimePayment))
-  const activeGroups = recurringGroups.filter((g) => g.active)
-  const pastGroups = recurringGroups.filter((g) => !g.active)
+  const groups = groupByService(subscriptions)
+  const activeGroups = groups.filter((g) => g.active)
+  const pastGroups = groups.filter((g) => !g.active)
   const serviceCount = new Set(subscriptions.map((sub) => sub.service_name)).size
 
   return (
@@ -195,18 +177,6 @@ export function DiscoveryResultsReadOnly({
               ))}
             </div>
           )}
-        </>
-      )}
-
-      {oneTimeGroups.length > 0 && (
-        <>
-          <Separator />
-          <span className="text-sm text-muted-foreground">{ONE_TIME_SECTION_LABEL}</span>
-          <div className="flex flex-col gap-2">
-            {oneTimeGroups.map((group) => (
-              <ServiceRow key={group.serviceName} group={group} />
-            ))}
-          </div>
         </>
       )}
 

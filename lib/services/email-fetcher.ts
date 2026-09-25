@@ -111,46 +111,70 @@ async function fetchWithBackoff(url: string, accessToken: string): Promise<Respo
   return null
 }
 
+/**
+ * Ids of every message matching the discovery search, without fetching a body.
+ *
+ * Split out so the pre-scan probe can size the mailbox for the price of the
+ * listing alone - the bodies are what cost time and model tokens.
+ */
+async function listGmailMessageIds(
+  accessToken: string,
+  keywords: readonly string[],
+): Promise<string[]> {
+  const { maxEmailsPerProvider, dedicatedBillingSenders, mixedSenders } = EMAIL_DISCOVERY_CONFIG
+  const searchQuery = buildSearchQuery(keywords, 'gmail', {
+    senders: dedicatedBillingSenders,
+    mixedSenders,
+    since: searchWindowStart(),
+  })
+
+  const messageIds: string[] = []
+  let pageToken: string | undefined
+
+  // Gmail returns ids a page at a time; the token was never read before, so a
+  // heavy inbox silently stopped at the first page.
+  do {
+    const params = new URLSearchParams({
+      q: searchQuery,
+      maxResults: String(Math.min(GMAIL_PAGE_SIZE, maxEmailsPerProvider - messageIds.length)),
+    })
+    if (pageToken) params.set('pageToken', pageToken)
+
+    const listResponse = await fetchWithBackoff(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages?${params}`,
+      accessToken,
+    )
+
+    if (!listResponse || !listResponse.ok) {
+      const status = listResponse?.status ?? 'network failure'
+      const errorData = listResponse ? await listResponse.json().catch(() => ({})) : {}
+      // A later page failing still leaves the earlier ones worth analysing.
+      if (messageIds.length > 0) break
+      throw new Error(`Gmail API error: ${status} - ${JSON.stringify(errorData)}`)
+    }
+
+    const listData = await listResponse.json()
+    for (const message of listData.messages || []) messageIds.push(message.id)
+    pageToken = listData.nextPageToken
+  } while (pageToken && messageIds.length < maxEmailsPerProvider)
+
+  return messageIds
+}
+
+/** How many messages the discovery search matches, bodies untouched. */
+export async function countGmailEmails(
+  accessToken: string,
+  keywords: readonly string[],
+): Promise<number> {
+  return (await listGmailMessageIds(accessToken, keywords)).length
+}
+
 export async function fetchGmailEmails(
   accessToken: string,
   keywords: readonly string[],
 ): Promise<EmailData[]> {
   try {
-    const { maxEmailsPerProvider, billingSenderDomains } = EMAIL_DISCOVERY_CONFIG
-    const searchQuery = buildSearchQuery(keywords, 'gmail', {
-      senders: billingSenderDomains,
-      since: searchWindowStart(),
-    })
-
-    const messageIds: string[] = []
-    let pageToken: string | undefined
-
-    // Gmail returns ids a page at a time; the token was never read before, so a
-    // heavy inbox silently stopped at the first page.
-    do {
-      const params = new URLSearchParams({
-        q: searchQuery,
-        maxResults: String(Math.min(GMAIL_PAGE_SIZE, maxEmailsPerProvider - messageIds.length)),
-      })
-      if (pageToken) params.set('pageToken', pageToken)
-
-      const listResponse = await fetchWithBackoff(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages?${params}`,
-        accessToken,
-      )
-
-      if (!listResponse || !listResponse.ok) {
-        const status = listResponse?.status ?? 'network failure'
-        const errorData = listResponse ? await listResponse.json().catch(() => ({})) : {}
-        // A later page failing still leaves the earlier ones worth analysing.
-        if (messageIds.length > 0) break
-        throw new Error(`Gmail API error: ${status} - ${JSON.stringify(errorData)}`)
-      }
-
-      const listData = await listResponse.json()
-      for (const message of listData.messages || []) messageIds.push(message.id)
-      pageToken = listData.nextPageToken
-    } while (pageToken && messageIds.length < maxEmailsPerProvider)
+    const messageIds = await listGmailMessageIds(accessToken, keywords)
 
     if (messageIds.length === 0) return []
 
@@ -226,14 +250,55 @@ function decodeBase64(data: string): string {
   }
 }
 
+/**
+ * How many messages the discovery search matches, bodies untouched.
+ *
+ * Graph refuses $count on a $search result set, so this pages the same search
+ * selecting nothing but the id. That is still far cheaper than the real fetch,
+ * which pulls every body.
+ */
+export async function countOutlookEmails(
+  accessToken: string,
+  keywords: readonly string[],
+): Promise<number> {
+  const { maxEmailsPerProvider, dedicatedBillingSenders, mixedSenders } = EMAIL_DISCOVERY_CONFIG
+  const params = new URLSearchParams({
+    $search: buildSearchQuery(keywords, 'outlook', {
+      senders: dedicatedBillingSenders,
+      mixedSenders,
+      since: searchWindowStart(),
+    }),
+    $top: String(OUTLOOK_PAGE_SIZE),
+    $select: 'id',
+  })
+
+  let url: string | undefined = `https://graph.microsoft.com/v1.0/me/messages?${params}`
+  let count = 0
+
+  while (url && count < maxEmailsPerProvider) {
+    const response: Response | null = await fetchWithBackoff(url, accessToken)
+    if (!response || !response.ok) {
+      const status = response?.status ?? 'network failure'
+      throw new Error(`Microsoft Graph API error: ${status}`)
+    }
+
+    const data = await response.json()
+    count += (data.value || []).length
+    url = data['@odata.nextLink']
+  }
+
+  return Math.min(count, maxEmailsPerProvider)
+}
+
 export async function fetchOutlookEmails(
   accessToken: string,
   keywords: readonly string[],
 ): Promise<EmailData[]> {
   try {
-    const { maxEmailsPerProvider, billingSenderDomains } = EMAIL_DISCOVERY_CONFIG
+    const { maxEmailsPerProvider, dedicatedBillingSenders, mixedSenders } = EMAIL_DISCOVERY_CONFIG
     const searchQuery = buildSearchQuery(keywords, 'outlook', {
-      senders: billingSenderDomains,
+      senders: dedicatedBillingSenders,
+      mixedSenders,
       since: searchWindowStart(),
     })
 
@@ -465,7 +530,7 @@ export async function fetchImapEmails(
   },
   keywords: readonly string[],
 ): Promise<EmailData[]> {
-  const { maxEmailsPerProvider, billingSenderDomains } = EMAIL_DISCOVERY_CONFIG
+  const { maxEmailsPerProvider, dedicatedBillingSenders } = EMAIL_DISCOVERY_CONFIG
   const useTls = credentials.useTls !== false
 
   const imap = new Imap({
@@ -480,7 +545,10 @@ export async function fetchImapEmails(
   await connectImap(imap)
 
   try {
-    const criteria = buildImapSearchCriteria(keywords, billingSenderDomains, searchWindowStart())
+    // IMAP SEARCH cannot nest an AND inside the OR tree, so mixed senders are
+    // deliberately left out here: their billing mail still matches on subject,
+    // and including them wholesale would drown the cap in retail notices.
+    const criteria = buildImapSearchCriteria(keywords, dedicatedBillingSenders, searchWindowStart())
     const boxes = await listSearchableBoxes(imap)
     const collected: EmailData[] = []
     const seen = new Set<string>()

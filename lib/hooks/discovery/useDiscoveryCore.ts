@@ -1,7 +1,11 @@
 'use client'
 
 import type { DiscoveredSubscription } from '@/lib/types/forms'
-import type { DiscoveryResponse, TeaserPreviewGroup } from '@/lib/types/discovery'
+import type {
+  DiscoveryErrorKind,
+  DiscoveryResponse,
+  TeaserPreviewGroup,
+} from '@/lib/types/discovery'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useInvalidateDiscoveryRuns } from './useDiscoveryRuns'
@@ -22,6 +26,8 @@ export interface DiscoveryCoreReturn {
   scannedEmail: string | null
   error: string | null
   warning: string | null
+  /** Which kind of warning `warning` holds, so the dialog can title it. */
+  warningKind: DiscoveryErrorKind | null
   runDiscovery: (fetchFn: () => Promise<DiscoveryResponse>) => Promise<void>
   retry: () => void
   clearDiscovery: () => void
@@ -39,6 +45,7 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
   const [scannedEmail, setScannedEmail] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
+  const [warningKind, setWarningKind] = useState<DiscoveryErrorKind | null>(null)
   const lastFetchFnRef = useRef<(() => Promise<DiscoveryResponse>) | null>(null)
   // Guards against a second scan overlapping the first (double-click, retry
   // while the original request is still open, a second tab). Two overlapping
@@ -62,6 +69,7 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
     setIsDiscovering(true)
     setError(null)
     setWarning(null)
+    setWarningKind(null)
 
     try {
       const data = await fetchFn()
@@ -70,6 +78,13 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
         if (data.kind === 'rate_limited') {
           teaserStatusStaleRef.current = true
           setWarning(data.error)
+          setWarningKind('rate_limited')
+        } else if (data.kind === 'no_new_email') {
+          // Not a failure and not a spent discovery: the mailbox had nothing the
+          // last scan missed, so the run never happened. The warning view says
+          // so plainly - a user who reads this as an error just scans again.
+          setWarning(data.error)
+          setWarningKind('no_new_email')
         } else {
           const msg = data.error || 'Discovery failed'
           if (data.kind === 'auth_failed') throw new Error(`Authentication failed: ${msg}`)
@@ -132,6 +147,7 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
     setScannedEmail(null)
     setError(null)
     setWarning(null)
+    setWarningKind(null)
     lastFetchFnRef.current = null
 
     if (teaserStatusStaleRef.current) {
@@ -148,6 +164,7 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
     scannedEmail,
     error,
     warning,
+    warningKind,
     runDiscovery,
     retry,
     clearDiscovery,

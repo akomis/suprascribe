@@ -19,6 +19,7 @@ export function OAuthDiscoveryHandler({ provider }: { provider: OAuthProvider })
     emailCount,
     error,
     warning,
+    warningKind,
     clearDiscovery,
     retry,
   } = useOAuthDiscovery(provider)
@@ -32,6 +33,7 @@ export function OAuthDiscoveryHandler({ provider }: { provider: OAuthProvider })
       emailCount={emailCount}
       error={error}
       warning={warning}
+      warningKind={warningKind}
       clearDiscovery={clearDiscovery}
       retry={retry}
       providerName={PROVIDER_NAMES[provider]}

@@ -4,6 +4,9 @@ export type DiscoveryErrorKind =
   | 'auth_failed'
   | 'quota_exceeded'
   | 'rate_limited'
+  // Not a failure: the mailbox held nothing the last scan had not already seen,
+  // so no scan ran, no discovery was spent and the client shows a plain notice.
+  | 'no_new_email'
   | 'provider_error'
   | 'validation_error'
   | 'unknown'
@@ -21,8 +24,7 @@ export interface DiscoverySuccessResponse {
 export interface TeaserPreviewEntry {
   price: number
   currency?: string
-  /** Absent for a one-time payment, matching isOneTimePayment(). */
-  period?: BillingPeriod
+  period: BillingPeriod
   is_active: boolean
 }
 
@@ -31,7 +33,7 @@ export interface TeaserPreviewEntry {
 export interface TeaserPreviewGroup {
   service_name: string
   service_url?: string
-  /** The recurring charge first, then each one-time purchase, newest first. */
+  /** One entry per continuous run of the subscription, newest first. */
   entries: TeaserPreviewEntry[]
   /** True when any entry is still running. */
   is_active: boolean

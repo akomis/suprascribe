@@ -120,7 +120,6 @@ function ControlPanelInner() {
               Renewal Reminders
             </Button>
           </ProGate>
-          {isFeatureEnabled('pwa_install') && <PWAInstallRow />}
           <Button
             variant="outline"
             type="button"
@@ -141,12 +140,13 @@ function ControlPanelInner() {
               Affiliate Program
             </Button>
           </Link>
+          {isFeatureEnabled('pwa_install') && <PWAInstallRow />}
 
           <DropdownMenuSeparator />
 
           <div className="flex gap-2">
             <ProGate feature="email_support" className="flex-1">
-              <SupportButton className="w-full justify-center gap-2 text-muted-foreground font-normal" />
+              <SupportButton className="w-full flex-1 justify-center gap-2 text-muted-foreground font-normal" />
             </ProGate>
             <LogoutButton
               variant="secondary"
