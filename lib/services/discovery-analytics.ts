@@ -2,7 +2,7 @@ import { EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export type AnalyticsMode = 'full' | 'teaser' | 'one_time'
-export type AnalyticsStatus = 'completed' | 'failed' | 'rate_limited'
+export type AnalyticsStatus = 'completed' | 'failed' | 'rate_limited' | 'no_new_email'
 
 /** Exactly one of these is set on a completed attempt, none on a failed one. */
 export type AnalyticsParent = { runId: string } | { teaserId: string } | { oneTimeId: string }
@@ -39,13 +39,29 @@ export type AnalyticsEntry = {
     costUsd: number
     model: string | null
   }
+  /**
+   * What the scan actually decided. Without this a run that discarded most of
+   * the mailbox is indistinguishable from one that found little, which is how
+   * the over-reporting in the first place went unnoticed for so long.
+   */
+  classification?: {
+    chargesExtracted: number
+    subscriptionsKept: number
+    droppedByReason: Record<string, number>
+    keptByReason: Record<string, number>
+    unitsTotal: number
+    unitsFailed: number
+    truncated: boolean
+    oldestEmailDate?: string
+  }
 }
 
 /**
- * Records one discovery attempt - completed, failed, or rate-limited - with its
- * cost and performance metrics. This is the only place attempts are logged;
- * DISCOVERY_RUNS, DISCOVERY_TEASERS and ONE_TIME_DISCOVERIES hold successful
- * scans only, which is what keeps the quota rule a plain row count.
+ * Records one discovery attempt - completed, failed, rate-limited, or skipped
+ * because the mailbox held nothing new - with its cost and performance metrics.
+ * This is the only place attempts are logged; DISCOVERY_RUNS, DISCOVERY_TEASERS
+ * and ONE_TIME_DISCOVERIES hold successful scans only, which is what keeps the
+ * quota rule a plain row count.
  *
  * Requires a service-role client: the table has no RLS policies so users can
  * never read cost data. Best-effort - telemetry must never fail a user's
@@ -57,7 +73,7 @@ export async function recordAnalytics(
   entry: AnalyticsEntry,
 ): Promise<void> {
   const parent = entry.parent
-  const { error } = await supabase.from('DISCOVERY_ANALYTICS').insert({
+  const base = {
     user_id: entry.userId ?? null,
     provider: entry.provider,
     mode: entry.mode,
@@ -73,7 +89,36 @@ export async function recordAnalytics(
     cost_usd: entry.metrics?.costUsd ?? null,
     model: entry.metrics?.model ?? null,
     is_byok: entry.isByok,
-  })
+  }
 
-  if (error) console.error(`[Discovery] Failed to record ${status} analytics:`, error)
+  const classification = {
+    charges_extracted: entry.classification?.chargesExtracted ?? null,
+    subscriptions_kept: entry.classification?.subscriptionsKept ?? null,
+    dropped_by_reason: entry.classification?.droppedByReason ?? null,
+    kept_by_reason: entry.classification?.keptByReason ?? null,
+    units_total: entry.classification?.unitsTotal ?? null,
+    units_failed: entry.classification?.unitsFailed ?? null,
+    truncated: entry.classification?.truncated ?? null,
+    oldest_email_date: entry.classification?.oldestEmailDate ?? null,
+  }
+
+  const { error } = await supabase
+    .from('DISCOVERY_ANALYTICS')
+    .insert({ ...base, ...classification })
+
+  if (!error) return
+
+  console.error(`[Discovery] Failed to record ${status} analytics:`, error)
+
+  // One bad value in the classification block rejects the whole insert, taking
+  // the run's cost and token counts with it. That is not hypothetical: a
+  // malformed oldest_email_date ("Fri, 14 Au") lost two complete scans before
+  // anyone noticed, because the error is swallowed to keep telemetry from
+  // failing a user's discovery. The base columns are values we constructed, so
+  // retrying with those alone keeps the expensive half of the record.
+  const { error: retryError } = await supabase.from('DISCOVERY_ANALYTICS').insert(base)
+
+  if (retryError) {
+    console.error(`[Discovery] Retry without classification also failed:`, retryError)
+  }
 }

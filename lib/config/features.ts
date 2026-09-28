@@ -79,6 +79,13 @@ export const Features = {
     tier: TIER.PRO,
     enabled: true,
   },
+  import_export: {
+    key: 'import_export',
+    name: 'Import & Export',
+    description: 'Import from spreadsheets or other trackers, export to CSV',
+    tier: TIER.PRO,
+    enabled: true,
+  },
   search_sort_group: {
     key: 'search_sort_group',
     name: 'Search, Sort & Group',

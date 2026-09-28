@@ -18,12 +18,13 @@ import type { InsightMode, InsightTab, MergedSubscriptionResponse } from '@/lib/
 import * as React from 'react'
 import AddSubscriptionDialog, { type ViewType } from './AddSubscriptionDialog'
 import { EmailProviderSelection } from './EmailProviderSelection'
+import { ImportExportDialog } from './settings/ImportExportDialog'
 import { SubscriptionDetailsDialog } from './SubscriptionDetailsDialog'
 import { SubscriptionGroupBy, toInsightsGroupBy, type GroupByValue } from './SubscriptionGroupBy'
 import { SubscriptionSearch } from './SubscriptionSearch'
 import { SubscriptionSort } from './SubscriptionSort'
 import { Button } from '@/components/ui/button'
-import { Calculator, Check, PenLine } from 'lucide-react'
+import { Calculator, Check, FileUp, PenLine } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -761,6 +762,7 @@ function SubscriptionsSectionContent({
   const { hasAccess: hasSubscriptionHistory } = useFeatureAccess('subscription_history')
   const { hasAccess: hasAutoDiscovery } = useAutoDiscoveryAccess()
   const { hasAccess: hasSearchSort } = useFeatureAccess('search_sort_group')
+  const [importOpen, setImportOpen] = React.useState(false)
 
   const actions: SubscriptionsSectionActions = {
     subscriptions: mergedSubscriptions,
@@ -778,11 +780,25 @@ function SubscriptionsSectionContent({
       <>
         <div className="flex flex-col items-center gap-2 text-center px-2">
           <p className="text-muted-foreground text-sm sm:text-base">No subscriptions yet.</p>
-          <Button variant="outline" size="sm" onClick={openManualDialog} className="gap-2">
-            <PenLine className="h-4 w-4" />
-            Add Manually
-          </Button>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button variant="outline" size="sm" onClick={openManualDialog} className="gap-2">
+              <PenLine className="h-4 w-4" />
+              Add Manually
+            </Button>
+            <ProGate feature="import_export">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setImportOpen(true)}
+                className="gap-2"
+              >
+                <FileUp className="h-4 w-4" />
+                Import from CSV
+              </Button>
+            </ProGate>
+          </div>
         </div>
+        <ImportExportDialog open={importOpen} onOpenChange={setImportOpen} />
         {/* EmailProviderSelection carries its own loading and locked states. */}
         <EmailProviderSelection />
       </>

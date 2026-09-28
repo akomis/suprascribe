@@ -15,7 +15,7 @@ import { useFeatureAccess } from '@/lib/hooks/useFeatureAccess'
 import { useCreateSubscription, useDeleteSubscription } from '@/lib/hooks/useSubscriptions'
 import { UserSubscriptionWithDetails } from '@/lib/types/database'
 import { CreateSubscriptionFormData } from '@/lib/types/forms'
-import { cn } from '@/lib/utils'
+import { cn, formatLocalizedDate } from '@/lib/utils'
 import { toDateString } from '@/lib/utils/date'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
 import { openExternalUrl } from '@/lib/utils/unsubscribe'
@@ -162,6 +162,7 @@ function SubscriptionHeader({
       unsubscribeUrl={subscription.subscription_service?.unsubscribe_url}
       surface="dashboard"
       onUnsubscribeOpened={onUnsubscribeOpened}
+      iconOnlyOnMobile
     />
   )
 
@@ -206,13 +207,13 @@ function SubscriptionHeader({
                 )[mostRecentSubscription.period] ?? '/mo'}
               </Badge>
               {mostRecentSubscription.payment_method && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs md:text-sm text-muted-foreground">
                   Paid with {mostRecentSubscription.payment_method}
                 </p>
               )}
             </div>
             {mostRecentSubscription.source_email && (
-              <p className="text-sm text-muted-foreground flex items-center gap-2">
+              <p className="text-xs md:text-sm text-muted-foreground flex items-center gap-2">
                 - Sourced by {mostRecentSubscription.source_email}
               </p>
             )}
@@ -228,6 +229,42 @@ function SubscriptionHeader({
           ))}
       </div>
     </DialogHeader>
+  )
+}
+
+// The cycle in words. The period column is the only thing that says how often a
+// subscription charges - it is deliberately stripped out of the service name -
+// so this is where a reader finds out.
+const PERIOD_ADVERB: Record<string, string> = {
+  WEEKLY: 'weekly',
+  MONTHLY: 'monthly',
+  QUARTERLY: 'quarterly',
+  YEARLY: 'yearly',
+}
+
+function BillingSummary({
+  subscription,
+  isPast,
+}: {
+  subscription: UserSubscriptionWithDetails
+  isPast: boolean
+}) {
+  const cadence = PERIOD_ADVERB[subscription.period] ?? PERIOD_ADVERB.MONTHLY
+
+  // end_date is when the current period runs out, which is the date the renewal
+  // job charges again - but only while the subscription is live and renewing.
+  // On a lapsed one the same date is when it stopped, so promising a renewal
+  // from it would be wrong.
+  const renewsOn =
+    !isPast && subscription.auto_renew && subscription.end_date
+      ? formatLocalizedDate(subscription.end_date)
+      : null
+
+  return (
+    <div className="flex flex-row justify-between gap-2 text-xs md:text-sm text-muted-foreground">
+      <p>Charges {cadence}</p>
+      {renewsOn && <p className="text-right">Next renewal on {renewsOn}</p>}
+    </div>
   )
 }
 
@@ -263,19 +300,24 @@ function SubscriptionActions({
               Click on a dot to edit that billing period
             </p>
           </div>
-          <Separator />
         </>
       )}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-end md:items-center">
+      {/* Outside the history gate: how often this charges is not a PRO feature,
+          and without the chart there is nothing else on screen that says it. */}
+      <BillingSummary subscription={mostRecentSubscription} isPast={Boolean(isPast)} />
+      <Separator />
+      <div className="flex flex-row gap-4 justify-between items-center">
         <Button
           variant="outline"
           size="sm"
           onClick={onDelete}
           disabled={isDeletePending}
           className="text-destructive hover:text-destructive"
+          title="Delete subscription"
+          aria-label="Delete subscription"
         >
-          <Trash2 className="size-4 mr-1" />
-          Delete
+          <Trash2 className="size-4 md:mr-1" />
+          <span className="hidden md:inline">Delete</span>
         </Button>
         {!isPast && (
           <div className="flex gap-2">

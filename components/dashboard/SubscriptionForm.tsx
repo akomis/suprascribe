@@ -29,32 +29,24 @@ import { ServiceSelector } from './ServiceSelector'
 
 type BillingCycle = 'weekly' | 'monthly' | 'annually'
 
-// The cycle control doubles as the one-time switch: a single charge is not a
-// recurrence, so it belongs in the same list rather than in a second control.
-type PeriodChoice = BillingCycle | 'quarterly' | 'one-time'
-
-const ONE_TIME = 'one-time' as const
+// Every entry recurs. The column behind it is NOT NULL, so a "one-time" choice
+// only ever produced a MONTHLY row that ended the day it started - a shape the
+// dashboard then counted, renewed and re-suggested as a subscription.
+type PeriodChoice = BillingCycle | 'quarterly'
 
 // Quarterly has no add-mode generator, so it is only offered when editing an
 // entry that already carries it.
-const ADD_MODE_CHOICES: readonly PeriodChoice[] = ['weekly', 'monthly', 'annually', ONE_TIME]
-const EDIT_MODE_CHOICES: readonly PeriodChoice[] = [
-  'weekly',
-  'monthly',
-  'quarterly',
-  'annually',
-  ONE_TIME,
-]
+const ADD_MODE_CHOICES: readonly PeriodChoice[] = ['weekly', 'monthly', 'annually']
+const EDIT_MODE_CHOICES: readonly PeriodChoice[] = ['weekly', 'monthly', 'quarterly', 'annually']
 
 const PERIOD_CHOICE_LABEL: Record<PeriodChoice, string> = {
   weekly: 'Weekly',
   monthly: 'Monthly',
   quarterly: 'Quarterly',
   annually: 'Annually',
-  'one-time': 'One-time',
 }
 
-const CHOICE_TO_PERIOD: Record<Exclude<PeriodChoice, 'one-time'>, BillingPeriod> = {
+const CHOICE_TO_PERIOD: Record<PeriodChoice, BillingPeriod> = {
   weekly: 'WEEKLY',
   monthly: 'MONTHLY',
   quarterly: 'QUARTERLY',
@@ -190,7 +182,6 @@ type FormFields = {
   cost: string
   startDate: string
   endDate: string
-  oneTime: boolean
   addBillingCycle: BillingCycle | null
   upUntilToday: boolean
   addDuration: string
@@ -261,8 +252,6 @@ function DurationSelector({
 }
 
 function validateAddModeFields(fields: FormFields): string | null {
-  // A one-time payment has no cycle to repeat and no duration to cover.
-  if (fields.oneTime) return null
   if (!fields.addBillingCycle) return 'Please select a billing cycle'
   if (!fields.upUntilToday) {
     const durationNum = parseInt(fields.addDuration, 10)
@@ -282,8 +271,6 @@ function validateAddModeFields(fields: FormFields): string | null {
 }
 
 function validateEditModeFields(fields: FormFields): string | null {
-  // A one-time payment has no span to validate - it ends the day it starts.
-  if (fields.oneTime) return null
   if (!fields.endDate) return 'End date is required'
   if (new Date(fields.endDate) < new Date(fields.startDate))
     return 'End date cannot be before start date'
@@ -363,24 +350,6 @@ function buildSubmitEntries(isAddMode: boolean, p: SubmitParams): CreateSubscrip
   const price = parseFloat(p.cost)
   const serviceUrl = p.serviceUrl.trim() || undefined
   const serviceName = p.name.trim()
-  const oneTime = p.periodChoice === ONE_TIME
-
-  // A single charge covers one day and never renews. The period is left off
-  // entirely: it is what marks the entry as non-recurring downstream, and the
-  // database column supplies its own default.
-  if (oneTime) {
-    return [
-      {
-        serviceName,
-        serviceUrl,
-        price,
-        currency: p.currency,
-        startDate: p.startDate,
-        endDate: p.startDate,
-        autoRenew: false,
-      },
-    ]
-  }
 
   if (isAddMode) {
     return generateEntries({
@@ -403,10 +372,7 @@ function buildSubmitEntries(isAddMode: boolean, p: SubmitParams): CreateSubscrip
       serviceUrl,
       price,
       currency: p.currency,
-      period:
-        p.periodChoice && p.periodChoice !== ONE_TIME
-          ? CHOICE_TO_PERIOD[p.periodChoice]
-          : 'MONTHLY',
+      period: p.periodChoice ? CHOICE_TO_PERIOD[p.periodChoice] : 'MONTHLY',
       startDate: p.startDate,
       endDate: p.endDate,
       autoRenew: p.autoRenew,
@@ -427,7 +393,6 @@ function PricingFields({
   selectedCurrency,
   cost,
   autoRenew,
-  oneTime,
   isSubmitting,
   onCurrencyChange,
   onCostChange,
@@ -437,9 +402,6 @@ function PricingFields({
   selectedCurrency: CurrencyCode
   cost: string
   autoRenew: boolean
-  // A single charge never renews, so the toggle is locked off rather than
-  // offering a choice that the submitted entry would overrule anyway.
-  oneTime: boolean
   isSubmitting: boolean
   onCurrencyChange: (v: CurrencyCode) => void
   onCostChange: (v: string) => void
@@ -509,7 +471,7 @@ function PricingFields({
                 type="button"
                 variant={autoRenew ? 'default' : 'outline'}
                 onClick={onAutoRenewToggle}
-                disabled={isSubmitting || oneTime}
+                disabled={isSubmitting}
                 aria-label="Toggle auto renewal"
                 className={cn('w-full gap-2', { 'text-muted-foreground ': !autoRenew })}
               >
@@ -518,11 +480,7 @@ function PricingFields({
               </Button>
             </span>
           </TooltipTrigger>
-          <TooltipContent>
-            {oneTime
-              ? 'One-time payments never renew'
-              : 'Check if this subscription has auto renewal enabled'}
-          </TooltipContent>
+          <TooltipContent>Check if this subscription has auto renewal enabled</TooltipContent>
         </Tooltip>
       </div>
     </div>
@@ -558,8 +516,8 @@ function BillingCycleSelector({
   onChange: (choice: PeriodChoice) => void
   options: readonly PeriodChoice[]
   disabled: boolean
-  // How many of the selected cycle to create. Omitted where a count has no
-  // meaning: editing a single billing period, or a one-time payment.
+  // How many of the selected cycle to create. Omitted when editing a single
+  // billing period, where a count has no meaning.
   count?: {
     value: string
     onChange: (v: string) => void
@@ -646,21 +604,17 @@ export function SubscriptionForm({
   const [endCalendarOpen, setEndCalendarOpen] = React.useState(false)
 
   const isAddMode = !subscription && !isNewBillingPeriod
-  // An existing entry with no period, or one ending the day it started, is a
-  // single charge. A period being added to an existing subscription arrives with
-  // a blank end date on purpose and must not be mistaken for one.
+  // Add mode starts blank so the user has to pick. Otherwise the entry already
+  // carries a period - the column is NOT NULL - including the legacy zero-span
+  // rows that used to read as "one-time"; those now open on their stored cycle.
   const [periodChoice, setPeriodChoice] = React.useState<PeriodChoice | null>(() => {
     if (isAddMode) return null
-    if (isNewBillingPeriod)
-      return subscription?.period ? PERIOD_TO_CHOICE[subscription.period] : null
-    if (!subscription?.period || subscription.end_date === subscription.start_date) return ONE_TIME
-    return PERIOD_TO_CHOICE[subscription.period]
+    return subscription?.period ? PERIOD_TO_CHOICE[subscription.period] : null
   })
   const [addDuration, setAddDuration] = React.useState<string>('')
   const [upUntilToday, setUpUntilToday] = React.useState<boolean>(true)
 
-  const oneTime = periodChoice === ONE_TIME
-  const addBillingCycle = !periodChoice || oneTime ? null : (periodChoice as BillingCycle)
+  const addBillingCycle = periodChoice ? (periodChoice as BillingCycle) : null
   const currencySymbol = getCurrencySymbol(selectedCurrency)
 
   const previewData = React.useMemo(
@@ -711,7 +665,7 @@ export function SubscriptionForm({
     setFormError(null)
 
     const error = validateForm(
-      { name, cost, startDate, endDate, oneTime, addBillingCycle, upUntilToday, addDuration },
+      { name, cost, startDate, endDate, addBillingCycle, upUntilToday, addDuration },
       isAddMode,
     )
     if (error) {
@@ -756,8 +710,7 @@ export function SubscriptionForm({
         currencySymbol={currencySymbol}
         selectedCurrency={selectedCurrency}
         cost={cost}
-        autoRenew={!oneTime && autoRenew}
-        oneTime={oneTime}
+        autoRenew={autoRenew}
         isSubmitting={isSubmitting}
         onCurrencyChange={setSelectedCurrency}
         onCostChange={setCost}
@@ -766,8 +719,7 @@ export function SubscriptionForm({
 
       <div className="grid sm:grid-cols-2 gap-2">
         <DatePickerButton
-          // A single charge has one date, not a span, so "start" would be a lie.
-          label={oneTime ? 'Date' : 'Start Date'}
+          label="Start Date"
           id="start"
           value={startDate}
           onChange={setStartDate}
@@ -777,9 +729,7 @@ export function SubscriptionForm({
           calendarDisabled={startDateCalendarDisabled}
         />
 
-        {/* A one-time payment has nothing to end, so the field goes away rather
-            than sitting there holding a date that means nothing. */}
-        {!isAddMode && !oneTime && (
+        {!isAddMode && (
           <DatePickerButton
             label="End Date"
             id="end"
@@ -799,10 +749,6 @@ export function SubscriptionForm({
             setPeriodChoice(choice)
             setAddDuration('')
             setUpUntilToday(true)
-            if (choice === ONE_TIME) {
-              setEndDate('')
-              setAutoRenew(false)
-            }
           }}
           disabled={isSubmitting}
           count={
@@ -821,7 +767,7 @@ export function SubscriptionForm({
         />
       </div>
 
-      {isAddMode && !oneTime && (
+      {isAddMode && (
         <AddModeControls
           addBillingCycle={addBillingCycle}
           setAddDuration={setAddDuration}

@@ -1,9 +1,13 @@
 import { EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
 import type { DiscoveredSubscription } from '@/lib/types/forms'
+import { earliestDate } from '@/lib/utils/date'
 import { consolidateSubscriptionPeriods } from '@/lib/utils/subscription-period-extension'
 import type { ProviderConfig } from './ai-provider'
-import { analyzeEmailsBatch, type TokenUsage } from './email-analyzer'
+import { analyzeEmailsBatch, type FailedUnit, type TokenUsage } from './email-analyzer'
+import type { ClassificationVerdict } from './charge-classifier'
 import {
+  countGmailEmails,
+  countOutlookEmails,
   fetchGmailEmails,
   fetchGmailProfileEmail,
   fetchOutlookEmails,
@@ -34,6 +38,22 @@ export interface DiscoveryResult {
   emailCount: number
   email: string
   usage: TokenUsage
+  /** Charges the model read, before the recurrence decision dropped any. */
+  chargeCount: number
+  /** Analysis units sent to the model. The denominator for failedUnits. */
+  unitCount: number
+  /** Every merchant group's outcome, drops and reasons included. */
+  verdicts: ClassificationVerdict[]
+  /** Senders whose analysis failed, so their emails contributed nothing. */
+  failedUnits: FailedUnit[]
+  /** Recurring subscriptions the normalizer rejected after the classifier kept them. */
+  rejectedCount: number
+  /** Charges discarded as balance top-ups rather than subscription payments. */
+  creditPurchases: number
+  /** True when the mailbox held more matching email than the scan cap allows. */
+  truncated: boolean
+  /** Received date of the oldest email actually scanned, YYYY-MM-DD. */
+  oldestEmailDate?: string
 }
 
 function isBlockedImapHost(host: string): boolean {
@@ -52,7 +72,41 @@ function isBlockedImapHost(host: string): boolean {
   return false
 }
 
-export async function discover(input: DiscoveryInput): Promise<DiscoveryResult> {
+/** The address being scanned, resolved without touching a single message. */
+export async function resolveInboxAddress(input: DiscoveryInput): Promise<string> {
+  if (input.provider === 'imap') {
+    if (input.credentials.server && isBlockedImapHost(input.credentials.server)) {
+      throw new Error('Invalid IMAP server address')
+    }
+    return input.credentials.email
+  }
+  if (input.provider === 'google') return fetchGmailProfileEmail(input.credentials.token)
+  return fetchOutlookProfileEmail(input.credentials.token)
+}
+
+/**
+ * How many messages the discovery search matches right now, bodies untouched.
+ *
+ * Null means "cannot tell cheaply, scan anyway". That is the IMAP case: the
+ * real fetch de-duplicates messages that appear in more than one mailbox, and
+ * the key it de-duplicates on comes out of the parsed body. A body-free count
+ * would therefore be a different number from the one the scan records, which
+ * is the number this gets compared against.
+ */
+export async function countMatchingEmails(input: DiscoveryInput): Promise<number | null> {
+  const keywords = EMAIL_DISCOVERY_CONFIG.subjectKeywords
+
+  if (input.provider === 'google') return countGmailEmails(input.credentials.token, keywords)
+  if (input.provider === 'microsoft') {
+    return countOutlookEmails(input.credentials.token, EMAIL_DISCOVERY_CONFIG.outlookSubjectTokens)
+  }
+  return null
+}
+
+export async function discover(
+  input: DiscoveryInput,
+  knownEmail?: string,
+): Promise<DiscoveryResult> {
   const keywords = EMAIL_DISCOVERY_CONFIG.subjectKeywords
   let email: string
   let rawEmails: Awaited<ReturnType<typeof fetchGmailEmails>>
@@ -65,10 +119,12 @@ export async function discover(input: DiscoveryInput): Promise<DiscoveryResult> 
     email = credentials.email
     rawEmails = await fetchImapEmails(credentials, keywords)
   } else if (input.provider === 'google') {
-    email = await fetchGmailProfileEmail(input.credentials.token)
+    // The orchestrator resolves the address before the scan to size the
+    // mailbox, so reuse it rather than paying for the profile call twice.
+    email = knownEmail ?? (await fetchGmailProfileEmail(input.credentials.token))
     rawEmails = await fetchGmailEmails(input.credentials.token, keywords)
   } else {
-    email = await fetchOutlookProfileEmail(input.credentials.token)
+    email = knownEmail ?? (await fetchOutlookProfileEmail(input.credentials.token))
     // Graph gets single-word tokens rather than the shared phrase list - see the
     // note on outlookSubjectTokens for why phrases cannot be quoted safely here.
     rawEmails = await fetchOutlookEmails(
@@ -78,10 +134,37 @@ export async function discover(input: DiscoveryInput): Promise<DiscoveryResult> 
   }
 
   if (rawEmails.length === 0) {
-    return { subscriptions: [], emailCount: 0, email, usage: { inputTokens: 0, outputTokens: 0 } }
+    return {
+      subscriptions: [],
+      emailCount: 0,
+      email,
+      usage: { inputTokens: 0, outputTokens: 0 },
+      chargeCount: 0,
+      unitCount: 0,
+      verdicts: [],
+      failedUnits: [],
+      rejectedCount: 0,
+      creditPurchases: 0,
+      truncated: false,
+    }
   }
 
-  const { subscriptions: discovered, totalUsage } = await analyzeEmailsBatch(
+  // The fetchers stop at the cap, so hitting it exactly means the mailbox held
+  // more. Worth surfacing: the cap keeps the NEWEST matches, so a heavy inbox
+  // silently loses its older history and every start date shifts forward.
+  const truncated = rawEmails.length >= EMAIL_DISCOVERY_CONFIG.maxEmailsPerProvider
+  const oldestEmailDate = earliestDate(rawEmails.map((mail) => mail.date))
+
+  const {
+    subscriptions: discovered,
+    verdicts,
+    chargeCount,
+    unitCount,
+    failedUnits,
+    rejectedCount,
+    creditPurchases,
+    totalUsage,
+  } = await analyzeEmailsBatch(
     rawEmails,
     input.byokConfig ? { byokConfig: input.byokConfig } : undefined,
   )
@@ -92,5 +175,18 @@ export async function discover(input: DiscoveryInput): Promise<DiscoveryResult> 
     return nameCompare !== 0 ? nameCompare : a.price - b.price
   })
 
-  return { subscriptions: sorted, emailCount: rawEmails.length, email, usage: totalUsage }
+  return {
+    subscriptions: sorted,
+    emailCount: rawEmails.length,
+    email,
+    usage: totalUsage,
+    chargeCount,
+    unitCount,
+    verdicts,
+    failedUnits,
+    rejectedCount,
+    creditPurchases,
+    truncated,
+    oldestEmailDate,
+  }
 }

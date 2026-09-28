@@ -27,16 +27,7 @@ export default function DemoPage() {
               </div>
             </div>
 
-            <header className="w-full space-y-2 px-2 text-center">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                Suprascribe Live Demo
-              </h1>
-              <p className="text-muted-foreground text-sm sm:text-base">
-                This is the real dashboard, loaded with a sample household&apos;s subscriptions
-                instead of yours. Nothing here is connected to an inbox and nothing you change is
-                saved, so edit, cancel and re-sort freely.
-              </p>
-            </header>
+            <h1 className="sr-only">Suprascribe Live Demo</h1>
 
             <DemoSubscriptionsSection />
 
@@ -59,10 +50,6 @@ export default function DemoPage() {
                   <li>
                     Switch to the calendar view to see the renewal dates cluster around the start of
                     the month.
-                  </li>
-                  <li>
-                    Change a subscription&apos;s billing cycle from monthly to yearly and watch the
-                    totals move.
                   </li>
                   <li>
                     Group by category to see which kind of service quietly takes the largest share.

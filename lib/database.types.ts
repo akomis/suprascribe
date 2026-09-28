@@ -95,6 +95,14 @@ export type Database = {
           status: string
           teaser_id: string | null
           user_id: string | null
+          charges_extracted: number | null
+          dropped_by_reason: Json | null
+          kept_by_reason: Json | null
+          oldest_email_date: string | null
+          subscriptions_kept: number | null
+          truncated: boolean | null
+          units_failed: number | null
+          units_total: number | null
         }
         Insert: {
           cost_usd?: number | null
@@ -114,6 +122,14 @@ export type Database = {
           status?: string
           teaser_id?: string | null
           user_id?: string | null
+          charges_extracted?: number | null
+          dropped_by_reason?: Json | null
+          kept_by_reason?: Json | null
+          oldest_email_date?: string | null
+          subscriptions_kept?: number | null
+          truncated?: boolean | null
+          units_failed?: number | null
+          units_total?: number | null
         }
         Update: {
           cost_usd?: number | null
@@ -133,6 +149,14 @@ export type Database = {
           status?: string
           teaser_id?: string | null
           user_id?: string | null
+          charges_extracted?: number | null
+          dropped_by_reason?: Json | null
+          kept_by_reason?: Json | null
+          oldest_email_date?: string | null
+          subscriptions_kept?: number | null
+          truncated?: boolean | null
+          units_failed?: number | null
+          units_total?: number | null
         }
         Relationships: [
           {
@@ -230,6 +254,7 @@ export type Database = {
           domains: string[] | null
           id: number
           name: string | null
+          name_key: string | null
           unsubscribe_url: string | null
           url: string | null
         }
@@ -238,6 +263,7 @@ export type Database = {
           domains?: string[] | null
           id?: number
           name?: string | null
+          name_key?: string | null
           unsubscribe_url?: string | null
           url?: string | null
         }
@@ -246,6 +272,7 @@ export type Database = {
           domains?: string[] | null
           id?: number
           name?: string | null
+          name_key?: string | null
           unsubscribe_url?: string | null
           url?: string | null
         }
@@ -408,6 +435,8 @@ export type Database = {
       }
     }
     Functions: {
+      merchant_key: { Args: { raw: string }; Returns: string }
+      strip_billing_cycle: { Args: { raw: string }; Returns: string }
       process_subscription_renewals: {
         Args: never
         Returns: {

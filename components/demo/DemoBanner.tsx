@@ -1,3 +1,4 @@
+import { DemoAboutDialog } from '@/components/demo/DemoAboutDialog'
 import { ProTierBadge } from '@/components/shared/ProTierBadge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -9,6 +10,7 @@ export function DemoBanner() {
         <div className="flex items-center gap-2">
           <ProTierBadge />
           <span className="text-xs sm:text-sm font-medium">Demo</span>
+          <DemoAboutDialog />
         </div>
         <Link href="/login?tab=signup">
           <Button variant="secondary" size="sm" className="text-xs sm:text-sm">

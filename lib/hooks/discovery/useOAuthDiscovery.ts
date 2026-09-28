@@ -1,7 +1,7 @@
 'use client'
 
 import type { DiscoveredSubscription } from '@/lib/types/forms'
-import type { DiscoveryResponse } from '@/lib/types/discovery'
+import type { DiscoveryErrorKind, DiscoveryResponse } from '@/lib/types/discovery'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useRef } from 'react'
 import { useDiscoveryCore, type DiscoveryTeaser } from './useDiscoveryCore'
@@ -14,6 +14,7 @@ interface UseOAuthDiscoveryReturn {
   scannedEmail: string | null
   error: string | null
   warning: string | null
+  warningKind: DiscoveryErrorKind | null
   clearDiscovery: () => void
   retry: () => void
 }
@@ -30,6 +31,7 @@ export function useOAuthDiscovery(provider: 'google' | 'microsoft'): UseOAuthDis
     scannedEmail,
     error,
     warning,
+    warningKind,
     runDiscovery,
     retry,
     clearDiscovery: clearCore,
@@ -83,6 +85,7 @@ export function useOAuthDiscovery(provider: 'google' | 'microsoft'): UseOAuthDis
     scannedEmail,
     error,
     warning,
+    warningKind,
     clearDiscovery,
     retry,
   }

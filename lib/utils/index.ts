@@ -1,5 +1,9 @@
 import type { SubscriptionServiceInsert, UserSubscriptionInsert } from '@/lib/types/database'
-import type { CreateSubscriptionFormData, DiscoveredSubscription } from '@/lib/types/forms'
+import type {
+  BillingPeriod,
+  CreateSubscriptionFormData,
+  DiscoveredSubscription,
+} from '@/lib/types/forms'
 import { toDateString } from '@/lib/utils/date'
 import type { CurrencyCode } from '@/lib/utils/currency'
 import { Constants } from '@/lib/database.types'
@@ -212,7 +216,7 @@ export function convertDiscoveredToFormData(discovered: {
   category?: string | null
   currency?: string | null
   price: number
-  period?: string | null
+  period: BillingPeriod
   start_date: string
   end_date: string
   service_url?: string | null
@@ -242,7 +246,7 @@ export function convertDiscoveredToFormData(discovered: {
     // USD is the fallback of last resort for that case only - a real SEK or BRL
     // receipt now keeps its own currency instead of being relabelled.
     currency: normalizeCurrency(discovered.currency) ?? 'USD',
-    period: (discovered.period as any) ?? 'MONTHLY',
+    period: discovered.period,
     startDate: discovered.start_date,
     endDate: discovered.end_date,
     autoRenew: discovered.auto_renew ?? false,
@@ -270,7 +274,10 @@ export function formDataToDiscovered(
     service_name: data.serviceName,
     price: data.price,
     currency: data.currency,
-    period: data.period,
+    // CreateSubscriptionFormData carries an optional period because the manual
+    // add form can omit it. A discovered entry always has one, so fall back
+    // rather than let a round-trip strip the period off a row that must carry it.
+    period: data.period ?? base.period,
     start_date: data.startDate,
     end_date: data.endDate,
     auto_renew: data.autoRenew,

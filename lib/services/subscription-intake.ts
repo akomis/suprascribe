@@ -5,12 +5,14 @@ import type {
   UserSubscriptionWithDetails,
 } from '@/lib/types/database'
 import { isDuplicateSubscription } from '@/lib/utils'
+import { serviceKey } from '@/lib/utils/service-key'
 
 export type IntakeResult =
   | { ok: true; subscription: UserSubscriptionWithDetails }
   | { ok: false; error: string; status: number }
 
-type ServiceResult = { serviceId: number } | { error: string; status: number }
+type ServiceError = { error: string; status: number }
+type ServiceResult = { serviceId: number } | ServiceError
 
 // Generic billing/app-store hosts that are wrongly curated as service domains on some
 // rows (e.g. a payment processor). Never derive an unsubscribe_url from these.
@@ -107,33 +109,52 @@ async function createNewService(
   if (createError.code !== '23505')
     return { error: `Error creating service: ${createError.message}`, status: 500 }
 
-  // Race condition: another request created the same service concurrently
-  const { data: retried, error: retryError } = await supabase
+  // 23505 now means one of two things, and both resolve the same way: another
+  // request created this service a moment ago, or the name is a new spelling of
+  // one that already exists and the unique index on name_key caught it.
+  const found = await findServiceByKey(supabase, serviceData.name!)
+  if ('error' in found) return found
+  if (!found.service) {
+    return { error: `Error resolving service after conflict: ${createError.message}`, status: 500 }
+  }
+
+  return { serviceId: found.service.id }
+}
+
+/**
+ * Finds the one service that is this name, whatever the receipt spelled.
+ *
+ * Matches on name_key, the stored canonical identity, rather than on the name
+ * itself: "Etsy" and "ETSY" are one service, and an ILIKE on the raw name said
+ * they were two. A unique index on that column means this can return at most
+ * one row, so the duplicate-pair case that used to mint a third row cannot
+ * happen any more.
+ */
+async function findServiceByKey(
+  supabase: SupabaseClient,
+  name: string,
+): Promise<
+  | { service: { id: number; url: string | null; unsubscribe_url: string | null } | null }
+  | ServiceError
+> {
+  const { data, error } = await supabase
     .from('SUBSCRIPTION_SERVICES')
-    .select('id')
-    .ilike('name', serviceData.name!)
-    .single()
+    .select('id, url, unsubscribe_url')
+    .eq('name_key', serviceKey(name))
+    .maybeSingle()
 
-  if (retryError || !retried)
-    return { error: `Error resolving service after conflict: ${retryError?.message}`, status: 500 }
-
-  return { serviceId: retried.id }
+  if (error) return { error: `Error finding service: ${error.message}`, status: 500 }
+  return { service: data ?? null }
 }
 
 async function upsertService(
   supabase: SupabaseClient,
   serviceData: SubscriptionServiceInsert,
 ): Promise<ServiceResult> {
-  const { data: existing, error: findError } = await supabase
-    .from('SUBSCRIPTION_SERVICES')
-    .select('id, url, unsubscribe_url')
-    .ilike('name', serviceData.name!)
-    .single<{ id: number; url: string | null; unsubscribe_url: string | null }>()
+  const found = await findServiceByKey(supabase, serviceData.name!)
+  if ('error' in found) return found
 
-  if (findError && findError.code !== 'PGRST116')
-    return { error: `Error finding service: ${findError.message}`, status: 500 }
-
-  if (existing) return updateExistingService(supabase, existing, serviceData)
+  if (found.service) return updateExistingService(supabase, found.service, serviceData)
   return createNewService(supabase, serviceData)
 }
 
@@ -148,15 +169,19 @@ function maxDate(a: string | null, b: string): string {
 /**
  * Whether a discovered period belongs to a run the user already has.
  *
- * Requires the same billing cycle, so a monthly plan never absorbs a yearly one,
- * and a one-time payment (no period) never absorbs anything.
+ * Requires the same billing cycle, so a monthly plan never absorbs a yearly one.
+ * Only ever called for discovery imports, and the cadence classifier gives every
+ * one of those a period.
  */
+// Pure, and imported by the discovery review dialog so the client can predict
+// this outcome instead of reporting a silent period merge as a new row. Keep
+// this module free of server-only imports.
 export function overlapsExistingPeriod(
-  incoming: { start_date: string; end_date: string; period: string | null },
+  incoming: { start_date: string; end_date: string; period: string },
   existing: { start_date: string | null; end_date: string | null; period: string | null },
 ): boolean {
   if (!existing.start_date || !existing.end_date) return false
-  if (!incoming.period || incoming.period !== existing.period) return false
+  if (incoming.period !== existing.period) return false
 
   return incoming.start_date <= existing.end_date && existing.start_date <= incoming.end_date
 }
@@ -218,6 +243,7 @@ export async function intakeSubscription(
     )
     .eq('user_id', subscriptionData.user_id)
     .eq('subscription_service_id', serviceId)
+    .is('deleted_at', null)
 
   if (checkError) {
     return {
@@ -266,7 +292,7 @@ export async function intakeSubscription(
           {
             start_date: subscriptionData.start_date!,
             end_date: subscriptionData.end_date!,
-            period: subscriptionData.period ?? null,
+            period: subscriptionData.period!,
           },
           sub,
         ),

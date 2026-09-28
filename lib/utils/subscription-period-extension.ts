@@ -1,20 +1,24 @@
 import type { BillingPeriod, DiscoveredSubscription } from '@/lib/types/forms'
 import { toDateString } from '@/lib/utils/date'
+import { serviceKey } from '@/lib/utils/service-key'
 
 // Tolerate a slightly late or missed receipt, both when judging whether two
 // periods are consecutive and when judging whether the newest one is still live.
 const GRACE_BUFFER_DAYS = 10
 
 // Approximate length of one billing cycle in days, keyed by billing period.
-const CYCLE_DAYS: Record<BillingPeriod, number> = {
+// Exported because the cadence classifier decides which cycle a run is on using
+// the same numbers this module uses to decide where that run lapsed. Two copies
+// that drift by a day split a continuous subscription into two entries.
+export const CYCLE_DAYS: Record<BillingPeriod, number> = {
   WEEKLY: 7,
   MONTHLY: 30,
   QUARTERLY: 90,
   YEARLY: 365,
 }
 
-function getCycleDays(period?: BillingPeriod): number {
-  return period ? CYCLE_DAYS[period] : 30
+function getCycleDays(period: BillingPeriod): number {
+  return CYCLE_DAYS[period]
 }
 
 function endOf(sub: DiscoveredSubscription): string {
@@ -42,35 +46,11 @@ function laterDate(a: string, b: string): string {
   return a && b ? (a > b ? a : b) : a || b
 }
 
-// A single charge with no recurrence: credits, one-off purchases. Identified by
-// the absence of a billing period alone - a recurring receipt whose end_date the
-// model omitted also collapses to end === start, and must not be mistaken for
-// one of these or it shows up as a separate one-time row for every month.
-export function isOneTimePayment(sub: Pick<DiscoveredSubscription, 'period'>): boolean {
-  return !sub.period
-}
-
-// Heading of the discovery-results section that collects the one-time charges,
-// kept apart from the active/past split, which only describes a recurring one.
-export const ONE_TIME_SECTION_LABEL = 'Recurring'
-
-// Restores the span of a recurring receipt that arrived without an end_date:
-// one billing cycle from the charge date. Without this the segment cannot join
-// its timeline, because it looks like a zero-length period.
-function withDerivedEnd(sub: DiscoveredSubscription): DiscoveredSubscription {
-  if (endOf(sub) > sub.start_date) return sub
-
-  const end = new Date(sub.start_date)
-  end.setDate(end.getDate() + getCycleDays(sub.period))
-
-  return { ...sub, end_date: toDateString(end) }
-}
-
 // One timeline per service + billing period. Price is deliberately excluded:
 // a price change mid-subscription is still the same continuous subscription.
 // A different billing period is a different plan and gets its own timeline.
 function timelineKey(sub: DiscoveredSubscription): string {
-  return `${sub.service_name.toLowerCase().trim()}|${sub.period ?? 'MONTHLY'}`
+  return `${serviceKey(sub.service_name)}|${sub.period}`
 }
 
 // Two segments belong to the same run if the newer one starts within a billing
@@ -78,7 +58,7 @@ function timelineKey(sub: DiscoveredSubscription): string {
 // means the subscription actually lapsed and was restarted later.
 function isContinuous(earlier: DiscoveredSubscription, later: DiscoveredSubscription): boolean {
   const gap = daysBetween(endOf(earlier), later.start_date)
-  return gap <= getCycleDays(later.period ?? earlier.period) + GRACE_BUFFER_DAYS
+  return gap <= getCycleDays(later.period) + GRACE_BUFFER_DAYS
 }
 
 // Later receipts win on price and payment details (they reflect the current
@@ -122,7 +102,6 @@ function mergeIntoRun(
  * Showing a cancelled subscription as active is visible and one click to fix.
  */
 function isRecentlyLapsed(sub: DiscoveredSubscription): boolean {
-  if (isOneTimePayment(sub)) return false
   const end = endOf(sub)
   if (!hasElapsed(end)) return false
   return daysBetween(end, todayString()) <= getCycleDays(sub.period) + GRACE_BUFFER_DAYS
@@ -160,7 +139,6 @@ function extendToCoverToday(sub: DiscoveredSubscription): DiscoveredSubscription
  * projected period - the renewal edge function handles everything beyond the
  * current one. Runs that lapsed longer ago stay in the past.
  *
- * One-time payments are passed through untouched.
  */
 export function consolidateSubscriptionPeriods(
   subscriptions: DiscoveredSubscription[],
@@ -169,13 +147,9 @@ export function consolidateSubscriptionPeriods(
   const result: DiscoveredSubscription[] = []
 
   for (const sub of subscriptions) {
-    if (isOneTimePayment(sub)) {
-      result.push(sub)
-      continue
-    }
     const key = timelineKey(sub)
     const existing = timelines.get(key) || []
-    existing.push(withDerivedEnd(sub))
+    existing.push(sub)
     timelines.set(key, existing)
   }
 

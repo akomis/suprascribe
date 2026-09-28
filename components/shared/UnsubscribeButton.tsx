@@ -62,6 +62,8 @@ export type UnsubscribeButtonProps = {
   surface: UnsubscribeSurface
   /** Called once the user has actually been sent to an unsubscribe destination. */
   onUnsubscribeOpened?: () => void
+  /** Hide the label below the md breakpoint, leaving only the icon. */
+  iconOnlyOnMobile?: boolean
   className?: string
 }
 
@@ -70,6 +72,7 @@ export function UnsubscribeButton({
   unsubscribeUrl,
   surface,
   onUnsubscribeOpened,
+  iconOnlyOnMobile,
   className,
 }: UnsubscribeButtonProps) {
   const [showMissingLink, setShowMissingLink] = React.useState(false)
@@ -91,9 +94,16 @@ export function UnsubscribeButton({
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={handleClick} className={className}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleClick}
+        className={className}
+        title="Unsubscribe"
+        aria-label="Unsubscribe"
+      >
         <UserX className="size-4" />
-        Unsubscribe
+        {iconOnlyOnMobile ? <span className="hidden md:inline">Unsubscribe</span> : 'Unsubscribe'}
       </Button>
 
       <MissingUnsubscribeLinkDialog

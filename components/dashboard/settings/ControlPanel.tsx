@@ -3,6 +3,7 @@
 import AccountSettings from '@/components/dashboard/settings/AccountSettings'
 import { BYOKDialog } from '@/components/dashboard/settings/BYOKDialog'
 import { CurrencySelector } from '@/components/dashboard/settings/CurrencySelector'
+import { ImportExportDialog } from '@/components/dashboard/settings/ImportExportDialog'
 import LogoutButton from '@/components/dashboard/settings/LogoutButton'
 import { PWAInstallRow } from '@/components/dashboard/settings/PWAInstallRow'
 import { RemindersDialog } from '@/components/dashboard/settings/RemindersDialog'
@@ -19,7 +20,7 @@ import {
 import { isFeatureEnabled } from '@/lib/config/features'
 import { createClient } from '@/lib/supabase/client'
 import { SupportButton } from '@/components/shared/SupportButton'
-import { Bell, Key, Link2, Settings, User } from 'lucide-react'
+import { ArrowLeftRight, Bell, Key, Link2, Settings, User } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import * as React from 'react'
@@ -32,6 +33,7 @@ function ControlPanelInner() {
   const [settingsOpen, setSettingsOpen] = React.useState(false)
   const [byokOpen, setByokOpen] = React.useState(false)
   const [remindersOpen, setRemindersOpen] = React.useState(false)
+  const [importExportOpen, setImportExportOpen] = React.useState(false)
   const [passwordChangeMode, setPasswordChangeMode] = React.useState(false)
 
   React.useEffect(() => {
@@ -120,7 +122,18 @@ function ControlPanelInner() {
               Renewal Reminders
             </Button>
           </ProGate>
-          {isFeatureEnabled('pwa_install') && <PWAInstallRow />}
+          <ProGate feature="import_export" className="w-full">
+            <Button
+              variant="outline"
+              type="button"
+              aria-label="Open import and export"
+              onClick={() => setImportExportOpen(true)}
+              className="w-full justify-start gap-2 text-muted-foreground font-normal"
+            >
+              <ArrowLeftRight className="h-4 w-4" />
+              Import & Export
+            </Button>
+          </ProGate>
           <Button
             variant="outline"
             type="button"
@@ -141,12 +154,13 @@ function ControlPanelInner() {
               Affiliate Program
             </Button>
           </Link>
+          {isFeatureEnabled('pwa_install') && <PWAInstallRow />}
 
           <DropdownMenuSeparator />
 
           <div className="flex gap-2">
             <ProGate feature="email_support" className="flex-1">
-              <SupportButton className="w-full justify-center gap-2 text-muted-foreground font-normal" />
+              <SupportButton className="w-full flex-1 justify-center gap-2 text-muted-foreground font-normal" />
             </ProGate>
             <LogoutButton
               variant="secondary"
@@ -198,6 +212,7 @@ function ControlPanelInner() {
         />
         <BYOKDialog open={byokOpen} onOpenChange={setByokOpen} />
         <RemindersDialog open={remindersOpen} onOpenChange={setRemindersOpen} />
+        <ImportExportDialog open={importExportOpen} onOpenChange={setImportExportOpen} />
       </DropdownMenu>
     </ClientOnly>
   )

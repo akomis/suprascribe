@@ -3,27 +3,22 @@
 import { ServiceLogo } from '@/components/shared/ServiceLogo'
 import { UnsubscribeButton } from '@/components/shared/UnsubscribeButton'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import type { CurrencyCode } from '@/lib/hooks/useCurrency'
 import type { BillingPeriod, DiscoveredSubscription } from '@/lib/types/forms'
-import {
-  cn,
-  formatDateRangeWithDuration,
-  formatLocalizedDate,
-  isSubscriptionActive,
-} from '@/lib/utils'
+import { cn, formatDateRangeWithDuration } from '@/lib/utils'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
-import { isOneTimePayment, ONE_TIME_SECTION_LABEL } from '@/lib/utils/subscription-period-extension'
-import { ChevronDown } from 'lucide-react'
+import {
+  downloadCsv,
+  exportFilename,
+  groupDiscoveredByService,
+  rowsFromDiscovered,
+  toCsv,
+  type DiscoveredServiceGroup,
+} from '@/lib/utils/subscriptions-csv'
+import { ChevronDown, Download } from 'lucide-react'
 import { useState } from 'react'
-
-type ServiceGroup = {
-  serviceName: string
-  serviceUrl?: string
-  unsubscribeUrl?: string
-  latest: DiscoveredSubscription
-  active: boolean
-}
 
 const PERIOD_SUFFIX: Record<BillingPeriod, string> = {
   WEEKLY: '/wk',
@@ -32,40 +27,10 @@ const PERIOD_SUFFIX: Record<BillingPeriod, string> = {
   YEARLY: '/yr',
 }
 
-function groupByService(subs: DiscoveredSubscription[]): ServiceGroup[] {
-  const map = new Map<string, DiscoveredSubscription[]>()
-  for (const sub of subs) {
-    if (!map.has(sub.service_name)) map.set(sub.service_name, [])
-    map.get(sub.service_name)!.push(sub)
-  }
-
-  const groups: ServiceGroup[] = Array.from(map.entries()).map(([serviceName, list]) => {
-    const latest = [...list].sort(
-      (a, b) => new Date(b.end_date).getTime() - new Date(a.end_date).getTime(),
-    )[0]
-    return {
-      serviceName,
-      serviceUrl: list.find((s) => s.service_url)?.service_url,
-      unsubscribeUrl: list.find((s) => s.unsubscribe_url)?.unsubscribe_url,
-      latest,
-      active: isSubscriptionActive(latest.start_date, latest.end_date),
-    }
-  })
-
-  // Active services first, then alphabetical.
-  return groups.sort((a, b) => {
-    if (a.active !== b.active) return a.active ? -1 : 1
-    return a.serviceName.localeCompare(b.serviceName)
-  })
-}
-
-function ServiceRow({ group }: { group: ServiceGroup }) {
+function ServiceRow({ group }: { group: DiscoveredServiceGroup }) {
   const { latest } = group
-  const periodSuffix = latest.period ? PERIOD_SUFFIX[latest.period] : ''
-  const oneTime = isOneTimePayment(latest)
-  const dateLabel = oneTime
-    ? formatLocalizedDate(latest.start_date)
-    : formatDateRangeWithDuration(latest.start_date, latest.end_date)
+  const periodSuffix = PERIOD_SUFFIX[latest.period]
+  const dateLabel = formatDateRangeWithDuration(latest.start_date, latest.end_date)
 
   return (
     <div className="flex items-center gap-3 rounded-lg border p-3">
@@ -75,16 +40,10 @@ function ServiceRow({ group }: { group: ServiceGroup }) {
       <div className="flex flex-1 flex-col min-w-0">
         <div className="flex items-center gap-2 min-w-0">
           <span className="font-medium truncate">{group.serviceName}</span>
-          {oneTime ? (
+          {!group.active && (
             <Badge variant="outline" className="text-[10px] shrink-0">
-              One-time
+              Past
             </Badge>
-          ) : (
-            !group.active && (
-              <Badge variant="outline" className="text-[10px] shrink-0">
-                Past
-              </Badge>
-            )
           )}
         </div>
         {latest.price > 0 && (
@@ -138,12 +97,9 @@ export function DiscoveryResultsReadOnly({
     )
   }
 
-  // One-time charges get their own section: the active/past split below only
-  // describes a recurring one.
-  const recurringGroups = groupByService(subscriptions.filter((sub) => !isOneTimePayment(sub)))
-  const oneTimeGroups = groupByService(subscriptions.filter(isOneTimePayment))
-  const activeGroups = recurringGroups.filter((g) => g.active)
-  const pastGroups = recurringGroups.filter((g) => !g.active)
+  const groups = groupDiscoveredByService(subscriptions)
+  const activeGroups = groups.filter((g) => g.active)
+  const pastGroups = groups.filter((g) => !g.active)
   const serviceCount = new Set(subscriptions.map((sub) => sub.service_name)).size
 
   return (
@@ -198,17 +154,24 @@ export function DiscoveryResultsReadOnly({
         </>
       )}
 
-      {oneTimeGroups.length > 0 && (
-        <>
-          <Separator />
-          <span className="text-sm text-muted-foreground">{ONE_TIME_SECTION_LABEL}</span>
-          <div className="flex flex-col gap-2">
-            {oneTimeGroups.map((group) => (
-              <ServiceRow key={group.serviceName} group={group} />
-            ))}
-          </div>
-        </>
-      )}
+      <div className="flex justify-center">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => {
+            // Built in the browser: scan results never reach the server.
+            const account = emailScanned?.split('@')[0]
+            downloadCsv(
+              exportFilename(account ? `suprascribe-scan-${account}` : 'suprascribe-scan'),
+              toCsv(rowsFromDiscovered(subscriptions)),
+            )
+          }}
+        >
+          <Download className="size-4" />
+          Download CSV
+        </Button>
+      </div>
 
       <p className="text-xs text-muted-foreground text-center">
         These results were identified by AI and may contain mistakes. Nothing was saved to
