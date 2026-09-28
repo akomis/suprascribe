@@ -10,7 +10,9 @@ export const EMAIL_DISCOVERY_CONFIG = {
     'monthly charge',
     'auto-renewal',
     'recurring payment',
-    'order confirmation',
+    // No "order confirmation": the prompt tells the model to skip those emails
+    // outright, so fetching them only spends tokens and crowds the scan cap with
+    // retail orders that keep surfacing as fake monthly subscriptions.
   ],
 
   // Microsoft Graph's $search takes ONE KQL expression wrapped in a single pair
@@ -35,8 +37,9 @@ export const EMAIL_DISCOVERY_CONFIG = {
 
   // Senders whose mail is billing mail regardless of what the subject says.
   // A receipt routed through a checkout host often carries the merchant's own
-  // subject line ("Your Acme order"), which no keyword list would match.
-  billingSenderDomains: [
+  // subject line ("Your Acme order"), which no keyword list would match. These
+  // hosts send nothing else, so their mail is fetched unconditionally.
+  dedicatedBillingSenders: [
     'stripe.com',
     'paddle.com',
     'paddle.net',
@@ -47,10 +50,15 @@ export const EMAIL_DISCOVERY_CONFIG = {
     'fastspring.com',
     'creem.io',
     'polar.sh',
-    'paypal.com',
-    'apple.com',
-    'google.com',
   ],
+
+  // Senders that carry billing mail among a great deal of everything else.
+  // Fetching a consumer's entire PayPal, Apple or Google relationship floods the
+  // scan cap with shipping notices, security alerts and marketing, and those
+  // retail receipts are the main source of charges that look like subscriptions
+  // but are not. Their mail is only fetched when the subject also looks like
+  // billing, which is a far smaller and much cleaner set.
+  mixedSenders: ['paypal.com', 'apple.com', 'google.com'],
 
   // How far back to search. Without a window the cap below truncates at an
   // arbitrary point in history rather than bounding a period, so two scans of
@@ -84,6 +92,12 @@ export const EMAIL_DISCOVERY_CONFIG = {
 export interface SearchQueryOptions {
   /** Sender domains treated as billing mail whatever the subject says. */
   senders?: readonly string[]
+  /**
+   * Sender domains that also send a lot of non-billing mail. Matched only when
+   * the subject looks like billing too, so a consumer's whole PayPal or Apple
+   * relationship does not consume the scan cap.
+   */
+  mixedSenders?: readonly string[]
   /** Oldest message to consider. Omit to search all history. */
   since?: Date
 }
@@ -114,37 +128,48 @@ export function searchWindowStart(now: Date = new Date()): Date {
  * already wrapped in its single pair of quotes, ready to be URL-encoded as the
  * $search value - callers must not add quotes of their own.
  *
- * Subject and sender clauses are OR-ed together, then the date window is AND-ed
- * across the lot, so a receipt qualifies on either signal but never falls
- * outside the window.
+ * Subject and dedicated-sender clauses are OR-ed together, then the date window
+ * is AND-ed across the lot, so a receipt qualifies on either signal but never
+ * falls outside the window. A mixed sender has to satisfy BOTH its own clause
+ * and the subject clause, which is what keeps a consumer's entire PayPal or
+ * Apple history out of the results.
  */
+/** Joins non-empty clauses with OR, parenthesised only when there is a choice. */
+function or(clauses: (string | undefined)[]): string | undefined {
+  const present = clauses.filter((clause): clause is string => Boolean(clause))
+  if (present.length === 0) return undefined
+  return present.length === 1 ? present[0] : `(${present.join(' OR ')})`
+}
+
 export function buildSearchQuery(
   keywords: readonly string[],
   provider: 'gmail' | 'outlook' | 'imap',
   options: SearchQueryOptions = {},
 ): string {
-  const { senders = [], since } = options
+  const { senders = [], mixedSenders = [], since } = options
 
   switch (provider) {
     case 'gmail': {
-      const clauses = [
-        ...keywords.map((kw) => `subject:"${kw}"`),
-        ...senders.map((domain) => `from:${domain}`),
-      ]
-      if (clauses.length === 0) return 'subject:receipt'
+      const subject = or(keywords.map((kw) => `subject:"${kw}"`))
+      const dedicated = or(senders.map((domain) => `from:${domain}`))
+      const mixed = or(mixedSenders.map((domain) => `from:${domain}`))
+      // Adjacency is AND in Gmail's query language.
+      const mixedAndSubject = mixed && subject ? `(${mixed} ${subject})` : undefined
 
-      const grouped = clauses.length > 1 ? `(${clauses.join(' OR ')})` : clauses[0]
+      const grouped = or([subject, dedicated, mixedAndSubject])
+      if (!grouped) return 'subject:receipt'
 
       return since ? `${grouped} after:${toGmailDate(since)}` : grouped
     }
     case 'outlook': {
-      const clauses = [
-        ...keywords.map((kw) => `subject:${kw}`),
-        ...senders.map((domain) => `from:${domain}`),
-      ]
-      if (clauses.length === 0) return '"subject:receipt"'
+      const subject = or(keywords.map((kw) => `subject:${kw}`))
+      const dedicated = or(senders.map((domain) => `from:${domain}`))
+      const mixed = or(mixedSenders.map((domain) => `from:${domain}`))
+      const mixedAndSubject = mixed && subject ? `(${mixed} AND ${subject})` : undefined
 
-      const grouped = clauses.length > 1 ? `(${clauses.join(' OR ')})` : clauses[0]
+      const grouped = or([subject, dedicated, mixedAndSubject])
+      if (!grouped) return '"subject:receipt"'
+
       const withWindow = since ? `${grouped} AND received>=${toIsoDate(since)}` : grouped
 
       return `"${withWindow}"`

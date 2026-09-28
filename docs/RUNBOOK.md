@@ -108,24 +108,32 @@ Or connect the GitHub repository to Railway for automatic deployments on push to
 ### 3.4 Deploy Supabase Edge Functions
 
 ```bash
-supabase functions deploy send-renewal-reminders
-supabase functions deploy process-subscription-renewals
+supabase functions deploy send-renewal-reminders --no-verify-jwt
 ```
+
+`--no-verify-jwt` is required: the cron job authenticates with a secret key (`sb_secret_...`), which is not a JWT, and the function checks it itself.
 
 Set the function secrets in Supabase Dashboard → Edge Functions → Secrets (or via CLI):
 
 ```bash
 supabase secrets set RESEND_API_KEY=re-...
 supabase secrets set NEXT_PUBLIC_SUPABASE_URL=https://...
-supabase secrets set SUPABASE_SERVICE_ROLE_KEY=...
 ```
+
+`SUPABASE_SECRET_KEYS` is provided by the platform; nothing to set for it.
 
 ### 3.5 Configure Cron Jobs
 
-In Supabase Dashboard → Edge Functions, set up scheduled invocations:
+Both jobs live in `pg_cron` and are created by migrations:
 
-- `send-renewal-reminders` - daily at a fixed time (e.g. 08:00 UTC)
-- `process-subscription-renewals` - daily, same or earlier time
+- `process-subscription-renewals` - 00:00 UTC, runs `SELECT process_subscription_renewals()` directly in the database
+- `send-renewal-reminders-daily` - 08:00 UTC, POSTs to the `send-renewal-reminders` Edge Function with the Vault secret `secret_key` on the `apikey` header
+
+Store the secret key in Vault once (Settings → API Keys → Secret keys):
+
+```sql
+select vault.create_secret('sb_secret_...', 'secret_key');
+```
 
 ---
 
@@ -143,8 +151,7 @@ railway up        # deploy
 **Re-deploy Edge Functions after changes:**
 
 ```bash
-supabase functions deploy send-renewal-reminders
-supabase functions deploy process-subscription-renewals
+supabase functions deploy send-renewal-reminders --no-verify-jwt
 ```
 
 **Database schema changes:**
@@ -178,17 +185,16 @@ Submission history is visible in Bing Webmaster Tools -> IndexNow.
 
 ## 5. Supabase Edge Functions
 
-| Function                        | Trigger      | Purpose                                                                |
-| ------------------------------- | ------------ | ---------------------------------------------------------------------- |
-| `send-renewal-reminders`        | Cron (daily) | Emails PRO users about upcoming renewals                               |
-| `process-subscription-renewals` | Cron (daily) | Calls `process_subscription_renewals()` DB RPC to update renewal dates |
+| Function                 | Trigger      | Purpose                                  |
+| ------------------------ | ------------ | ---------------------------------------- |
+| `send-renewal-reminders` | Cron (daily) | Emails PRO users about upcoming renewals |
 
-Both functions require a Bearer token (`Authorization: Bearer <SUPABASE_ANON_KEY>`) and are protected by Supabase's built-in auth.
+`send-renewal-reminders` runs with JWT verification off and rejects any request whose `apikey` header is not one of the project's secret keys (`SUPABASE_SECRET_KEYS`). `process_subscription_renewals()` is executable only by `service_role` and `postgres`.
 
-**Test a function manually:**
+**Test a function manually** (sends real emails for today's due renewals):
 
 ```bash
-supabase functions invoke send-renewal-reminders --no-verify-jwt
+curl -X POST https://<project-ref>.supabase.co/functions/v1/send-renewal-reminders -H "apikey: sb_secret_..."
 ```
 
 ---
@@ -302,8 +308,7 @@ yarn install && yarn build
 railway up
 
 # 5. Deploy Edge Functions
-supabase functions deploy send-renewal-reminders
-supabase functions deploy process-subscription-renewals
+supabase functions deploy send-renewal-reminders --no-verify-jwt
 
 # 6. Set Edge Function secrets (see §3.4)
 

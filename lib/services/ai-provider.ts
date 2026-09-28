@@ -80,9 +80,10 @@ export function createModel(config: ProviderConfig): LanguageModel {
         // Only route to upstreams that honour every parameter we send
         // (max_tokens, seed) rather than silently dropping them.
         provider: { require_parameters: true },
-        // Deliberately NOT strict: the analysis schema relies on optional
-        // fields being omitted (an absent end_date means "one-time, do not
-        // extend"), and strict mode forces every property to be emitted.
+        // Deliberately NOT strict: the charge schema relies on optional fields
+        // being omitted to mean "the email did not say" (stated_period is the
+        // load-bearing one), and strict mode forces every property to be
+        // emitted - which would turn silence into a fabricated value.
       })
     }
     default:

@@ -81,7 +81,7 @@ export default function InsightsPieChart({
         aria-hidden="true"
         id="insights-pie-chart"
         config={{}}
-        className="mx-auto h-50 sm:h-62.5 w-full min-w-0 max-w-full aspect-auto"
+        className="mx-auto h-60 sm:h-62.5 w-full min-w-0 max-w-full aspect-auto"
       >
         <PieChart
           margin={{ top: 30, right: isMobile ? 50 : 80, bottom: 30, left: isMobile ? 50 : 80 }}
@@ -142,7 +142,7 @@ export default function InsightsPieChart({
                   y={y}
                   textAnchor={textAnchor}
                   dominantBaseline="central"
-                  fontSize={10}
+                  fontSize={isMobile ? 12 : 10}
                   className="fill-muted-foreground dark:fill-white"
                   style={{
                     animation: `pie-label-fade-in 0.4s ease-out ${delay}ms forwards`,
@@ -167,14 +167,14 @@ export default function InsightsPieChart({
                       <tspan
                         x={viewBox.cx}
                         y={viewBox.cy}
-                        className="fill-foreground text-sm sm:text-2xl font-semibold font-mono"
+                        className="fill-foreground text-base sm:text-2xl font-semibold font-mono"
                       >
                         {formatCurrency(totalMonthly)}/mo
                       </tspan>
                       <tspan
                         x={viewBox.cx}
-                        y={(viewBox.cy || 0) + 16}
-                        className="fill-muted-foreground text-[8px] sm:text-sm font-mono"
+                        y={(viewBox.cy || 0) + (isMobile ? 18 : 16)}
+                        className="fill-muted-foreground text-xs sm:text-sm font-mono"
                       >
                         {formatCurrency(yearly)}
                         {tab === 'past' ? ` in ${year}` : mode === 'spent' ? ' ytd' : '/yr'}

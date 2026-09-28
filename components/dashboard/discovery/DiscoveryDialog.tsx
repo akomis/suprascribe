@@ -28,8 +28,14 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
 import { useSubscriptions } from '@/lib/hooks/useSubscriptions'
+import { overlapsExistingPeriod } from '@/lib/services/subscription-intake'
+import type { MergedSubscriptionResponse } from '@/lib/types/subscriptions'
 import type { DiscoveryTeaser } from '@/lib/hooks/discovery/useDiscoveryCore'
-import type { TeaserPreviewEntry, TeaserPreviewGroup } from '@/lib/types/discovery'
+import type {
+  DiscoveryErrorKind,
+  TeaserPreviewEntry,
+  TeaserPreviewGroup,
+} from '@/lib/types/discovery'
 import type {
   BillingPeriod,
   CreateSubscriptionFormData,
@@ -45,12 +51,11 @@ import {
 import { ServiceLogo } from '@/components/shared/ServiceLogo'
 import { formatCurrencyAmount } from '@/lib/utils/currency'
 import type { CurrencyCode } from '@/lib/hooks/useCurrency'
-import { isOneTimePayment, ONE_TIME_SECTION_LABEL } from '@/lib/utils/subscription-period-extension'
 import { UpgradeButton } from '@/components/UpgradeButton'
 import { useQueryClient } from '@tanstack/react-query'
 import { ChevronDown } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 // Loaded lazily to break the import cycle: this dialog opens the add dialog, whose
@@ -68,6 +73,74 @@ const TEASER_PERIOD_SUFFIX: Record<BillingPeriod, string> = {
   MONTHLY: '/mo',
   QUARTERLY: '/qtr',
   YEARLY: '/yr',
+}
+
+// Stable empty default, so the classification memo below is not invalidated on
+// every render while the existing-subscriptions query has no data yet.
+const NO_EXISTING_SUBSCRIPTIONS: MergedSubscriptionResponse[] = []
+
+/**
+ * What importing one discovered entry would actually do, mirroring what
+ * intakeSubscription does on the server:
+ *
+ * - `duplicate`: refused outright as an exact match.
+ * - `extend`: silently widens a period the user already owns and returns a 201
+ *   that is indistinguishable from an insert. The row count does not change.
+ * - `new`: inserted as a row the user can see.
+ *
+ * Only `new` puts anything in the list, so only `new` may be presented as
+ * something found. Reporting the other two as additions is what makes a re-scan
+ * look broken and sends people round the discovery flow again.
+ */
+type TrackedKind = 'new' | 'extend' | 'duplicate'
+
+function classifyDiscovered(
+  discovered: DiscoveredSubscription,
+  existing: MergedSubscriptionResponse[],
+): TrackedKind {
+  const name = discovered.service_name.toLowerCase().trim()
+  // The cadence classifier gives every discovered entry a period, and that is
+  // the period intake judges the overlap on.
+  const period = discovered.period
+  let wouldExtend = false
+
+  for (const merged of existing) {
+    for (const row of merged.subscriptions) {
+      // overlapsExistingPeriod does not look at service names - intake gets that
+      // for free from its subscription_service_id filter - so scope it here, or
+      // an overlapping Netflix period marks a Spotify charge as tracked.
+      if ((row.subscription_service?.name ?? '').toLowerCase().trim() !== name) continue
+
+      const isExact = isDuplicateSubscription(
+        {
+          service_name: discovered.service_name,
+          start_date: discovered.start_date,
+          end_date: discovered.end_date,
+        },
+        {
+          subscription_service: row.subscription_service
+            ? { name: row.subscription_service.name }
+            : null,
+          start_date: row.start_date,
+          end_date: row.end_date,
+        },
+      )
+      // Intake runs its exact-duplicate loop over every row before it considers
+      // extending any of them, so an exact match anywhere outranks an overlap.
+      if (isExact) return 'duplicate'
+
+      if (
+        overlapsExistingPeriod(
+          { start_date: discovered.start_date, end_date: discovered.end_date, period },
+          { start_date: row.start_date, end_date: row.end_date, period: row.period },
+        )
+      ) {
+        wouldExtend = true
+      }
+    }
+  }
+
+  return wouldExtend ? 'extend' : 'new'
 }
 
 type GroupedItem = { sub: DiscoveredSubscription; index: number }
@@ -98,14 +171,14 @@ function getGroupedItems(items: GroupedItem[]): SubscriptionGroup[] {
 function DiscoveryGroupList({
   groups,
   selectedSubscriptions,
-  isDuplicateGroup,
+  kinds,
   isSaving,
   onToggle,
   onEdit,
 }: {
   groups: SubscriptionGroup[]
   selectedSubscriptions: Set<number>
-  isDuplicateGroup: boolean
+  kinds: TrackedKind[]
   isSaving: boolean
   onToggle: (index: number, checked: boolean) => void
   onEdit: (index: number) => void
@@ -114,14 +187,17 @@ function DiscoveryGroupList({
     <>
       {groups.map((group) => (
         <DiscoveredSubscriptionGroupCard
-          key={`${isDuplicateGroup ? 'dup' : 'sub'}-${group.serviceName}`}
+          key={`${kinds[group.items[0]?.index] ?? 'new'}-${group.serviceName}`}
           serviceName={group.serviceName}
           serviceUrl={group.serviceUrl}
           items={group.items.map(({ sub, index }) => ({
             subscription: sub,
             index,
-            isSelected: isDuplicateGroup ? false : selectedSubscriptions.has(index),
-            isDuplicate: isDuplicateGroup,
+            // No longer forced false for the tracked group: an entry that would
+            // extend a period the user owns stays selected, so the extension
+            // still happens and their end dates keep up with the mailbox.
+            isSelected: selectedSubscriptions.has(index),
+            trackedAs: kinds[index] === 'new' ? null : (kinds[index] ?? null),
           }))}
           onToggle={onToggle}
           onEdit={onEdit}
@@ -228,30 +304,48 @@ function ErrorView({
   )
 }
 
-function WarningView({ warning, onClose }: { warning: string; onClose: () => void }) {
+function WarningView({
+  warning,
+  warningKind,
+  onClose,
+}: {
+  warning: string
+  warningKind?: DiscoveryErrorKind | null
+  onClose: () => void
+}) {
+  // A skipped scan is not a limit: nothing was spent and there is nothing to
+  // upgrade for, so it gets its own framing rather than the rate-limit one.
+  const isSkipped = warningKind === 'no_new_email'
+
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Discovery Limit Reached</DialogTitle>
+        <DialogTitle>
+          {isSkipped ? 'Your List Is Up To Date' : 'Discovery Limit Reached'}
+        </DialogTitle>
         <DialogDescription>
-          Upgrade to PRO for multiple discovery runs and more features.
+          {isSkipped
+            ? 'Nothing has arrived in this inbox since your last scan, so there was nothing to look through.'
+            : 'Upgrade to PRO for multiple discovery runs and more features.'}
         </DialogDescription>
       </DialogHeader>
       <div className="rounded-md bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-400">
         {warning}
-        <p className="text-sm text-muted-foreground">
-          <a
-            href="/limits"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground"
-          >
-            Learn more about discovery limits
-          </a>
-        </p>
+        {!isSkipped && (
+          <p className="text-sm text-muted-foreground">
+            <a
+              href="/limits"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              Learn more about discovery limits
+            </a>
+          </p>
+        )}
       </div>
       <DialogFooter>
-        <SupportButton />
+        {!isSkipped && <SupportButton />}
         <Button onClick={onClose}>Close</Button>
       </DialogFooter>
     </>
@@ -295,123 +389,71 @@ function NoResultsView({
   )
 }
 
-function ReviewSubscriptionsView({
-  discoveredSubscriptions,
+/**
+ * Shown when a scan found things but none of them would change the list.
+ *
+ * NoResultsView cannot say this: "we couldn't find any subscription emails" is
+ * a different claim, and a false one here. What a user in this state needs is
+ * the one sentence that stops them scanning again - that the inbox holds
+ * nothing new - plus the evidence, because a bare "nothing new" from a scanner
+ * they already distrust is exactly what sends them round again.
+ */
+function AlreadyTrackedView({
+  subscriptions,
+  kinds,
   selectedSubscriptions,
+  showDetails,
+  onToggleShowDetails,
   isSaving,
-  showDuplicates,
-  onToggleShowDuplicates,
-  checkIfDuplicate,
-  onToggle,
-  onEdit,
   onSave,
   onScanAnother,
 }: {
-  discoveredSubscriptions: DiscoveredSubscription[]
+  subscriptions: DiscoveredSubscription[]
+  kinds: TrackedKind[]
   selectedSubscriptions: Set<number>
+  showDetails: boolean
+  onToggleShowDetails: () => void
   isSaving: boolean
-  showDuplicates: boolean
-  onToggleShowDuplicates: () => void
-  checkIfDuplicate: (index: number) => boolean
-  onToggle: (index: number, checked: boolean) => void
-  onEdit: (index: number) => void
   onSave: () => void
   onScanAnother?: () => void
 }) {
-  const allSubs = discoveredSubscriptions.map((sub, index) => ({ sub, index }))
-  const nonDuplicates = allSubs.filter(({ index }) => !checkIfDuplicate(index))
-  const duplicates = allSubs.filter(({ index }) => checkIfDuplicate(index))
-
-  // A one-time charge has no active/past state worth showing, so it leaves the
-  // recurring split and gets a section of its own below it.
-  const recurring = nonDuplicates.filter(({ sub }) => !isOneTimePayment(sub))
-  const activeGroups = getGroupedItems(
-    recurring.filter(({ sub }) => isSubscriptionActive(sub.start_date, sub.end_date)),
-  )
-  const pastGroups = getGroupedItems(
-    recurring.filter(({ sub }) => !isSubscriptionActive(sub.start_date, sub.end_date)),
-  )
-  const oneTimeGroups = getGroupedItems(nonDuplicates.filter(({ sub }) => isOneTimePayment(sub)))
-  const duplicateGroups = getGroupedItems(duplicates)
+  const count = subscriptions.length
+  const groups = getGroupedItems(subscriptions.map((sub, index) => ({ sub, index })))
 
   return (
     <div className="animate-in fade-in duration-300 flex flex-col flex-1 overflow-hidden">
       <DialogHeader>
-        <DialogTitle>Review Subscriptions</DialogTitle>
-        <DialogDescription asChild>
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              These subscriptions were identified by AI and may contain mistakes. Use the edit
-              button to correct any details before importing and the X to mark false positives to
-              not be imported to Suprascribe.
-            </p>
-          </div>
+        <DialogTitle>Nothing New to Import</DialogTitle>
+        <DialogDescription>
+          All {count} subscription{count !== 1 ? 's' : ''} we found {count !== 1 ? 'are' : 'is'}{' '}
+          already in your list.
         </DialogDescription>
       </DialogHeader>
 
       <div className="flex flex-col gap-2 py-2 overflow-y-auto flex-1 pr-2">
-        <div className="flex flex-col gap-2 mb-2">
+        <p className="text-sm text-muted-foreground">
+          Your list is already up to date. Scanning this inbox again will keep finding the same{' '}
+          {count}.
+        </p>
+
+        <Separator orientation="horizontal" />
+        <button
+          type="button"
+          onClick={onToggleShowDetails}
+          className="flex items-center justify-between w-full py-2 px-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <span>Show what we found ({count})</span>
+          <ChevronDown className={cn('size-4 transition-transform', showDetails && 'rotate-180')} />
+        </button>
+        {showDetails && (
           <DiscoveryGroupList
-            groups={activeGroups}
+            groups={groups}
             selectedSubscriptions={selectedSubscriptions}
-            isDuplicateGroup={false}
+            kinds={kinds}
             isSaving={isSaving}
-            onToggle={onToggle}
-            onEdit={onEdit}
+            onToggle={() => {}}
+            onEdit={() => {}}
           />
-        </div>
-        {pastGroups.length > 0 && (
-          <Badge variant="outline" className="text-xs font-medium">
-            Past
-          </Badge>
-        )}
-        <DiscoveryGroupList
-          groups={pastGroups}
-          selectedSubscriptions={selectedSubscriptions}
-          isDuplicateGroup={false}
-          isSaving={isSaving}
-          onToggle={onToggle}
-          onEdit={onEdit}
-        />
-
-        {oneTimeGroups.length > 0 && (
-          <Badge variant="outline" className="text-xs font-medium">
-            {ONE_TIME_SECTION_LABEL}
-          </Badge>
-        )}
-        <DiscoveryGroupList
-          groups={oneTimeGroups}
-          selectedSubscriptions={selectedSubscriptions}
-          isDuplicateGroup={false}
-          isSaving={isSaving}
-          onToggle={onToggle}
-          onEdit={onEdit}
-        />
-
-        {duplicateGroups.length > 0 && (
-          <>
-            <Separator orientation="horizontal" />
-            <button
-              type="button"
-              onClick={onToggleShowDuplicates}
-              className="flex items-center justify-between w-full py-2 px-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <span>Duplicate subscriptions ({duplicates.length})</span>
-              <ChevronDown
-                className={cn('size-4 transition-transform', showDuplicates && 'rotate-180')}
-              />
-            </button>
-            {showDuplicates && (
-              <DiscoveryGroupList
-                groups={duplicateGroups}
-                selectedSubscriptions={selectedSubscriptions}
-                isDuplicateGroup={true}
-                isSaving={isSaving}
-                onToggle={onToggle}
-                onEdit={onEdit}
-              />
-            )}
-          </>
         )}
       </div>
 
@@ -429,8 +471,137 @@ function ReviewSubscriptionsView({
   )
 }
 
+function ReviewSubscriptionsView({
+  discoveredSubscriptions,
+  selectedSubscriptions,
+  isSaving,
+  showDuplicates,
+  onToggleShowDuplicates,
+  kinds,
+  isCheckingExisting,
+  onToggle,
+  onEdit,
+  onSave,
+  onScanAnother,
+}: {
+  discoveredSubscriptions: DiscoveredSubscription[]
+  selectedSubscriptions: Set<number>
+  isSaving: boolean
+  showDuplicates: boolean
+  onToggleShowDuplicates: () => void
+  kinds: TrackedKind[]
+  isCheckingExisting: boolean
+  onToggle: (index: number, checked: boolean) => void
+  onEdit: (index: number) => void
+  onSave: () => void
+  onScanAnother?: () => void
+}) {
+  const allSubs = discoveredSubscriptions.map((sub, index) => ({ sub, index }))
+  // Duplicates and period extensions share one bucket: neither puts a row in
+  // the list, so to the user they are the same thing - already tracked.
+  const newItems = allSubs.filter(({ index }) => kinds[index] === 'new')
+  const trackedItems = allSubs.filter(({ index }) => kinds[index] !== 'new')
+
+  const activeGroups = getGroupedItems(
+    newItems.filter(({ sub }) => isSubscriptionActive(sub.start_date, sub.end_date)),
+  )
+  const pastGroups = getGroupedItems(
+    newItems.filter(({ sub }) => !isSubscriptionActive(sub.start_date, sub.end_date)),
+  )
+  const trackedGroups = getGroupedItems(trackedItems)
+
+  // The counts read as part of the description rather than a separate tally
+  // line, so the header is one sentence instead of a number strip plus prose.
+  const isSingle = allSubs.length === 1
+  const subject = isSingle ? 'This subscription' : `These ${allSubs.length} subscriptions`
+  const breakdown =
+    trackedItems.length > 0
+      ? `, ${trackedItems.length} already tracked and ${newItems.length} new,`
+      : ''
+  const identifiedSentence = `${subject} ${isSingle ? 'was' : 'were'} identified by AI${breakdown} and may contain mistakes.`
+
+  return (
+    <div className="animate-in fade-in duration-300 flex flex-col flex-1 overflow-hidden">
+      <DialogHeader>
+        <DialogTitle>Review Subscriptions</DialogTitle>
+        <DialogDescription className="tabular-nums">
+          {identifiedSentence} Use the edit button to correct any details before importing and the X
+          to mark false positives to not be imported to Suprascribe.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="flex flex-col gap-2 py-2 overflow-y-auto flex-1 pr-2">
+        <div className="flex flex-col gap-2 mb-2">
+          <DiscoveryGroupList
+            groups={activeGroups}
+            selectedSubscriptions={selectedSubscriptions}
+            kinds={kinds}
+            isSaving={isSaving}
+            onToggle={onToggle}
+            onEdit={onEdit}
+          />
+        </div>
+        {pastGroups.length > 0 && (
+          <Badge variant="outline" className="text-xs font-medium">
+            Past
+          </Badge>
+        )}
+        <DiscoveryGroupList
+          groups={pastGroups}
+          selectedSubscriptions={selectedSubscriptions}
+          kinds={kinds}
+          isSaving={isSaving}
+          onToggle={onToggle}
+          onEdit={onEdit}
+        />
+
+        {trackedGroups.length > 0 && (
+          <>
+            <Separator orientation="horizontal" />
+            <button
+              type="button"
+              onClick={onToggleShowDuplicates}
+              className="flex items-center justify-between w-full py-2 px-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span>Already in your list ({trackedItems.length})</span>
+              <ChevronDown
+                className={cn('size-4 transition-transform', showDuplicates && 'rotate-180')}
+              />
+            </button>
+            {showDuplicates && (
+              <DiscoveryGroupList
+                groups={trackedGroups}
+                selectedSubscriptions={selectedSubscriptions}
+                kinds={kinds}
+                isSaving={isSaving}
+                onToggle={onToggle}
+                onEdit={onEdit}
+              />
+            )}
+          </>
+        )}
+      </div>
+
+      <DialogFooter className="flex flex-wrap justify-end items-center pt-4">
+        {onScanAnother && (
+          <Button
+            variant="secondary"
+            onClick={onScanAnother}
+            disabled={isSaving || isCheckingExisting}
+          >
+            Scan Another Inbox
+          </Button>
+        )}
+        <Button onClick={onSave} disabled={isSaving || isCheckingExisting}>
+          {isSaving ? <Spinner /> : 'Done'}
+        </Button>
+      </DialogFooter>
+    </div>
+  )
+}
+
 function TeaserPrice({ entry }: { entry: TeaserPreviewEntry }) {
-  const periodSuffix = entry.period ? TEASER_PERIOD_SUFFIX[entry.period] : ''
+  const periodSuffix = TEASER_PERIOD_SUFFIX[entry.period]
 
   return (
     <span className="font-medium text-sm whitespace-nowrap tabular-nums shrink-0">
@@ -443,13 +614,7 @@ function TeaserPrice({ entry }: { entry: TeaserPreviewEntry }) {
 function TeaserPreviewEntryRow({ entry }: { entry: TeaserPreviewEntry }) {
   return (
     <div className="flex items-center justify-between gap-3 py-1.5 border-t first:border-t-0">
-      {isOneTimePayment(entry) ? (
-        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 whitespace-nowrap">
-          One-time
-        </span>
-      ) : (
-        <span className="text-xs text-muted-foreground">Recurring</span>
-      )}
+      <span className="text-xs text-muted-foreground">Recurring</span>
       <TeaserPrice entry={entry} />
     </div>
   )
@@ -499,32 +664,9 @@ function TeaserPreviewList({ groups }: { groups: TeaserPreviewGroup[] }) {
 }
 
 function TeaserLockedView({ teaser, onClose }: { teaser: DiscoveryTeaser; onClose: () => void }) {
-  // Cards arrive pre-grouped and sorted - recurring services first, one-time-only
-  // services after them. A service charged both ways splits into two cards here,
-  // so its one-time entries land in their own section rather than in the
-  // active/past split, which only describes a recurring charge.
-  const recurringServices: TeaserPreviewGroup[] = []
-  const oneTimeServices: TeaserPreviewGroup[] = []
-  for (const group of teaser.preview) {
-    const recurringEntries = group.entries.filter((entry) => !isOneTimePayment(entry))
-    const oneTimeEntries = group.entries.filter(isOneTimePayment)
-    if (recurringEntries.length > 0) {
-      recurringServices.push({
-        ...group,
-        entries: recurringEntries,
-        is_active: recurringEntries.some((entry) => entry.is_active),
-      })
-    }
-    if (oneTimeEntries.length > 0) {
-      oneTimeServices.push({
-        ...group,
-        entries: oneTimeEntries,
-        is_active: oneTimeEntries.some((entry) => entry.is_active),
-      })
-    }
-  }
-  const activeServices = recurringServices.filter((group) => group.is_active)
-  const pastServices = recurringServices.filter((group) => !group.is_active)
+  // Cards arrive pre-grouped and sorted, live services first.
+  const activeServices = teaser.preview.filter((group) => group.is_active)
+  const pastServices = teaser.preview.filter((group) => !group.is_active)
 
   return (
     <div className="animate-in fade-in duration-300 flex flex-col flex-1 overflow-hidden">
@@ -553,15 +695,6 @@ function TeaserLockedView({ teaser, onClose }: { teaser: DiscoveryTeaser; onClos
               Past
             </Badge>
             <TeaserPreviewList groups={pastServices} />
-          </>
-        )}
-
-        {oneTimeServices.length > 0 && (
-          <>
-            <Badge variant="outline" className="text-xs font-medium self-start">
-              {ONE_TIME_SECTION_LABEL}
-            </Badge>
-            <TeaserPreviewList groups={oneTimeServices} />
           </>
         )}
       </div>
@@ -613,6 +746,7 @@ interface DiscoveryDialogProps {
   emailCount?: number | null
   error: string | null
   warning: string | null
+  warningKind?: DiscoveryErrorKind | null
   clearDiscovery: () => void
   retry: () => void
   providerName: string
@@ -630,6 +764,7 @@ export function DiscoveryDialog({
   emailCount,
   error,
   warning,
+  warningKind,
   clearDiscovery,
   retry,
   providerName,
@@ -640,7 +775,12 @@ export function DiscoveryDialog({
   onImport,
 }: DiscoveryDialogProps) {
   const queryClient = useQueryClient()
-  const { data: existingSubscriptions = [] } = useSubscriptions({ skipStale: true })
+  // A literal [] default here would allocate a new array on every render, which
+  // invalidates the classification memo, which re-runs the selection effect,
+  // which re-renders - a loop that sustains itself whenever this query has no
+  // data yet (the demo page, a teaser claim before the dashboard has loaded).
+  const { data: existingSubscriptions = NO_EXISTING_SUBSCRIPTIONS, isPending: isCheckingExisting } =
+    useSubscriptions({ skipStale: true })
   const [showDialog, setShowDialog] = useState(false)
   const [selectedSubscriptions, setSelectedSubscriptions] = useState<Set<number>>(new Set())
   const [editedSubscriptions, setEditedSubscriptions] = useState<DiscoveredSubscription[]>([])
@@ -663,29 +803,16 @@ export function DiscoveryDialog({
     setEditedSubscriptions(discoveredSubscriptions)
   }, [discoveredSubscriptions])
 
-  const checkIfDuplicate = (discoveredIndex: number): boolean => {
-    const discovered = editedSubscriptions[discoveredIndex]
-    if (!discovered) return false
+  // One pass per data change, rather than an uncached scan of every existing
+  // subscription per entry per render, in each of two separate consumers.
+  const kinds = useMemo(
+    () => editedSubscriptions.map((sub) => classifyDiscovered(sub, existingSubscriptions)),
+    [editedSubscriptions, existingSubscriptions],
+  )
 
-    return existingSubscriptions.some((merged) => {
-      return merged.subscriptions.some((existing) => {
-        return isDuplicateSubscription(
-          {
-            service_name: discovered.service_name,
-            start_date: discovered.start_date,
-            end_date: discovered.end_date,
-          },
-          {
-            subscription_service: existing.subscription_service
-              ? { name: existing.subscription_service.name }
-              : null,
-            start_date: existing.start_date,
-            end_date: existing.end_date,
-          },
-        )
-      })
-    })
-  }
+  // Guard the frame between a new prop arriving and the copy effect running, so
+  // a stale empty list cannot flash the all-tracked view.
+  const allAlreadyTracked = editedSubscriptions.length > 0 && kinds.every((kind) => kind !== 'new')
 
   useEffect(() => {
     if (isDiscovering) {
@@ -731,9 +858,12 @@ export function DiscoveryDialog({
 
   useEffect(() => {
     if (editedSubscriptions.length > 0) {
+      // Everything but an exact duplicate is selected: a period extension is a
+      // real write that keeps the user's end dates level with their mailbox, so
+      // it still goes. Only the entries intake would refuse are left out.
       const defaultSelectedIndices = editedSubscriptions
         .map((_, index) => index)
-        .filter((index) => !checkIfDuplicate(index))
+        .filter((index) => kinds[index] !== 'duplicate')
       // Use setTimeout to avoid synchronous setState during effect
       const timer = setTimeout(() => {
         setSelectedSubscriptions((prev) => {
@@ -743,12 +873,18 @@ export function DiscoveryDialog({
             if (prev.has(index)) next.add(index)
             else next.delete(index)
           })
+          // ...except a duplicate, which the server would reject anyway. The
+          // replay above can otherwise re-add an entry the user selected before
+          // the existing-subscriptions refetch landed and reclassified it.
+          kinds.forEach((kind, index) => {
+            if (kind === 'duplicate') next.delete(index)
+          })
           return next
         })
       }, 0)
       return () => clearTimeout(timer)
     }
-  }, [editedSubscriptions, existingSubscriptions])
+  }, [editedSubscriptions, kinds])
 
   const handleClose = () => {
     setShowDialog(false)
@@ -792,17 +928,22 @@ export function DiscoveryDialog({
   const handleSaveSelected = async (next: ImportOutcome = 'close') => {
     setIsSaving(true)
 
+    // An exact duplicate is refused by intake, so posting one only ever buys a
+    // failure toast. Filtering here makes that a property of the commit path
+    // rather than something three effects happen to agree on.
     const subscriptionsToAdd = editedSubscriptions
       .map((sub, index) => ({ sub, index }))
-      .filter(({ index }) => selectedSubscriptions.has(index))
+      .filter(({ index }) => selectedSubscriptions.has(index) && kinds[index] !== 'duplicate')
 
     if (onImport) {
       const entries = subscriptionsToAdd.map(({ sub }) => convertDiscoveredToFormData(sub))
       try {
         await onImport(entries)
-        toast.success('Subscriptions Added', {
-          description: `Successfully added ${entries.length} subscription${entries.length !== 1 ? 's' : ''}.`,
-        })
+        if (entries.length > 0) {
+          toast.success('Subscriptions Added', {
+            description: `Successfully added ${entries.length} subscription${entries.length !== 1 ? 's' : ''}.`,
+          })
+        }
       } catch {
         toast.error('Some subscriptions failed', {
           description: 'Could not add the selected subscriptions.',
@@ -834,15 +975,29 @@ export function DiscoveryDialog({
       }),
     )
 
-    const successCount = results.filter((result) => result.status === 'fulfilled').length
+    // allSettled preserves input order, so each result maps back to the entry it
+    // came from - and to whether that entry became a row or only moved an end
+    // date. Intake returns 201 for both, so this is the only place the two can
+    // still be told apart, and reporting an extension as an addition is what
+    // made an unchanged list look like a failed import.
     const failCount = results.filter((result) => result.status === 'rejected').length
+    let addedCount = 0
+    let updatedCount = 0
+    results.forEach((result, position) => {
+      if (result.status !== 'fulfilled') return
+      if (kinds[subscriptionsToAdd[position].index] === 'extend') updatedCount++
+      else addedCount++
+    })
 
     setIsSaving(false)
 
-    if (successCount > 0) {
-      toast.success('Subscriptions Added', {
-        description: `Successfully added ${successCount} subscription${successCount !== 1 ? 's' : ''}.`,
-      })
+    if (addedCount > 0 || updatedCount > 0) {
+      const parts = [
+        addedCount > 0 ? `${addedCount} added` : null,
+        updatedCount > 0 ? `${updatedCount} kept up to date` : null,
+      ].filter(Boolean)
+
+      toast.success('Import complete', { description: `${parts.join(' \u00b7 ')}.` })
     }
 
     if (failCount > 0) {
@@ -867,12 +1022,26 @@ export function DiscoveryDialog({
     ) : null
   }
 
+  // Closing only discards something in two states: a scan still running, and
+  // results with new entries waiting for review. Everywhere else - an error, a
+  // limit notice, a list already up to date, no results, a locked teaser - there
+  // is nothing to lose, and a confirmation warning about reinitialising
+  // discovery is pure friction. Mirrors the view precedence below.
+  const hasProgressToDiscard =
+    isDiscovering ||
+    (error === null && !teaser && discoveredSubscriptions.length > 0 && !allAlreadyTracked)
+
+  const requestClose = () => {
+    if (hasProgressToDiscard) setShowExitWarning(true)
+    else handleClose()
+  }
+
   return (
     <>
       <Dialog
         open={showDialog}
         onOpenChange={(open) => {
-          if (!open && editingIndex === null) setShowExitWarning(true)
+          if (!open && editingIndex === null) requestClose()
         }}
       >
         <DialogContent
@@ -881,12 +1050,12 @@ export function DiscoveryDialog({
           onInteractOutside={(e) => {
             if (editingIndex !== null) return
             e.preventDefault()
-            setShowExitWarning(true)
+            requestClose()
           }}
           onEscapeKeyDown={(e) => {
             if (editingIndex !== null) return
             e.preventDefault()
-            setShowExitWarning(true)
+            requestClose()
           }}
         >
           {isDiscovering ? (
@@ -908,20 +1077,36 @@ export function DiscoveryDialog({
           ) : teaser ? (
             <TeaserLockedView teaser={teaser} onClose={handleClose} />
           ) : discoveredSubscriptions.length > 0 ? (
-            <ReviewSubscriptionsView
-              discoveredSubscriptions={editedSubscriptions}
-              selectedSubscriptions={selectedSubscriptions}
-              isSaving={isSaving}
-              showDuplicates={showDuplicates}
-              onToggleShowDuplicates={() => setShowDuplicates((prev) => !prev)}
-              checkIfDuplicate={checkIfDuplicate}
-              onToggle={handleToggleSubscription}
-              onEdit={setEditingIndex}
-              onSave={() => handleSaveSelected('close')}
-              onScanAnother={() => handleSaveSelected('scan-another')}
-            />
+            allAlreadyTracked ? (
+              // Still committed through handleSaveSelected: nothing here is new,
+              // but the period extensions among it are still worth writing.
+              <AlreadyTrackedView
+                subscriptions={editedSubscriptions}
+                kinds={kinds}
+                selectedSubscriptions={selectedSubscriptions}
+                showDetails={showDuplicates}
+                onToggleShowDetails={() => setShowDuplicates((prev) => !prev)}
+                isSaving={isSaving}
+                onSave={() => handleSaveSelected('close')}
+                onScanAnother={() => handleSaveSelected('scan-another')}
+              />
+            ) : (
+              <ReviewSubscriptionsView
+                discoveredSubscriptions={editedSubscriptions}
+                selectedSubscriptions={selectedSubscriptions}
+                isSaving={isSaving}
+                showDuplicates={showDuplicates}
+                onToggleShowDuplicates={() => setShowDuplicates((prev) => !prev)}
+                kinds={kinds}
+                isCheckingExisting={isCheckingExisting && !onImport}
+                onToggle={handleToggleSubscription}
+                onEdit={setEditingIndex}
+                onSave={() => handleSaveSelected('close')}
+                onScanAnother={() => handleSaveSelected('scan-another')}
+              />
+            )
           ) : warning ? (
-            <WarningView warning={warning} onClose={handleClose} />
+            <WarningView warning={warning} warningKind={warningKind} onClose={handleClose} />
           ) : (
             <NoResultsView
               providerName={providerName}

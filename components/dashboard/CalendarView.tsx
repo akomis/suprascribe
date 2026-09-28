@@ -36,7 +36,7 @@ export function CalendarView({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full h-[100dvh] max-w-full max-h-[100dvh] p-0 gap-0 md:w-[70vw] md:h-auto md:max-w-[70vw] md:max-h-[90vh] md:p-6 md:gap-6 md:rounded-lg rounded-none">
+      <DialogContent className="w-[calc(100%-1rem)] h-auto max-w-full max-h-[calc(100dvh-1rem)] p-0 gap-0 md:w-[70vw] md:max-w-[70vw] md:max-h-[90vh] md:p-6 md:gap-6">
         <DialogHeader className="px-4 pt-4 pb-2 md:p-0">
           <DialogTitle className="text-lg md:text-xl">Subscription Calendar</DialogTitle>
         </DialogHeader>

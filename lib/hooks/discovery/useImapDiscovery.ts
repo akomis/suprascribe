@@ -1,7 +1,7 @@
 'use client'
 
 import type { DiscoveredSubscription } from '@/lib/types/forms'
-import type { DiscoveryResponse } from '@/lib/types/discovery'
+import type { DiscoveryErrorKind, DiscoveryResponse } from '@/lib/types/discovery'
 import { useDiscoveryCore, type DiscoveryTeaser } from './useDiscoveryCore'
 
 interface ImapCredentials {
@@ -20,6 +20,7 @@ interface UseImapDiscoveryReturn {
   scannedEmail: string | null
   error: string | null
   warning: string | null
+  warningKind: DiscoveryErrorKind | null
   clearDiscovery: () => void
   retry: () => void
   startDiscovery: (credentials: ImapCredentials) => Promise<void>
@@ -34,6 +35,7 @@ export function useImapDiscovery(): UseImapDiscoveryReturn {
     scannedEmail,
     error,
     warning,
+    warningKind,
     runDiscovery,
     retry,
     clearDiscovery,
@@ -57,6 +59,7 @@ export function useImapDiscovery(): UseImapDiscoveryReturn {
     scannedEmail,
     error,
     warning,
+    warningKind,
     clearDiscovery,
     retry,
     startDiscovery,

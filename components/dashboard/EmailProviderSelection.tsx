@@ -95,23 +95,27 @@ function DiscoveryCard({
           <div className="text-center">
             <ImapDiscoveryHandler />
           </div>
-          {!hasByokActive && !isFreeTeaser && (
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              {rateLimitInfo && rateLimitInfo.discoveriesUsed > 0 && (
-                <Link
-                  href="/limits"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline text-primary"
-                >
-                  <span>
-                    {rateLimitInfo.discoveriesUsed}/{rateLimitInfo.maxDiscoveries} discoveries used
-                  </span>
-                </Link>
-              )}
-              <ConfigureApiKeyButton variant="ghost" size="sm" className="h-6 text-xs px-2" />
-            </div>
-          )}
+          {!hasByokActive &&
+            !isFreeTeaser &&
+            rateLimitInfo &&
+            rateLimitInfo.discoveriesUsed > 0 && (
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <>
+                  <Link
+                    href="/limits"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline text-primary"
+                  >
+                    <span>
+                      {rateLimitInfo.discoveriesUsed}/{rateLimitInfo.maxDiscoveries} discoveries
+                      used
+                    </span>
+                  </Link>
+                  <ConfigureApiKeyButton variant="ghost" size="sm" className="h-6 text-xs px-2" />
+                </>
+              </div>
+            )}
         </div>
       </div>
       <a
@@ -123,7 +127,7 @@ function DiscoveryCard({
         <Lock className="size-12 h-fit mt-1" />
         <div className="flex flex-col gap-2 items-start">
           <p className="text-xs text-muted-foreground text-start">
-            We read the subject, sender and body of emails matching our billing search, and an AI
+            We only read subject, sender and body of emails matching our billing search, and an AI
             model extracts the subscription details. Your emails are never stored, and neither are
             your credentials.
           </p>
@@ -156,6 +160,7 @@ export function EmailProviderSelection() {
     emailCount,
     error,
     warning,
+    warningKind,
     clearDiscovery,
     retry,
     startDiscovery,
@@ -268,6 +273,7 @@ export function EmailProviderSelection() {
         emailCount={emailCount}
         error={error}
         warning={warning}
+        warningKind={warningKind}
         clearDiscovery={clearDiscovery}
         retry={retry}
         providerName="iCloud"

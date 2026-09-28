@@ -14,8 +14,9 @@ export interface RateLimitCheckResult {
 }
 
 export function calculateRateLimitInfo(runs: DiscoveryRun[]): RateLimitInfo {
-  // Every DISCOVERY_RUNS row is a scan that succeeded - failed and rate-limited
-  // attempts live in DISCOVERY_ANALYTICS - so a plain row count is the quota.
+  // Every DISCOVERY_RUNS row is a scan that succeeded and found something -
+  // failed, rate-limited and skipped attempts live in DISCOVERY_ANALYTICS
+  // alone - so a plain row count is the quota.
   const nonByokRuns = runs.filter((r) => !r.is_byok)
   const totalDiscoveries = nonByokRuns.length
 

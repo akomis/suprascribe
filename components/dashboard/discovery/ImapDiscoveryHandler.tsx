@@ -16,6 +16,7 @@ export function ImapDiscoveryHandler() {
     emailCount,
     error,
     warning,
+    warningKind,
     clearDiscovery,
     retry,
     startDiscovery,
@@ -63,6 +64,7 @@ export function ImapDiscoveryHandler() {
         emailCount={emailCount}
         error={error}
         warning={warning}
+        warningKind={warningKind}
         clearDiscovery={clearDiscovery}
         retry={retry}
         providerName="IMAP"
