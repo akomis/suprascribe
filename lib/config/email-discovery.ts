@@ -78,6 +78,35 @@ export const EMAIL_DISCOVERY_CONFIG = {
     maxOutputTokens: 65_535,
   },
 
+  // TypeSafe's Jev sorts every keyword-matched email into a kind - subscription
+  // charge, renewal, cancellation, usage, one-off purchase, not billing - and only the
+  // subscription kinds reach the analysis model, grouped per sender as before.
+  // Jev cannot extract - it answers typed questions, it does not write - so this
+  // narrows Stage A's input and never replaces it. The mode is PREFILTER_MODE.
+  prefilter: {
+    // Jev is served through OpenRouter's decisions endpoint (it rejects
+    // chat/completions), so it authenticates with the same MODEL_API_KEY.
+    endpoint: 'https://openrouter.ai/api/alpha/decisions',
+    model: 'typesafe/jev-1.13',
+    // Kept when the subscription kinds together reach this probability.
+    // Deliberately low: a rejected email is a subscription that can never be
+    // found, and nothing downstream notices it missing.
+    keepThreshold: 0.15,
+    // Jev takes 32k tokens of state; receipt facts sit at the top of an email,
+    // and unrelated detail lowers its accuracy, so the tail is not worth sending.
+    maxBodyTokens: 4_000,
+    concurrency: 8,
+    requestTimeoutMs: 10_000,
+    // Whatever is still unanswered at the deadline is kept, not dropped.
+    deadlineMs: 45_000,
+    maxAttempts: 3,
+    // Keep dedicated billing senders and anything with recurrence wording
+    // without asking Jev. Safer, but the fetch query selects on words like
+    // "subscription" and "renewal", so it would wave most of a scan through.
+    // Off so the experiment measures Jev's own judgement.
+    hardKeeps: false,
+  },
+
   batch: {
     // Chunking exists only to stay inside the model's context window. Sender
     // groups are never split, so a single oversized sender may exceed this.
@@ -88,6 +117,19 @@ export const EMAIL_DISCOVERY_CONFIG = {
     maxBodyTokensPerEmail: null as number | null,
   },
 } as const
+
+export type PrefilterMode = 'off' | 'shadow' | 'enforce'
+
+/**
+ * 'shadow' runs the pre-filter and reports what it would have dropped while
+ * still analyzing everything; 'enforce' analyzes only what it keeps; 'off'
+ * skips it.
+ */
+const PREFILTER_MODE: PrefilterMode = 'enforce'
+
+export function prefilterMode(): PrefilterMode {
+  return PREFILTER_MODE
+}
 
 export interface SearchQueryOptions {
   /** Sender domains treated as billing mail whatever the subject says. */

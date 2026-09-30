@@ -16,6 +16,7 @@ import { ConfigureApiKeyButton } from '@/components/ConfigureApiKeyButton'
 import Link from 'next/link'
 import * as React from 'react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import { Badge } from '../ui/badge'
 import { Spinner } from '../ui/spinner'
 import { DiscoveryDialog } from './discovery/DiscoveryDialog'
@@ -52,9 +53,51 @@ function DiscoveryCard({
   onMicrosoftClick: () => void
   onICloudClick: () => void
 }) {
+  const showUsage =
+    !hasByokActive && !isFreeTeaser && !!rateLimitInfo && rateLimitInfo.discoveriesUsed > 0
+
   return (
     <>
-      <div className="fade-on-mount flex flex-col gap-4 rounded-lg border border-dashed p-4 w-[300px] sm:w-[350px] md:w-[450px]">
+      <div
+        className={cn(
+          'fade-on-mount relative flex flex-col gap-4 rounded-lg border border-dashed p-4 w-[300px] sm:w-[350px] md:w-[450px]',
+          // Room for the usage control on the bottom border, above and below the line.
+          showUsage && 'mb-4 pb-8',
+        )}
+      >
+        {showUsage && (
+          // Sits on the card's bottom border, like the source marks on the landing
+          // FeatureCard, so it reads as a label of the card rather than its content.
+          <div className="absolute right-4 bottom-0 z-10 flex translate-y-1/2 items-center text-xs text-muted-foreground">
+            <Link
+              href="/limits"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${rateLimitInfo.discoveriesUsed} of ${rateLimitInfo.maxDiscoveries} discoveries used`}
+              title="Discoveries used"
+            >
+              <Badge
+                variant="outline"
+                className="h-7 gap-0 bg-background text-xs px-2.5 py-0 tabular-nums rounded-r-none hover:bg-accent transition-colors"
+              >
+                <span
+                  className={
+                    rateLimitInfo.discoveriesUsed > 20 ? 'text-destructive' : 'text-primary'
+                  }
+                >
+                  {rateLimitInfo.discoveriesUsed}
+                </span>
+                <span className="text-muted-foreground">/{rateLimitInfo.maxDiscoveries} used</span>
+              </Badge>
+            </Link>
+            <ConfigureApiKeyButton
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs px-3 rounded-l-none border-l-0 bg-background dark:bg-background"
+              label="Configure"
+            />
+          </div>
+        )}
         {hasByokActive && activeKey && (
           <div className="text-xs mx-auto py-2 flex items-center gap-1">
             <Badge variant="outline" className="text-xs px-2 pt-0.5 pb-1">
@@ -95,27 +138,6 @@ function DiscoveryCard({
           <div className="text-center">
             <ImapDiscoveryHandler />
           </div>
-          {!hasByokActive &&
-            !isFreeTeaser &&
-            rateLimitInfo &&
-            rateLimitInfo.discoveriesUsed > 0 && (
-              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <>
-                  <Link
-                    href="/limits"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline text-primary"
-                  >
-                    <span>
-                      {rateLimitInfo.discoveriesUsed}/{rateLimitInfo.maxDiscoveries} discoveries
-                      used
-                    </span>
-                  </Link>
-                  <ConfigureApiKeyButton variant="ghost" size="sm" className="h-6 text-xs px-2" />
-                </>
-              </div>
-            )}
         </div>
       </div>
       <a
@@ -127,8 +149,8 @@ function DiscoveryCard({
         <Lock className="size-12 h-fit mt-1" />
         <div className="flex flex-col gap-2 items-start">
           <p className="text-xs text-muted-foreground text-start">
-            We only read subject, sender and body of emails matching our billing search, and an AI
-            model extracts the subscription details. Your emails are never stored, and neither are
+            We only read subject, sender and body of emails matching our billing search, and our
+            system extracts the subscription details. Your emails are never stored, and neither are
             your credentials.
           </p>
         </div>

@@ -684,3 +684,78 @@ describe('recurrence the email never mentioned', () => {
     expect(only(result).outcome).toBe('recurring')
   })
 })
+
+// Two receipts are the weakest cadence the classifier accepts, and with only
+// two amounts the variance gate is blind: each sits the same distance from
+// their median. Pay-as-you-go billing walks straight through that gap.
+describe('a pair of differing charges with no recurrence wording', () => {
+  // The real case: two Apify "payment successful" invoices, nothing else in
+  // them, beside the $29 Starter plan the same mailbox named.
+  const apifyUsage = [
+    charge({
+      merchant: 'Apify',
+      amount: 34.51,
+      charge_date: '2026-06-29',
+      recurrence_language: false,
+    }),
+    charge({
+      merchant: 'Apify',
+      amount: 25.09,
+      charge_date: '2026-07-29',
+      recurrence_language: false,
+    }),
+  ]
+
+  it('is dropped as pay-as-you-go rather than kept as a plan', () => {
+    const result = classifyCharges(apifyUsage)
+
+    expect(result.subscriptions).toHaveLength(0)
+    expect(only(result)).toMatchObject({ outcome: 'dropped', reason: 'variable_amount_pair' })
+  })
+
+  it('does not take the named plan down with it', () => {
+    const result = classifyCharges([
+      ...apifyUsage,
+      charge({
+        merchant: 'Apify',
+        plan: 'Starter',
+        amount: 29,
+        charge_date: '2026-07-22',
+        doc_type: 'renewal_notice',
+        stated_period: 'MONTHLY',
+        renewal_evidence: 'next_date_stated',
+      }),
+    ])
+
+    const kept = result.verdicts.filter((v) => v.outcome === 'recurring')
+    expect(kept.map((v) => v.display_name)).toEqual(['Apify Starter'])
+  })
+
+  it('still keeps a pair whose amounts differ only by tax or exchange drift', () => {
+    const result = classifyCharges([
+      charge({
+        merchant: 'Notion',
+        amount: 10,
+        charge_date: '2026-01-05',
+        recurrence_language: false,
+      }),
+      charge({
+        merchant: 'Notion',
+        amount: 10.6,
+        charge_date: '2026-02-04',
+        recurrence_language: false,
+      }),
+    ])
+
+    expect(only(result).evidence).toBe('two_charges')
+  })
+
+  it('still keeps a differing pair when an email does talk about recurring', () => {
+    const result = classifyCharges([
+      charge({ merchant: 'Figma', amount: 12, charge_date: '2026-01-05' }),
+      charge({ merchant: 'Figma', amount: 15, charge_date: '2026-02-04' }),
+    ])
+
+    expect(only(result).evidence).toBe('two_charges')
+  })
+})

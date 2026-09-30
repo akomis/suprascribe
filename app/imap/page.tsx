@@ -411,7 +411,7 @@ export default function ImapGuidePage() {
             </ul>
             <p className="mt-4">
               We search your mailbox for billing emails, then read the subject, sender and body of
-              the ones that match so an AI model can extract the subscription details. No email
+              the ones that match so our system can extract the subscription details. No email
               content is stored or saved.
             </p>
             <p className="mt-4 text-xs">

@@ -28,7 +28,7 @@ export function ExhaustedDiscoveriesMessage({ rateLimitInfo }: ExhaustedDiscover
 
         <div className="w-full border-t pt-4 mt-2">
           <p className="text-sm text-muted-foreground mb-3">
-            Want unlimited discoveries? Use your own AI model API key.
+            Want unlimited discoveries? Use your own API key.
           </p>
           <div className="flex flex-col sm:flex-row gap-2 justify-center">
             <ConfigureApiKeyButton />

@@ -39,6 +39,10 @@ const MAX_SKIPPED_CYCLES = 3
 // rather than a plan. See the amount-variance note in classifyGroup.
 const MAX_AMOUNT_VARIATION = 0.25
 
+// How far apart two charges may be and still read as one fixed price. Covers
+// tax and currency drift, not a different bill.
+const MAX_PAIR_AMOUNT_DIFFERENCE = 0.1
+
 const BNPL_NAME =
   /\bpay\s*in\s*(4|four|3|three)\b|\b(klarna|afterpay|clearpay|sezzle|zip\s?pay|affirm)\b/i
 
@@ -88,6 +92,7 @@ export type DropReason =
   | 'single_charge_no_evidence'
   | 'no_cycle'
   | 'irregular_cadence'
+  | 'variable_amount_pair'
 
 /**
  * Which rule let a subscription through.
@@ -289,6 +294,12 @@ function looksMeteredButRecurring(charges: Charge[]): boolean {
  * counting it as one turns a monthly plan's 30-day rhythm into gaps of 23 and 7,
  * which fits WEEKLY and nothing else.
  */
+function pairAmountsDiffer([a, b]: Charge[]): boolean {
+  const larger = Math.max(Math.abs(a.amount), Math.abs(b.amount))
+  if (larger === 0) return false
+  return Math.abs(a.amount - b.amount) / larger > MAX_PAIR_AMOUNT_DIFFERENCE
+}
+
 function detectCadence(
   segments: Charge[],
   group: Charge[],
@@ -329,6 +340,18 @@ function detectCadence(
     // subscription. Sub-annual cadences are far harder to produce by accident,
     // so only the yearly case needs the email to actually say something.
     if (period === 'YEARLY' && !corroborated) return { reason: 'single_charge_no_evidence' }
+
+    // Two charges of different sizes, from emails that never mention recurring,
+    // are what pay-as-you-go billing looks like: Apify invoiced $34.51 then
+    // $25.09 a month apart, "payment successful" and nothing else, beside the
+    // $29 Starter plan the same mailbox named. A fixed plan bills the same
+    // price each cycle, and with only two charges the variance gate cannot tell
+    // the difference - each sits the same distance from their median. Checked
+    // against recurrence_language, which is measured in code rather than
+    // claimed by the model.
+    if (period && !group.some((c) => c.recurrence_language) && pairAmountsDiffer(segments)) {
+      return { reason: 'variable_amount_pair' }
+    }
     if (period) return { period, medianGap: gaps[0], evidence: 'two_charges' }
 
     // A spacing that matches no cycle. The printed word still counts: a plan

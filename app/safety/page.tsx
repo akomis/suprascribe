@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
 import { GITHUB_URL } from '@/lib/config/urls'
-import { capitalize } from '@/lib/utils'
 import type { Metadata } from 'next'
 import { buildMetadata } from '@/lib/utils/metadata'
 
@@ -100,13 +99,20 @@ export default function SafetyPage() {
                   How The Analysis Works
                 </h2>
                 <p className="text-muted-foreground">
-                  Emails matching the billing search above are passed to an AI language model, which
-                  reads them and returns the subscription details. This means:
+                  Emails matching the billing search above go through two steps. First, a
+                  classification model checks each one and keeps only emails about a subscription -
+                  a payment, a renewal or a cancellation. Then a language model reads the emails
+                  that were kept and returns the subscription details. This means:
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
                   <li>
-                    The subject, sender and full body of each matching email are sent to our AI
-                    provider for processing
+                    The subject, sender and body of each matching email are sent to the
+                    classification model, and the subject, sender and full body of each kept email
+                    to the language model, for processing
+                  </li>
+                  <li>
+                    Emails the check sets aside - receipts for one-off purchases, pay-as-you-go
+                    usage, credits, marketing, shipping updates - go no further
                   </li>
                   <li>
                     Emails that do not match the billing search are never opened, never read, and
@@ -117,8 +123,8 @@ export default function SafetyPage() {
                     not retained by us afterwards
                   </li>
                   <li>
-                    On the PRO plan you can supply your own API key, in which case the analysis runs
-                    through the provider and model you choose
+                    On the PRO plan you can supply your own API key, in which case the check is
+                    skipped and the analysis runs through the provider and model you choose
                   </li>
                 </ul>
               </section>
@@ -203,8 +209,11 @@ export default function SafetyPage() {
                     <p className="text-muted-foreground text-sm">
                       Our subscription detection runs entirely on secure servers. We process data in
                       real-time and don&apos;t retain any information except the time of the run and
-                      results for applying limits. Email analysis is powered by{' '}
-                      {capitalize(EMAIL_DISCOVERY_CONFIG.analysisModel.provider)}&apos;s AI:{' '}
+                      results for applying limits. Emails are checked by{' '}
+                      <Badge variant="secondary" className="font-mono text-xs">
+                        {EMAIL_DISCOVERY_CONFIG.prefilter.model}
+                      </Badge>{' '}
+                      and analyzed by{' '}
                       <Badge variant="secondary" className="font-mono text-xs">
                         {EMAIL_DISCOVERY_CONFIG.analysisModel.modelName}
                       </Badge>

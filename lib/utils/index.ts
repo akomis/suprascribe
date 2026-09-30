@@ -106,7 +106,7 @@ export function formatLocalizedDate(dateString: string): string {
   })
 }
 
-function calculateMonthsDuration(startDate: string, endDate: string): number {
+export function calculateMonthsDuration(startDate: string, endDate: string): number {
   const start = new Date(startDate)
   const end = new Date(endDate)
 

@@ -1,7 +1,7 @@
-import { EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
+import { EMAIL_DISCOVERY_CONFIG, prefilterMode } from '@/lib/config/email-discovery'
 import { PAYMENT_PROCESSOR_HOSTNAMES } from '@/lib/config/urls'
 import { BATCH_ANALYSIS_SYSTEM_PROMPT } from '@/lib/prompts/email-discovery'
-import { ChargeExtractionResultSchema, type Charge, type RawCharge } from '@/lib/schemas/charge'
+import { ChargeExtractionResultSchema, type RawCharge } from '@/lib/schemas/charge'
 import type { DiscoveredSubscription } from '@/lib/types/forms'
 import type { EmailData } from '@/lib/types/email'
 import { stripHtmlFromEmail } from '@/lib/utils/email-html-parser'
@@ -11,8 +11,16 @@ import { classifyCharges, type ClassificationVerdict } from '@/lib/services/char
 import { normalizeClassifiedSubscription } from '@/lib/utils/subscription-normalizer'
 import { generateObject, NoObjectGeneratedError, type LanguageModel } from 'ai'
 import { createModel, type ProviderConfig } from './ai-provider'
+import {
+  measurePrefilterLoss,
+  prefilterEmails,
+  resolvePrefilterMode,
+  type PrefilterReport,
+  type SourcedCharge,
+} from './email-prefilter'
 
 export type { EmailData }
+export type { PrefilterReport, SourcedCharge }
 
 const API_TIMEOUT_MS = 30_000
 
@@ -502,6 +510,8 @@ export interface BatchAnalysisResult {
   /** Charges discarded as balance top-ups rather than subscription payments. */
   creditPurchases: number
   totalUsage: TokenUsage
+  /** Absent when the pre-filter did not run. */
+  prefilter?: PrefilterReport
 }
 
 /**
@@ -510,7 +520,7 @@ export interface BatchAnalysisResult {
  */
 interface UnitOutcome {
   unit: AnalysisUnit
-  charges: Charge[]
+  charges: SourcedCharge[]
   failure?: FailedUnit
 }
 
@@ -525,15 +535,18 @@ interface UnitOutcome {
  * That includes whether the email mentions recurring at all, which is how the
  * classifier tells a stated billing period apart from an invented one.
  */
-function attachEnvelope(raw: RawCharge, unit: AnalysisUnit): Charge | null {
+function attachEnvelope(raw: RawCharge, unit: AnalysisUnit): SourcedCharge | null {
   const email = unit.emails[raw.email_index - 1]
   if (!email) return null
 
   return {
-    ...raw,
-    sender_domain: extractSenderDomain(email.from),
-    list_unsubscribe: email.listUnsubscribe,
-    recurrence_language: mentionsRecurrence(`${email.subject}\n${email.body}`),
+    email,
+    charge: {
+      ...raw,
+      sender_domain: extractSenderDomain(email.from),
+      list_unsubscribe: email.listUnsubscribe,
+      recurrence_language: mentionsRecurrence(`${email.subject}\n${email.body}`),
+    },
   }
 }
 
@@ -549,7 +562,7 @@ async function runUnit(
     totalUsage.inputTokens += usage.inputTokens
     totalUsage.outputTokens += usage.outputTokens
 
-    const charges: Charge[] = []
+    const charges: SourcedCharge[] = []
     for (const candidate of raw) {
       const charge = attachEnvelope(candidate, unit)
       if (charge) charges.push(charge)
@@ -570,6 +583,26 @@ async function runUnit(
   }
 }
 
+/** Counts only - never anything read from an email. */
+function logPrefilter(report: PrefilterReport, emailCount: number): void {
+  const { analysisModel } = EMAIL_DISCOVERY_CONFIG
+  const savedCost = (report.llmTokensSaved / 1_000_000) * analysisModel.inputCostPerMillion
+  const kinds = Object.entries(report.byKind)
+    .map(([kind, count]) => `${kind}=${count}`)
+    .join(' ')
+  const loss =
+    report.mode === 'shadow'
+      ? ` | would lose ${report.lostSubscriptions ?? 0} subs (${report.lostCharges ?? 0} charges)`
+      : ''
+
+  console.log(
+    `[Prefilter] ${report.mode} | ${emailCount} emails: ${report.rejected} rejected, ${report.hardKept} hard-kept, ${report.errored} errored | ${kinds}` +
+      ` | Jev ${report.inputTokens} tokens ($${report.costUsd.toFixed(4)})` +
+      ` | ${analysisModel.modelName} ~${report.llmTokensSaved} tokens ${report.mode === 'enforce' ? 'saved' : 'saveable'} ($${savedCost.toFixed(4)})` +
+      loss,
+  )
+}
+
 export async function analyzeEmailsBatch(
   emails: EmailData[],
   config?: AnalysisConfig,
@@ -587,8 +620,41 @@ export async function analyzeEmailsBatch(
 
   if (emails.length === 0) return empty
 
-  const units = buildAnalysisUnits(groupEmailsBySender(emails))
-  if (units.length === 0) return empty
+  const mode = resolvePrefilterMode(prefilterMode(), Boolean(config?.byokConfig))
+  const filter =
+    mode === 'off'
+      ? null
+      : await prefilterEmails(emails, {
+          senderDomain: extractSenderDomain,
+          maxBodyChars: Math.floor(
+            EMAIL_DISCOVERY_CONFIG.prefilter.maxBodyTokens * CHARS_PER_TOKEN,
+          ),
+        })
+
+  const report: PrefilterReport | undefined =
+    filter && mode !== 'off'
+      ? {
+          mode,
+          rejected: filter.rejected.size,
+          byKind: filter.byKind,
+          hardKept: filter.hardKept,
+          errored: filter.errored,
+          inputTokens: filter.inputTokens,
+          costUsd: filter.costUsd,
+          llmTokensSaved: [...filter.rejected].reduce(
+            (sum, email) => sum + estimateTokens(renderEmail(email, 0)),
+            0,
+          ),
+        }
+      : undefined
+
+  const toAnalyze = filter && mode === 'enforce' ? filter.kept : emails
+
+  const units = buildAnalysisUnits(groupEmailsBySender(toAnalyze))
+  if (units.length === 0) {
+    if (report) logPrefilter(report, emails.length)
+    return { ...empty, prefilter: report }
+  }
 
   const totalUsage: TokenUsage = { inputTokens: 0, outputTokens: 0 }
 
@@ -605,13 +671,19 @@ export async function analyzeEmailsBatch(
     runUnit(unit, model, maxOutputTokens, totalUsage),
   )
 
-  const charges = outcomes.flatMap((o) => o.charges)
+  const sourced = outcomes.flatMap((o) => o.charges)
+  const charges = sourced.map((s) => s.charge)
 
   // Classified once over the whole scan rather than per unit. A merchant's
   // history can arrive split across units - an oversized sender sliced by date,
   // or receipts reaching us both directly and through a payment processor - and
   // only the full set shows the cadence that says whether it recurs at all.
   const { subscriptions: classified, verdicts, creditPurchases } = classifyCharges(charges)
+
+  if (report && mode === 'shadow' && filter) {
+    const keptKeys = verdicts.filter((v) => v.outcome === 'recurring').map((v) => v.merchant_key)
+    Object.assign(report, measurePrefilterLoss(keptKeys, sourced, filter.rejected))
+  }
 
   // A classified subscription can still be unusable - a name that is only
   // punctuation, an absurd price, a date the parser cannot read. Rejections are
@@ -624,6 +696,8 @@ export async function analyzeEmailsBatch(
     else rejectedCount += 1
   }
 
+  if (report) logPrefilter(report, emails.length)
+
   return {
     subscriptions,
     verdicts,
@@ -633,5 +707,6 @@ export async function analyzeEmailsBatch(
     rejectedCount,
     creditPurchases,
     totalUsage,
+    prefilter: report,
   }
 }
