@@ -15,7 +15,7 @@ import { UserX } from 'lucide-react'
 const SubscriptionHistory = dynamic(() => import('@/components/dashboard/SubscriptionHistory'), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-[200px] sm:h-[250px]">
+    <div className="flex items-center justify-center h-[130px] sm:h-[180px] md:h-[200px]">
       <Spinner />
     </div>
   ),
@@ -130,7 +130,11 @@ export default function DemoHistory() {
 
       {/* Chart */}
       <div className="-mx-3 sm:-mx-4 -mb-3 sm:-mb-4">
-        <SubscriptionHistory subscriptions={DEMO_SUBSCRIPTION_HISTORY} onEdit={() => {}} />
+        <SubscriptionHistory
+          subscriptions={DEMO_SUBSCRIPTION_HISTORY}
+          onEdit={() => {}}
+          chartClassName="h-[130px] sm:h-[180px] md:h-[200px] sm:pt-4"
+        />
       </div>
     </div>
   )

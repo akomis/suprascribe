@@ -358,9 +358,11 @@ yarn dev
 | Railway            | Hosting, serverless functions              | https://status.railway.app   |
 | Stripe             | Payments, webhooks                         | https://status.stripe.com    |
 | Resend             | Transactional email                        | https://resend-status.com    |
-| OpenRouter         | Default AI provider for discovery          | https://status.openrouter.ai |
+| OpenRouter         | Discovery models (Jev + Gemini)            | https://status.openrouter.ai |
 | Brandfetch         | Service logo fetching                      | -                            |
 | Sentry             | Error monitoring                           | https://status.sentry.io     |
 | Google / Microsoft | OAuth providers for auth + email discovery | -                            |
 
 If a non-critical dependency (Brandfetch, OpenRouter) is unavailable, core auth and subscription management remain operational. If Supabase or Railway is down, the application is unavailable.
+
+Discovery calls two models through OpenRouter. `typesafe/jev-1.13` screens each fetched email and only payments, renewals and cancellations go on to `google/gemini-2.5-flash-lite` for extraction. The screening step fails open: if Jev errors, times out or the scan hits its 45s screening deadline, the emails are kept and a scan still completes at full extraction cost. Each scan logs one `[Prefilter]` line with the counts per email kind and Jev's cost next to the extraction tokens saved. BYOK scans skip screening. The mode (`off` / `shadow` / `enforce`) is the `PREFILTER_MODE` constant in `lib/config/email-discovery.ts`.

@@ -70,7 +70,7 @@ export function DemoControlPanel() {
         open={byokPromptOpen}
         onOpenChange={setByokPromptOpen}
         featureName="API Keys"
-        featureDescription="Bring your own AI API key for unlimited email discovery. Sign up to access this feature."
+        featureDescription="Bring your own API key for unlimited email discovery. Sign up to access this feature."
       />
       <DemoSignUpPromptDialog
         open={remindersPromptOpen}

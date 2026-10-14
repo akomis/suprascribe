@@ -386,7 +386,17 @@ export function buildImapSearchCriteria(
 function connectImap(imap: Imap): Promise<void> {
   return new Promise((resolve, reject) => {
     imap.once('ready', () => resolve())
-    imap.once('error', (err: Error) => {
+    imap.once('error', (err: Error & { source?: string }) => {
+      // The server refused the login itself. Nearly always the account's normal
+      // password where an app-specific one is required, so say that instead of
+      // pointing at server settings that were fine.
+      if (err.source === 'authentication') {
+        return reject(
+          new Error(
+            'The mail server rejected the sign-in. Use an app-specific password (not your normal account password) together with the full address of the mailbox itself.',
+          ),
+        )
+      }
       reject(
         new Error(
           `IMAP connection error: ${err.message}. Please check your credentials and server settings.`,
@@ -534,7 +544,7 @@ export async function fetchImapEmails(
   const useTls = credentials.useTls !== false
 
   const imap = new Imap({
-    user: credentials.email,
+    user: credentials.email.trim(),
     password: credentials.password,
     host: credentials.server!,
     port: credentials.port!,

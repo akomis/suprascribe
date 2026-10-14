@@ -84,8 +84,8 @@ export function ConnectInbox() {
       >
         <Lock className="size-10 h-fit mt-1 shrink-0" />
         <p className="text-xs text-muted-foreground text-start">
-          We only read subject, sender and body of emails matching our billing search, and an AI
-          model extracts the subscription details. Your emails are never stored, and neither are
+          We only read subject, sender and body of emails matching our billing search, and our
+          system extracts the subscription details. Your emails are never stored, and neither are
           your credentials.
         </p>
       </a>

@@ -84,9 +84,12 @@ In your Supabase project, go to **Authentication → Providers** and enable Goog
 
 ### 4. AI / Email discovery
 
-The default discovery model runs via [OpenRouter](https://openrouter.ai):
+Discovery runs two models via [OpenRouter](https://openrouter.ai), both on the same key:
 
-- Create an account, generate an API key → `MODEL_API_KEY`
+- `typesafe/jev-1.13` screens every fetched email and keeps only subscription payments, renewals and cancellations
+- `google/gemini-2.5-flash-lite` extracts the subscription details from the emails that were kept
+
+Create an account, generate an API key → `MODEL_API_KEY`
 
 Alternatively, leave `MODEL_API_KEY` empty - users can bring their own key (BYOK) via the dashboard settings.
 

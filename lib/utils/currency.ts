@@ -1,6 +1,9 @@
+import { Constants } from '@/lib/database.types'
 import type { Database } from '@/lib/database.types'
 
 export type CurrencyCode = Database['public']['Enums']['CURRENCY_CODE']
+
+const CURRENCY_CODES = new Set<string>(Constants.public.Enums.CURRENCY_CODE)
 
 /**
  * The currencies offered in the picker and usable as a display target.
@@ -21,6 +24,7 @@ export const CURRENCIES = {
   CNY: { symbol: '¥', name: 'Chinese Yuan' },
   INR: { symbol: '₹', name: 'Indian Rupee' },
   KRW: { symbol: '₩', name: 'South Korean Won' },
+  ILS: { symbol: '₪', name: 'Israeli Shekel' },
 } as const
 
 export type DisplayCurrencyCode = keyof typeof CURRENCIES
@@ -47,6 +51,7 @@ const EXCHANGE_RATES: Partial<Record<CurrencyCode, number>> = {
   CNY: 7.24,
   INR: 83.12,
   KRW: 1319.5,
+  ILS: 3.8,
 }
 
 /** Whether an amount in this currency can be converted into a display total. */
@@ -102,9 +107,80 @@ export function getCurrencySymbol(code: string | null | undefined): string {
   }
 }
 
-export function formatCurrencyAmount(amount: number, currency: CurrencyCode): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency,
-  }).format(amount)
+// Longest aliases first so "US$" wins over "$".
+const CURRENCY_ALIASES: [string, CurrencyCode][] = [
+  ['US$', 'USD'],
+  ['CA$', 'CAD'],
+  ['AU$', 'AUD'],
+  ['NZ$', 'NZD'],
+  ['HK$', 'HKD'],
+  ['R$', 'BRL'],
+  ['A$', 'AUD'],
+  ['C$', 'CAD'],
+  ['ZŁ', 'PLN'],
+  ['ZLOTY', 'PLN'],
+  ['ZLOTYS', 'PLN'],
+  ['€', 'EUR'],
+  ['EURO', 'EUR'],
+  ['EUROS', 'EUR'],
+  ['£', 'GBP'],
+  ['POUND', 'GBP'],
+  ['POUNDS', 'GBP'],
+  ['¥', 'JPY'],
+  ['YEN', 'JPY'],
+  ['₹', 'INR'],
+  ['RUPEE', 'INR'],
+  ['RUPEES', 'INR'],
+  ['₩', 'KRW'],
+  ['WON', 'KRW'],
+  ['₽', 'RUB'],
+  ['RUBLE', 'RUB'],
+  ['RUBLES', 'RUB'],
+  ['₺', 'TRY'],
+  ['LIRA', 'TRY'],
+  ['LIRAS', 'TRY'],
+  ['₪', 'ILS'],
+  ['SHEKEL', 'ILS'],
+  ['SHEKELS', 'ILS'],
+  ['NIS', 'ILS'],
+  ['₱', 'PHP'],
+  ['PESO', 'PHP'],
+  ['PESOS', 'PHP'],
+  ['₫', 'VND'],
+  ['DONG', 'VND'],
+  ['฿', 'THB'],
+  ['BAHT', 'THB'],
+  ['$', 'USD'],
+]
+
+/**
+ * Maps a free-form currency string onto a storable ISO-4217 code.
+ *
+ * Accepts ISO codes, common symbols (₪, $, €) and a few spelled-out names.
+ * Returns undefined when the input is not recognisable as a currency.
+ */
+export function normalizeCurrency(raw?: string | null): CurrencyCode | undefined {
+  if (!raw) return undefined
+
+  const normalized = raw.toUpperCase().trim()
+  if (CURRENCY_CODES.has(normalized)) {
+    return normalized as CurrencyCode
+  }
+
+  for (const [alias, code] of CURRENCY_ALIASES) {
+    if (normalized.includes(alias)) return code
+  }
+
+  return undefined
+}
+
+export function formatCurrencyAmount(amount: number, currency: CurrencyCode | string): string {
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+    }).format(amount)
+  } catch {
+    return `${getCurrencySymbol(currency)}${amount.toFixed(2)}`
+  }
 }

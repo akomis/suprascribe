@@ -16,7 +16,16 @@ const STATIC_LOGOS: Record<string, string> = {
   'figma.com': '/logos/figma.svg',
   'notion.so': '/logos/notion.svg',
   'linear.app': '/logos/linear.svg',
-  'namecheap.com': '/logos/namecheap.svg',
+  'one.google.com': '/logos/google.svg',
+  'claude.ai': '/logos/claude.svg',
+  'chatgpt.com': '/logos/chatgpt.svg',
+  'chat.openai.com': '/logos/chatgpt.svg',
+  'canva.com': '/logos/canva.svg',
+  'uber.com': '/logos/uber.svg',
+  'nordvpn.com': '/logos/nordvpn.svg',
+  'patreon.com': '/logos/patreon.svg',
+  'duolingo.com': '/logos/duolingo.svg',
+  'xbox.com': '/logos/xbox.svg',
 }
 
 /** A logo request that never settles must not leave the UI stuck on a skeleton. */

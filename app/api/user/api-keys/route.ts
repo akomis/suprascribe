@@ -1,6 +1,7 @@
 import { withAuth } from '@/lib/api/withAuth'
 import { encryptApiKey, getKeyHint } from '@/lib/utils/server-crypto'
 import { validateApiKey, type LLMProvider, DEFAULT_MODELS } from '@/lib/services/ai-provider'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getUserTier } from '@/lib/supabase/tier'
 import { NextResponse } from 'next/server'
 
@@ -27,7 +28,8 @@ export const GET = withAuth(async (_req, { user, supabase }) => {
 })
 
 export const POST = withAuth(async (request, { user, supabase }) => {
-  const tier = await getUserTier(supabase, user.id)
+  // Use service role client for USER_TIERS lookup
+  const tier = await getUserTier(createServiceClient(), user.id)
   if (tier !== 'PRO') {
     return NextResponse.json({ error: 'BYOK requires a PRO subscription' }, { status: 403 })
   }
@@ -97,7 +99,8 @@ export const POST = withAuth(async (request, { user, supabase }) => {
 })
 
 export const PUT = withAuth(async (request, { user, supabase }) => {
-  const tier = await getUserTier(supabase, user.id)
+  // Use service role client for USER_TIERS lookup
+  const tier = await getUserTier(createServiceClient(), user.id)
   if (tier !== 'PRO') {
     return NextResponse.json({ error: 'BYOK requires a PRO subscription' }, { status: 403 })
   }

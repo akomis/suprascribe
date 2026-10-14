@@ -1,6 +1,7 @@
 'use client'
 
 import { DiscoveredSubscriptionGroupCard } from '@/components/dashboard/discovery/DiscoveredSubscriptionGroupCard'
+import { ActivePastTabs } from '@/components/dashboard/discovery/ActivePastTabs'
 import { DiscoveryEditDialog } from '@/components/dashboard/discovery/DiscoveryEditDialog'
 import { OneTimePurchaseNote } from '@/components/shared/OneTimePurchaseNote'
 import { SupportButton } from '@/components/shared/SupportButton'
@@ -184,7 +185,7 @@ function DiscoveryGroupList({
   onEdit: (index: number) => void
 }) {
   return (
-    <>
+    <div className="flex flex-col gap-2">
       {groups.map((group) => (
         <DiscoveredSubscriptionGroupCard
           key={`${kinds[group.items[0]?.index] ?? 'new'}-${group.serviceName}`}
@@ -204,7 +205,7 @@ function DiscoveryGroupList({
           disabled={isSaving}
         />
       ))}
-    </>
+    </div>
   )
 }
 
@@ -518,67 +519,82 @@ function ReviewSubscriptionsView({
     trackedItems.length > 0
       ? `, ${trackedItems.length} already tracked and ${newItems.length} new,`
       : ''
-  const identifiedSentence = `${subject} ${isSingle ? 'was' : 'were'} identified by AI${breakdown} and may contain mistakes.`
+  const identifiedSentence = `${subject} ${isSingle ? 'was' : 'were'} identified by our system${breakdown} and may contain mistakes.`
 
   return (
     <div className="animate-in fade-in duration-300 flex flex-col flex-1 overflow-hidden">
       <DialogHeader>
         <DialogTitle>Review Subscriptions</DialogTitle>
         <DialogDescription className="tabular-nums">
-          {identifiedSentence} Use the edit button to correct any details before importing and the X
-          to mark false positives to not be imported to Suprascribe.
+          {identifiedSentence}
+          <br />
+          Use the edit button to correct any details before importing and the X to mark false
+          positives to not be imported to Suprascribe.
         </DialogDescription>
       </DialogHeader>
 
-      <div className="flex flex-col gap-2 py-2 overflow-y-auto flex-1 pr-2">
-        <div className="flex flex-col gap-2 mb-2">
-          <DiscoveryGroupList
-            groups={activeGroups}
-            selectedSubscriptions={selectedSubscriptions}
-            kinds={kinds}
-            isSaving={isSaving}
-            onToggle={onToggle}
-            onEdit={onEdit}
-          />
-        </div>
-        {pastGroups.length > 0 && (
-          <Badge variant="outline" className="text-xs font-medium">
-            Past
-          </Badge>
-        )}
-        <DiscoveryGroupList
-          groups={pastGroups}
-          selectedSubscriptions={selectedSubscriptions}
-          kinds={kinds}
-          isSaving={isSaving}
-          onToggle={onToggle}
-          onEdit={onEdit}
-        />
-
-        {trackedGroups.length > 0 && (
-          <>
-            <Separator orientation="horizontal" />
-            <button
-              type="button"
-              onClick={onToggleShowDuplicates}
-              className="flex items-center justify-between w-full py-2 px-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <span>Already in your list ({trackedItems.length})</span>
-              <ChevronDown
-                className={cn('size-4 transition-transform', showDuplicates && 'rotate-180')}
-              />
-            </button>
-            {showDuplicates && (
+      {/* Margin, not padding: padding on the scroller would leave a strip
+          above the pinned tabs where rows show through. */}
+      <div className="flex flex-col gap-2 my-2 overflow-y-auto flex-1 pr-2">
+        <ActivePastTabs
+          active={
+            activeGroups.length > 0 && (
               <DiscoveryGroupList
-                groups={trackedGroups}
+                groups={activeGroups}
                 selectedSubscriptions={selectedSubscriptions}
                 kinds={kinds}
                 isSaving={isSaving}
                 onToggle={onToggle}
                 onEdit={onEdit}
               />
+            )
+          }
+          past={
+            pastGroups.length > 0 && (
+              <DiscoveryGroupList
+                groups={pastGroups}
+                selectedSubscriptions={selectedSubscriptions}
+                kinds={kinds}
+                isSaving={isSaving}
+                onToggle={onToggle}
+                onEdit={onEdit}
+              />
+            )
+          }
+        />
+
+        {trackedGroups.length > 0 && (
+          // shrink-0: the scroller is a flex column, and a clipping card would
+          // otherwise be squeezed instead of scrolled.
+          <Card className="gap-0 py-0 overflow-hidden shrink-0">
+            <button
+              type="button"
+              onClick={onToggleShowDuplicates}
+              className="flex items-center justify-between w-full py-3 px-4 text-sm text-muted-foreground hover:text-foreground transition-colors hover:cursor-pointer"
+            >
+              <span className="flex items-center gap-2">
+                Already in your list
+                <Badge variant="secondary" className="tabular-nums">
+                  {trackedItems.length}
+                </Badge>
+              </span>
+              <ChevronDown
+                className={cn('size-4 transition-transform', showDuplicates && 'rotate-180')}
+              />
+            </button>
+            {showDuplicates && (
+              <div className="px-2 pb-2">
+                <DiscoveryGroupList
+                  groups={trackedGroups}
+                  selectedSubscriptions={selectedSubscriptions}
+                  kinds={kinds}
+                  isSaving={isSaving}
+                  onToggle={onToggle}
+                  onEdit={onEdit}
+                />
+              </div>
             )}
-          </>
+          </Card>
         )}
       </div>
 
@@ -679,24 +695,11 @@ function TeaserLockedView({ teaser, onClose }: { teaser: DiscoveryTeaser; onClos
         </DialogDescription>
       </DialogHeader>
 
-      <div className="flex flex-col gap-2 py-4 overflow-y-auto flex-1 pr-1">
-        {activeServices.length > 0 && (
-          <>
-            <Badge variant="outline" className="text-xs font-medium self-start">
-              Active
-            </Badge>
-            <TeaserPreviewList groups={activeServices} />
-          </>
-        )}
-
-        {pastServices.length > 0 && (
-          <>
-            <Badge variant="outline" className="text-xs font-medium self-start">
-              Past
-            </Badge>
-            <TeaserPreviewList groups={pastServices} />
-          </>
-        )}
+      <div className="flex flex-col gap-2 my-4 overflow-y-auto flex-1 pr-1">
+        <ActivePastTabs
+          active={activeServices.length > 0 && <TeaserPreviewList groups={activeServices} />}
+          past={pastServices.length > 0 && <TeaserPreviewList groups={pastServices} />}
+        />
       </div>
 
       <DialogFooter className="flex-col sm:flex-row gap-2">

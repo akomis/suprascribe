@@ -25,8 +25,8 @@ export function BYOKDialog({ open, onOpenChange }: BYOKDialogProps) {
             API Keys
           </DialogTitle>
           <DialogDescription>
-            Bring your own AI API keys for unlimited email discovery. Your keys are encrypted and
-            never logged. Discovery quality and speed vary by model.
+            Bring your own API keys for unlimited email discovery. Your keys are encrypted and never
+            logged. Discovery quality and speed vary by model.
           </DialogDescription>
         </DialogHeader>
         <BYOKSettings />

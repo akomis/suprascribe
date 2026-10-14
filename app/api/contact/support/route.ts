@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { Resend } from 'resend'
 import { hasFeatureAccess } from '@/lib/config/features'
+import { getUserTier } from '@/lib/supabase/tier'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -17,13 +18,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: userSettings } = await supabase
-      .from('USER_SETTINGS')
-      .select('tier')
-      .eq('user_id', user.id)
-      .single()
-
-    const userTier = userSettings?.tier || 'BASIC'
+    // Use service role client for USER_TIERS lookup
+    const userTier = await getUserTier(createServiceClient(), user.id)
     const hasAccess = hasFeatureAccess(userTier, 'email_support')
 
     if (!hasAccess) {
