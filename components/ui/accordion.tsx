@@ -53,7 +53,9 @@ function AccordionContent({
   return (
     <AccordionPrimitive.Content
       data-slot="accordion-content"
-      className="overflow-hidden text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+      // `data-[state=closed]:hidden` only matters with `forceMount`, where Radix keeps the
+      // closed panel and its children mounted and leaves the hiding to CSS.
+      className="overflow-hidden text-sm data-[state=closed]:hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
       {...props}
     >
       <div className={cn('pt-0 pb-4', className)}>{children}</div>

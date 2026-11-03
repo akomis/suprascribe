@@ -15,8 +15,11 @@ import type { MetadataRoute } from 'next'
  * middleware bounces anonymous visitors to /login, and the layout now carries a noindex.
  * Public pages no longer link to it either (/limits and /imap navigate there with
  * buttons), since every such link was an internal link to a 307 for crawlers.
+ *
+ * `/confirmation` and `/demo-discovery` followed for the same reason: both carry a noindex
+ * in their layouts, which only works if crawlers are allowed to fetch them.
  */
-const DISALLOW = ['/api/', '/confirmation', '/demo-discovery']
+const DISALLOW = ['/api/']
 
 const AI_USER_AGENTS = [
   'GPTBot',

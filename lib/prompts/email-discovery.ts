@@ -126,9 +126,13 @@ FLAGS:
   a period - credits, tokens, points, a usage top-up, prepaid funds ("20
   credits", "credit purchase", "top up your balance", "prepaid extra usage",
   "add funds"). The giveaway is that the customer receives a quantity to spend,
-  not a period of service. Many companies sell both: the same merchant can bill
-  a monthly plan AND sell credits, and they are different things - report each
-  email for what it is. When the email buys a period of access, this is false
+  not a period of service. Pay-as-you-go usage counts too: a charge for how much
+  was used rather than for a plan ("platform usage", "usage charges", compute
+  units, API usage, "overage", "beyond your plan", "pay as you go"), even when it
+  is billed monthly. Many companies sell both: the same merchant can bill a
+  monthly plan AND bill usage or sell credits, and they are different things -
+  report each email for what it is. When the email bills a plan fee, even with
+  usage lines beside it, or buys a period of access, this is false
 
 SERVICE_URL: the merchant's main website URL with https://, when the email
 gives one. Omit rather than invent.

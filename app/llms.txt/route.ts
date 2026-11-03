@@ -52,7 +52,7 @@ const STATIC_PAGES: { label: string; path: string; summary: string }[] = [
   {
     label: 'Limits',
     path: '/limits',
-    summary: 'Discovery limits per tier and how to use your own AI API key (BYOK)',
+    summary: 'Discovery limits per tier and how to use your own API key (BYOK)',
   },
   {
     label: 'IMAP Guide',
@@ -126,7 +126,7 @@ ${blogLines()}
 ## What Suprascribe Does
 
 - Scans email inboxes (read-only) to identify subscription receipts and recurring billing
-- Extracts service name, amount, currency, billing frequency, and renewal date using AI
+- Extracts service name, amount, currency, billing frequency, and renewal date
 - Displays all discovered subscriptions in a unified dashboard
 - Tracks spending over time with insights and analytics
 - Sends renewal reminders before subscriptions charge

@@ -184,7 +184,7 @@ function AccountSettings({ open, onOpenChange, email, showPasswordChange }: Acco
   const updateEmail = useUpdateEmail()
   const deleteAccount = useDeleteAccount()
   const resetAccountData = useResetAccountData()
-  const { data: runs, isLoading: isLoadingRuns } = useDiscoveryRuns()
+  const { data: runs, rateLimitInfo, isLoading: isLoadingRuns } = useDiscoveryRuns()
 
   React.useEffect(() => {
     // Use setTimeout to avoid synchronous setState during effect
@@ -315,7 +315,17 @@ function AccountSettings({ open, onOpenChange, email, showPasswordChange }: Acco
             </div>
 
             <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">Discovery History</div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">Discovery History</div>
+                {rateLimitInfo && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Badge variant="outline" className="text-xs px-1.5 py-0 tabular-nums">
+                      {rateLimitInfo.discoveriesUsed}/{rateLimitInfo.maxDiscoveries}
+                    </Badge>
+                    used
+                  </div>
+                )}
+              </div>
               {isLoadingRuns ? (
                 <div className="flex justify-center py-4">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />

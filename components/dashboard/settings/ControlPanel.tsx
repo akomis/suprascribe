@@ -107,7 +107,7 @@ function ControlPanelInner() {
               className="w-full justify-start gap-2 text-muted-foreground font-normal"
             >
               <Key className="h-4 w-4" />
-              AI API Keys (BYOK)
+              API Keys (BYOK)
             </Button>
           </ProGate>
           <ProGate feature="renewal_reminders" className="w-full">

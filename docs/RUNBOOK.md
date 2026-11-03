@@ -23,12 +23,12 @@ This document covers full deployment, re-deployment, and disaster recovery for t
 
 ## 1. Prerequisites
 
-| Tool         | Version | Install                                                      |
-| ------------ | ------- | ------------------------------------------------------------ |
-| Node.js      | ≥ 20    | https://nodejs.org                                           |
-| Yarn         | v4.10.3 | `corepack enable && corepack prepare yarn@4.10.3 --activate` |
-| Supabase CLI | latest  | `npm i -g supabase`                                          |
-| Railway CLI  | latest  | `npm i -g @railway/cli` (if deploying via CLI)               |
+| Tool         | Version | Install                                                                                                |
+| ------------ | ------- | ------------------------------------------------------------------------------------------------------ |
+| Node.js      | 24.22.1 | Pinned in `.nvmrc` (Railway builds use it). Exact pin: Railpack skips fuzzy versions under 14 days old |
+| Yarn         | v4.10.3 | `corepack enable && corepack prepare yarn@4.10.3 --activate`                                           |
+| Supabase CLI | latest  | `npm i -g supabase`                                                                                    |
+| Railway CLI  | latest  | `npm i -g @railway/cli` (if deploying via CLI)                                                         |
 
 **External accounts required:** Supabase, Railway, Stripe, Resend, OpenRouter, Brandfetch, Sentry, Google Cloud Console, Microsoft Azure (Entra ID).
 
@@ -165,11 +165,16 @@ supabase db push
 
 ### 4.1 Notify search engines (IndexNow)
 
-After a deploy that adds or changes indexable content (blog posts, SEO landing pages, comparison pages), push the sitemap to IndexNow. It fans out to Bing, Yandex, Seznam, Naver, and Yep within seconds. Google does not participate, so this is in addition to Search Console, not instead of it.
+IndexNow fans changed URLs out to Bing, Yandex, Seznam, Naver, and Yep within seconds. Google does not participate, so this is in addition to Search Console, not instead of it.
+
+**Automatic:** `.github/workflows/indexnow.yml` runs on every successful production deploy (Railway reports deploys to GitHub as deployment statuses). It submits only the sitemap URLs whose `lastmod` is on or after the previous successful deploy's date, so a change only gets pushed if its `lastmod` in `app/sitemap.ts` (or the post/page config it reads) was bumped. Check the Actions tab if a submission looks missing.
+
+**Manual:**
 
 ```bash
 yarn indexnow --dry-run   # print the payload, submit nothing
 yarn indexnow             # submit every URL in the live sitemap
+yarn indexnow --changed-since=2026-11-01   # only URLs with lastmod on/after that date
 yarn indexnow --url=https://www.suprascribe.com/blog/some-post   # single URL
 ```
 
@@ -358,9 +363,11 @@ yarn dev
 | Railway            | Hosting, serverless functions              | https://status.railway.app   |
 | Stripe             | Payments, webhooks                         | https://status.stripe.com    |
 | Resend             | Transactional email                        | https://resend-status.com    |
-| OpenRouter         | Default AI provider for discovery          | https://status.openrouter.ai |
+| OpenRouter         | Discovery models (Jev + Gemini)            | https://status.openrouter.ai |
 | Brandfetch         | Service logo fetching                      | -                            |
 | Sentry             | Error monitoring                           | https://status.sentry.io     |
 | Google / Microsoft | OAuth providers for auth + email discovery | -                            |
 
 If a non-critical dependency (Brandfetch, OpenRouter) is unavailable, core auth and subscription management remain operational. If Supabase or Railway is down, the application is unavailable.
+
+Discovery calls two models through OpenRouter. `typesafe/jev-1.13` screens each fetched email and only payments, renewals and cancellations go on to `google/gemini-2.5-flash-lite` for extraction. The screening step fails open: if Jev errors, times out or the scan hits its 45s screening deadline, the emails are kept and a scan still completes at full extraction cost. Each scan logs one `[Prefilter]` line with the counts per email kind and Jev's cost next to the extraction tokens saved. BYOK scans skip screening. The mode (`off` / `shadow` / `enforce`) is the `PREFILTER_MODE` constant in `lib/config/email-discovery.ts`.

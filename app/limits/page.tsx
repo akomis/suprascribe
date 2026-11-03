@@ -2,6 +2,7 @@ import { ConfigureApiKeyButton } from '@/components/ConfigureApiKeyButton'
 import { BackButton } from '@/components/shared/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { EMAIL_DISCOVERY_CONFIG } from '@/lib/config/email-discovery'
 import { MAX_TOTAL_DISCOVERIES } from '@/lib/utils/discovery-rate-limit'
 import { HelpCircle, Infinity, Key, Shield, Timer, Zap } from 'lucide-react'
 import type { Metadata } from 'next'
@@ -11,7 +12,7 @@ import Link from 'next/link'
 export const metadata: Metadata = buildMetadata({
   title: 'Auto Discovery - How It Works & BYOK',
   description:
-    'How Auto Discovery finds subscriptions in Gmail, Outlook and iCloud. PRO includes a discovery allowance; BYOK lets you use your own AI key instead.',
+    'How Auto Discovery finds subscriptions in Gmail, Outlook and iCloud. PRO includes a discovery allowance; BYOK lets you use your own API key instead.',
   path: '/limits',
 })
 
@@ -38,9 +39,9 @@ export default function LimitsPage() {
                 Why Do We Have Limits?
               </CardTitle>
               <p className="text-muted-foreground">
-                Email discovery uses AI to analyze your emails and find subscriptions. To ensure
-                fair usage and maintain service quality for all users, we have reasonable limits in
-                place.
+                Every discovery runs your billing emails through our system to find your
+                subscriptions. To ensure fair usage and maintain service quality for all users, we
+                have reasonable limits in place.
               </p>
             </CardHeader>
             <CardContent className="prose prose-gray max-w-none space-y-6">
@@ -51,8 +52,13 @@ export default function LimitsPage() {
                 </h3>
                 <p className="text-muted-foreground">
                   PRO users can run up to <strong>{MAX_TOTAL_DISCOVERIES} discoveries total</strong>{' '}
-                  using our AI infrastructure. Each time you scan an email account (Gmail, Outlook,
-                  or iCloud) counts as one discovery.
+                  using our infrastructure. Each time you scan an email account (Gmail, Outlook, or
+                  iCloud) counts as one discovery.
+                </p>
+                <p className="text-muted-foreground">
+                  Emails are checked by <code>{EMAIL_DISCOVERY_CONFIG.prefilter.model}</code>, which
+                  keeps only payments, renewals and cancellations, and those are analyzed by{' '}
+                  <code>{EMAIL_DISCOVERY_CONFIG.analysisModel.modelName}</code>.
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
                   <li>PRO includes {MAX_TOTAL_DISCOVERIES} discoveries using our infrastructure</li>
@@ -71,15 +77,14 @@ export default function LimitsPage() {
               </CardTitle>
               <p className="text-muted-foreground">
                 Auto Discovery includes a generous allowance of discoveries. Once exhausted, you can
-                extend it by bringing your own AI API key - this is called BYOK (Bring Your Own
-                Key).
+                extend it by bringing your own API key - this is called BYOK (Bring Your Own Key).
               </p>
             </CardHeader>
             <CardContent className="prose prose-gray max-w-none space-y-4">
               <p className="text-muted-foreground">
                 Configure an API key from any supported provider (OpenAI, Anthropic, Google and
                 more) and Auto Discovery will use it instead of our infrastructure - no limits, no
-                extra cost beyond what you pay your AI provider.
+                extra cost beyond what you pay your provider.
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2 mt-4">

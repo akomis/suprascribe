@@ -77,7 +77,7 @@ export const ChargeSchema = z.object({
   is_credit_purchase: z
     .boolean()
     .describe(
-      'True when the payment buys a balance - credits, tokens, usage top-up - rather than access for a period.',
+      'True when the payment buys a balance - credits, tokens, usage top-up - or pays for pay-as-you-go usage ("platform usage", overage), rather than a plan fee or access for a period.',
     ),
   installment_index: z.number().int().optional().describe('The 2 in "payment 2 of 4".'),
   installment_total: z

@@ -5,12 +5,9 @@ import type {
   DiscoveredSubscription,
 } from '@/lib/types/forms'
 import { toDateString } from '@/lib/utils/date'
-import type { CurrencyCode } from '@/lib/utils/currency'
-import { Constants } from '@/lib/database.types'
+import { normalizeCurrency } from '@/lib/utils/currency'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-
-const CURRENCY_CODES = Constants.public.Enums.CURRENCY_CODE
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -106,7 +103,7 @@ export function formatLocalizedDate(dateString: string): string {
   })
 }
 
-function calculateMonthsDuration(startDate: string, endDate: string): number {
+export function calculateMonthsDuration(startDate: string, endDate: string): number {
   const start = new Date(startDate)
   const end = new Date(endDate)
 
@@ -191,24 +188,6 @@ export function isSubscriptionActive(startDate: string, endDate: string): boolea
   const end = new Date(endDate)
 
   return now >= start && now <= end
-}
-
-/**
- * Maps a currency string onto a storable ISO-4217 code.
- *
- * Returns undefined rather than a default when the code is not recognised. The
- * previous behaviour fell back to 'USD', which silently relabelled a SEK 199
- * subscription as $199 - a wrong figure reads as fact, where a missing one is
- * visibly missing and can be corrected.
- */
-function normalizeCurrency(currency?: string | null): CurrencyCode | undefined {
-  if (!currency) return undefined
-
-  const normalized = currency.toUpperCase().trim()
-
-  return (CURRENCY_CODES as readonly string[]).includes(normalized)
-    ? (normalized as CurrencyCode)
-    : undefined
 }
 
 export function convertDiscoveredToFormData(discovered: {
