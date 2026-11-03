@@ -1,7 +1,7 @@
 import type { Charge } from '@/lib/schemas/charge'
 import type { BillingPeriod, DiscoveredSubscription } from '@/lib/types/forms'
 import { normalizeCurrency } from '@/lib/utils/currency'
-import { planBucket, serviceKey } from '@/lib/utils/service-key'
+import { planBucket, serviceKey, stripCorporateSuffixes } from '@/lib/utils/service-key'
 import { CYCLE_DAYS } from '@/lib/utils/subscription-period-extension'
 import { toDateString } from '@/lib/utils/date'
 
@@ -94,6 +94,7 @@ export type DropReason =
   | 'no_cycle'
   | 'irregular_cadence'
   | 'variable_amount_pair'
+  | 'weekly_pair'
 
 /**
  * Which rule let a subscription through.
@@ -353,6 +354,18 @@ function detectCadence(
     if (period && !group.some((c) => c.recurrence_language) && pairAmountsDiffer(segments)) {
       return { reason: 'variable_amount_pair' }
     }
+
+    // A week between two charges is as likely an upgrade, a top-up or a second
+    // purchase as a weekly plan: Decodo billed $33.32 and then $34.51 seven days
+    // later for an "8 GB plan" with a monthly allowance, and this branch called
+    // it WEEKLY. Weekly takes a third charge (fitPeriod below) or the email
+    // saying so; any other cycle the email states still wins.
+    if (period === 'WEEKLY' && statedInGroup !== 'WEEKLY') {
+      if (statedInGroup) {
+        return { period: statedInGroup, medianGap: gaps[0], evidence: 'stated_period' }
+      }
+      return { reason: 'weekly_pair' }
+    }
     if (period) return { period, medianGap: gaps[0], evidence: 'two_charges' }
 
     // A spacing that matches no cycle. The printed word still counts: a plan
@@ -395,8 +408,47 @@ function words(value: string): string[] {
  * describes all of them. The shortest is taken because it is the one least
  * likely to carry billing prose - "Pro" rather than "Pro plan, billed monthly".
  */
+/**
+ * Puts notices that announce the same charge on the date they announce.
+ *
+ * A biller that reminds twice per cycle ("due in 7 days", "due in 2 days")
+ * turns one monthly charge into two timeline points five days apart, and the
+ * gaps between notice dates (5, 25, 5) fit no cycle: Postoria Pro, a plain
+ * monthly plan, was dropped as irregular. Two or more notices naming one
+ * next_billing_date are evidence of a single charge on that date, so they
+ * collapse onto it, keeping the latest notice's price.
+ *
+ * A notice alone keeps its own date. Its next_billing_date may be the charge it
+ * announces, or the cycle after the one it confirms ("renewed today, next on
+ * 2026-12-25"), and nothing in one email says which.
+ */
+function collapseNotices(notices: Charge[]): Charge[] {
+  const byAnnouncedDate = new Map<string, Charge[]>()
+  for (const notice of notices) {
+    const date = notice.next_billing_date
+    if (!date || date < notice.charge_date) continue
+    byAnnouncedDate.set(date, [...(byAnnouncedDate.get(date) ?? []), notice])
+  }
+
+  const collapsed = new Set<Charge>()
+  const points: Charge[] = []
+  for (const [date, group] of byAnnouncedDate) {
+    if (group.length < 2) continue
+    group.forEach((notice) => collapsed.add(notice))
+    points.push({ ...group[group.length - 1], charge_date: date })
+  }
+
+  return [...points, ...notices.filter((notice) => !collapsed.has(notice))].sort((a, b) =>
+    a.charge_date.localeCompare(b.charge_date),
+  )
+}
+
 function displayNameFor(charges: Charge[]): string {
-  const merchant = fullestName(charges.map((c) => c.merchant))
+  // The legal suffix is stripped before the fullest name is picked, or the
+  // longest spelling wins on the suffix alone: forwarded copies said "Railway
+  // Corporation" where the originals said "Railway", and the group key already
+  // treated them as one.
+  const merchant = fullestName(charges.map((c) => c.merchant && stripCorporateSuffixes(c.merchant)))
   const plan = charges
     .map((c) => c.plan?.trim())
     .filter((p): p is string => Boolean(p))
@@ -478,6 +530,11 @@ export function classifyCharges(charges: Charge[]): ClassificationResult {
     // that says nothing about renewing is a retail purchase. Neither is a
     // charge, and neither may contribute to a cadence.
     if (charge.is_refund || charge.doc_type === 'refund') continue
+    // A declined card moved no money. Retries come days apart, so they read as
+    // noise today - but a card failing every month for a year would otherwise
+    // be a perfect monthly cadence of payments that never happened. Cursor's
+    // five "$20.00 payment was unsuccessful" emails reached here as $20 charges.
+    if (charge.doc_type === 'failed_payment') continue
     if (charge.doc_type === 'order_confirmation' && charge.renewal_evidence === 'none') continue
     if (charge.amount <= 0 && !charge.is_trial) continue
 
@@ -525,7 +582,17 @@ export function classifyCharges(charges: Charge[]): ClassificationResult {
       continue
     }
 
-    if (amountVariation(sorted) > MAX_AMOUNT_VARIATION && !looksMeteredButRecurring(sorted)) {
+    // Two charges cannot tell a price change from a shopping history: the
+    // variance of a pair is just the gap between its two amounts. When the
+    // email itself talks about recurring, the pair is a plan whose price moved -
+    // Meshy billed $10 then $20, "Launch 50% OFF - Pro Monthly", a month apart.
+    // A pair whose emails say nothing goes on to variable_amount_pair instead.
+    const pairSaysRecurring = sorted.length === 2 && sorted.some((c) => c.recurrence_language)
+    if (
+      amountVariation(sorted) > MAX_AMOUNT_VARIATION &&
+      !looksMeteredButRecurring(sorted) &&
+      !pairSaysRecurring
+    ) {
       drop('amount_variance')
       continue
     }
@@ -536,7 +603,8 @@ export function classifyCharges(charges: Charge[]): ClassificationResult {
     // the email explicitly says is live and even prices - so the notice becomes
     // the segment instead.
     const receipts = sorted.filter((c) => c.doc_type !== 'renewal_notice')
-    const paid = receipts.length > 0 ? receipts : sorted.filter((c) => c.amount > 0)
+    const paid =
+      receipts.length > 0 ? receipts : collapseNotices(sorted.filter((c) => c.amount > 0))
     if (paid.length === 0) {
       drop('zero_amount')
       continue

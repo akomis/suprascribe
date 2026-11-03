@@ -771,3 +771,166 @@ describe('a pair of differing charges with no recurrence wording', () => {
     expect(only(result).evidence).toBe('two_charges')
   })
 })
+
+describe('two charges a week apart', () => {
+  it('is not a weekly plan on spacing alone', () => {
+    // Decodo, from a live mailbox: an upgrade billed seven days after the plan.
+    const result = classifyCharges([
+      charge({ merchant: 'Decodo', plan: '8 GB plan', amount: 33.32, charge_date: '2026-09-30' }),
+      charge({ merchant: 'Decodo', plan: '8 GB plan', amount: 34.51, charge_date: '2026-10-07' }),
+    ])
+
+    expect(only(result).outcome).toBe('dropped')
+    expect(only(result).reason).toBe('weekly_pair')
+    expect(result.subscriptions).toHaveLength(0)
+  })
+
+  it('takes the cycle the email states instead', () => {
+    const result = classifyCharges([
+      charge({
+        merchant: 'Decodo',
+        amount: 34.51,
+        charge_date: '2026-09-30',
+        stated_period: 'MONTHLY',
+      }),
+      charge({ merchant: 'Decodo', amount: 34.51, charge_date: '2026-10-07' }),
+    ])
+
+    expect(only(result).outcome).toBe('recurring')
+    expect(only(result).period).toBe('MONTHLY')
+    expect(only(result).evidence).toBe('stated_period')
+  })
+
+  it('stays weekly when the email says weekly', () => {
+    const result = classifyCharges([
+      charge({
+        merchant: 'Meal Box',
+        amount: 60,
+        charge_date: '2026-09-30',
+        stated_period: 'WEEKLY',
+      }),
+      charge({ merchant: 'Meal Box', amount: 60, charge_date: '2026-10-07' }),
+    ])
+
+    expect(only(result).period).toBe('WEEKLY')
+  })
+
+  it('stays weekly with a third charge on the same rhythm', () => {
+    const result = classifyCharges([
+      charge({ merchant: 'Meal Box', amount: 60, charge_date: '2026-09-30' }),
+      charge({ merchant: 'Meal Box', amount: 60, charge_date: '2026-10-07' }),
+      charge({ merchant: 'Meal Box', amount: 60, charge_date: '2026-10-14' }),
+    ])
+
+    expect(only(result).outcome).toBe('recurring')
+    expect(only(result).period).toBe('WEEKLY')
+  })
+})
+
+describe('live mailbox review, November 2026', () => {
+  it('keeps an introductory price followed by the full one', () => {
+    // Meshy: "Launch 50% OFF - Pro Monthly", $10 then $20 a month later.
+    const result = classifyCharges([
+      charge({ merchant: 'Meshy', plan: 'Pro', amount: 10, charge_date: '2026-01-12' }),
+      charge({
+        merchant: 'Meshy',
+        plan: 'Pro',
+        amount: 20,
+        charge_date: '2026-02-12',
+        recurrence_language: false,
+      }),
+    ])
+
+    expect(only(result).outcome).toBe('recurring')
+    expect(only(result).period).toBe('MONTHLY')
+  })
+
+  it('still drops a differing pair whose emails never mention recurring', () => {
+    const result = classifyCharges([
+      charge({
+        merchant: 'Shop',
+        amount: 10,
+        charge_date: '2026-01-12',
+        recurrence_language: false,
+      }),
+      charge({
+        merchant: 'Shop',
+        amount: 20,
+        charge_date: '2026-02-12',
+        recurrence_language: false,
+      }),
+    ])
+
+    expect(only(result).outcome).toBe('dropped')
+  })
+
+  it('never counts a failed payment as a charge', () => {
+    // A card declined every month would otherwise be a perfect monthly cadence.
+    const declined = monthly('Cursor', 20, '2026-01-06', 4).map((c) => ({
+      ...c,
+      doc_type: 'failed_payment' as const,
+    }))
+    const result = classifyCharges(declined)
+
+    expect(result.verdicts).toHaveLength(0)
+    expect(result.subscriptions).toHaveLength(0)
+  })
+
+  it('names the product, not the legal entity, whichever spelling is longer', () => {
+    const result = classifyCharges([
+      ...monthly('Railway', 70, '2025-07-29', 2),
+      ...monthly('Railway Corporation', 80, '2025-09-27', 2),
+    ])
+
+    expect(only(result).display_name).toBe('Railway')
+  })
+})
+
+describe('notices that announce the same charge', () => {
+  const notice = (charge_date: string, next_billing_date: string, amount: number) =>
+    charge({
+      merchant: 'Postoria',
+      plan: 'Pro',
+      amount,
+      charge_date,
+      next_billing_date,
+      doc_type: 'renewal_notice',
+      renewal_evidence: 'next_date_stated',
+    })
+
+  it('collapse onto the announced date, so a monthly plan reads as monthly', () => {
+    // Postoria Pro via PayPro Global: reminders 7 and 2 days before each charge.
+    const result = classifyCharges([
+      notice('2026-09-20', '2026-09-27', 10.89),
+      notice('2026-09-25', '2026-09-27', 10.96),
+      notice('2026-10-20', '2026-10-27', 11.13),
+      notice('2026-10-25', '2026-10-27', 11.15),
+    ])
+
+    expect(only(result).outcome).toBe('recurring')
+    expect(only(result).period).toBe('MONTHLY')
+    expect(result.subscriptions.map((s) => [s.start_date, s.price])).toEqual([
+      ['2026-09-27', 10.96],
+      ['2026-10-27', 11.15],
+    ])
+  })
+
+  it('leave a lone notice on its own date', () => {
+    // Proton: "renewed today, will renew on 2026-12-25" - the next cycle, not this one.
+    const result = classifyCharges([
+      charge({
+        merchant: 'Proton',
+        plan: 'Unlimited',
+        amount: 76.78,
+        charge_date: '2025-12-25',
+        next_billing_date: '2026-12-25',
+        doc_type: 'renewal_notice',
+        renewal_evidence: 'next_date_stated',
+      }),
+    ])
+
+    expect(only(result).outcome).toBe('recurring')
+    expect(only(result).period).toBe('YEARLY')
+    expect(result.subscriptions[0].start_date).toBe('2025-12-25')
+  })
+})

@@ -9,10 +9,10 @@
  * does this on every successful production deploy; the commands below are for
  * running it by hand.
  *
- *   yarn indexnow                           submit every URL in the live sitemap
- *   yarn indexnow --changed-since=<date>    only URLs whose lastmod is on/after <date>
- *   yarn indexnow --dry-run                 print the payload, submit nothing
- *   yarn indexnow --url=<url>               submit a single URL
+ *   pnpm indexnow                           submit every URL in the live sitemap
+ *   pnpm indexnow --changed-since=<date>    only URLs whose lastmod is on/after <date>
+ *   pnpm indexnow --dry-run                 print the payload, submit nothing
+ *   pnpm indexnow --url=<url>               submit a single URL
  */
 
 import { readdirSync, readFileSync } from 'node:fs'

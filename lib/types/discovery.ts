@@ -17,6 +17,12 @@ export interface DiscoverySuccessResponse {
   subscriptions: DiscoveredSubscription[]
   emailCount: number
   email: string
+  /**
+   * Emails whose analysis failed even after the recovery passes, and the
+   * senders they came from. Absent when every email was read. A scan with
+   * unread emails never makes the next one count as "no new receipts".
+   */
+  unread?: { emails: number; senders: string[] }
 }
 
 // One charge, stripped to what a locked teaser may show: price and period only.

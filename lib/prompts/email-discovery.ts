@@ -48,6 +48,8 @@ WHAT TO REPORT:
   - "renewal_notice" - announces an upcoming charge, no money moved yet
   - "order_confirmation" - a retail order for goods or a one-off service
   - "refund" - money returned
+  - "failed_payment" - a payment that was declined, failed or unsuccessful; no
+    money moved, so it is never a "receipt". Still report the amount attempted
   - "other" - anything else describing an amount
 - Skip only pure marketing with no amount in it at all
 

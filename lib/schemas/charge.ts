@@ -31,6 +31,7 @@ export const CHARGE_DOC_TYPES = [
   'renewal_notice',
   'order_confirmation',
   'refund',
+  'failed_payment',
   'other',
 ] as const
 

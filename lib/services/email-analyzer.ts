@@ -9,7 +9,13 @@ import { mapWithConcurrency } from '@/lib/utils/concurrency'
 import { mentionsRecurrence } from '@/lib/utils/recurrence-language'
 import { classifyCharges, type ClassificationVerdict } from '@/lib/services/charge-classifier'
 import { normalizeClassifiedSubscription } from '@/lib/utils/subscription-normalizer'
-import { generateObject, NoObjectGeneratedError, type LanguageModel } from 'ai'
+import {
+  APICallError,
+  generateObject,
+  NoObjectGeneratedError,
+  RetryError,
+  type LanguageModel,
+} from 'ai'
 import { createModel, type ProviderConfig } from './ai-provider'
 import {
   measurePrefilterLoss,
@@ -41,6 +47,14 @@ const MAX_GENERATION_ATTEMPTS = 3
 // How many analysis units are in flight at once. Bounded so a large inbox does
 // not open dozens of simultaneous provider requests and earn a rate limit.
 const MAX_CONCURRENT_ANALYSES = 6
+
+// Waits before each recovery pass over units that failed transiently. The SDK's
+// own retries back off for seconds, while an upstream rate limit lasts tens of
+// seconds: a live scan lost 3 of 6 units, 62 of 88 emails, to one burst of
+// "temporarily rate-limited upstream". By the time the rest have finished the
+// window has usually passed, so the failures are retried then, gently.
+const RECOVERY_PASS_DELAYS_MS = [15_000, 45_000]
+const RECOVERY_CONCURRENCY = 2
 
 // A sender this small is not worth a request of its own; several are batched
 // into one unit so the system prompt is paid for once across all of them.
@@ -84,6 +98,10 @@ const SENDER_DOMAIN_ALIASES: Record<string, string> = {
   'githubapp.com': 'github.com',
   'email.apple.com': 'apple.com',
   'e.godaddy.com': 'godaddy.com',
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
@@ -146,6 +164,41 @@ export interface AnalysisUnit {
    * asked of the model, which cannot then get them wrong.
    */
   emails: EmailData[]
+}
+
+export type EmailExclusion = 'own_product' | 'seller_notification'
+
+const REPLY_OR_FORWARD = /^\s*(re|fwd?|fw)\s*:/i
+
+// Stripe's notice to a merchant that it was paid: "Payment of €10.00 from Jane
+// Doe for Acme", or without the payer. What a customer receives from Stripe is
+// always "Your receipt from ...", so this shape only ever reaches the seller.
+const SELLER_PAYMENT_SUBJECT = /^\s*payment of\b.+\bfor\b/i
+
+/**
+ * Mail that can never describe a charge to the inbox owner, decided from the
+ * envelope before any model sees it.
+ *
+ * - own_product: sent by Suprascribe, or a reply or forward quoting our mail.
+ *   Reminders restate the user's own dashboard; replies quote someone else's.
+ * - seller_notification: the user being paid, not paying. One business inbox
+ *   held 120 of these, which Stage A read as 86 "charges" and which bloated the
+ *   Stripe units until citations drifted onto the wrong emails.
+ */
+export function exclusionFor(email: EmailData): EmailExclusion | null {
+  const domain = extractSenderDomain(email.from)
+  const own: readonly string[] = EMAIL_DISCOVERY_CONFIG.ownDomains
+  if (own.includes(domain)) return 'own_product'
+  if (
+    REPLY_OR_FORWARD.test(email.subject) &&
+    own.some((ownDomain) => email.body?.toLowerCase().includes(`@${ownDomain}`))
+  ) {
+    return 'own_product'
+  }
+  if (domain === 'stripe.com' && SELLER_PAYMENT_SUBJECT.test(email.subject)) {
+    return 'seller_notification'
+  }
+  return null
 }
 
 export function estimateTokens(text: string): number {
@@ -488,7 +541,20 @@ async function generateUnitAnalysis(
 export interface FailedUnit {
   label: string
   emailCount: number
+  /** Sending domains of the emails that went unread, for telling the user. */
+  senders: string[]
   error: string
+  /**
+   * A rate limit, an overloaded provider or a timeout: worth another attempt
+   * later. Unparseable output is not - it already had its retries.
+   */
+  transient: boolean
+}
+
+export function isTransientFailure(error: unknown): boolean {
+  if (RetryError.isInstance(error)) return true
+  if (APICallError.isInstance(error)) return error.isRetryable
+  return error instanceof Error && error.message.startsWith('Timeout after')
 }
 
 export interface BatchAnalysisResult {
@@ -512,6 +578,8 @@ export interface BatchAnalysisResult {
   totalUsage: TokenUsage
   /** Absent when the pre-filter did not run. */
   prefilter?: PrefilterReport
+  /** Emails set aside by exclusionFor before analysis, per reason. */
+  excluded: Partial<Record<EmailExclusion, number>>
 }
 
 /**
@@ -573,12 +641,24 @@ async function runUnit(
     // One unit is one sender, so a failure here costs that vendor and nothing
     // else. The caller is told which, rather than the scan quietly shrinking.
     const message = error instanceof Error ? error.message : 'unknown error'
-    console.error(`[Email Analysis] Unit ${unit.label} failed:`, error)
+    // A transient failure gets recovery passes, so it is only an error if it
+    // survives them - reported once the passes are done, not here.
+    if (isTransientFailure(error)) {
+      console.warn(`[Email Analysis] Unit ${unit.label} failed transiently, will retry: ${message}`)
+    } else {
+      console.error(`[Email Analysis] Unit ${unit.label} failed:`, error)
+    }
 
     return {
       unit,
       charges: [],
-      failure: { label: unit.label, emailCount: unit.emailCount, error: message },
+      failure: {
+        label: unit.label,
+        emailCount: unit.emailCount,
+        senders: [...new Set(unit.emails.map((email) => extractSenderDomain(email.from)))],
+        error: message,
+        transient: isTransientFailure(error),
+      },
     }
   }
 }
@@ -616,7 +696,17 @@ export async function analyzeEmailsBatch(
     rejectedCount: 0,
     creditPurchases: 0,
     totalUsage: { inputTokens: 0, outputTokens: 0 },
+    excluded: {},
   }
+
+  const excluded: Partial<Record<EmailExclusion, number>> = {}
+  emails = emails.filter((email) => {
+    const reason = exclusionFor(email)
+    if (!reason) return true
+    excluded[reason] = (excluded[reason] ?? 0) + 1
+    return false
+  })
+  empty.excluded = excluded
 
   if (emails.length === 0) return empty
 
@@ -671,6 +761,29 @@ export async function analyzeEmailsBatch(
     runUnit(unit, model, maxOutputTokens, totalUsage),
   )
 
+  for (const [pass, delay] of RECOVERY_PASS_DELAYS_MS.entries()) {
+    const retryable = outcomes.flatMap((o, i) => (o.failure?.transient ? [i] : []))
+    if (retryable.length === 0) break
+
+    console.log(
+      `[Email Analysis] Recovery pass ${pass + 1}: retrying ${retryable.length} unit(s) in ${delay / 1000}s`,
+    )
+    await sleep(delay)
+
+    const retried = await mapWithConcurrency(retryable, RECOVERY_CONCURRENCY, (i) =>
+      runUnit(outcomes[i].unit, model, maxOutputTokens, totalUsage),
+    )
+    retryable.forEach((i, k) => (outcomes[i] = retried[k]))
+  }
+
+  for (const { failure } of outcomes) {
+    if (failure?.transient) {
+      console.error(
+        `[Email Analysis] Unit ${failure.label} still failing after recovery passes, ${failure.emailCount} emails unread: ${failure.error}`,
+      )
+    }
+  }
+
   const sourced = outcomes.flatMap((o) => o.charges)
   const charges = sourced.map((s) => s.charge)
 
@@ -708,5 +821,6 @@ export async function analyzeEmailsBatch(
     creditPurchases,
     totalUsage,
     prefilter: report,
+    excluded,
   }
 }

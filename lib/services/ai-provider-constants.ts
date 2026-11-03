@@ -30,7 +30,9 @@ export const DEFAULT_MODELS: Record<LLMProvider, string[]> = {
     'o3-mini',
   ],
   anthropic: ['claude-haiku-4-5-20251001', 'claude-sonnet-4-6', 'claude-opus-4-6'],
-  google: ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-3-flash-preview'],
+  // No gemini-2.5-flash-lite: Google refuses it for projects created after its
+  // cutoff, so a new user's key failed validation with it selected.
+  google: ['gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-3-flash-preview'],
   mistral: ['mistral-small-3.2-24b-instruct', 'mistral-medium-3.1', 'mistral-large-2512'],
   groq: [
     'llama-3.3-70b-versatile',

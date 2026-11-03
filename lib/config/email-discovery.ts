@@ -60,6 +60,13 @@ export const EMAIL_DISCOVERY_CONFIG = {
   // billing, which is a far smaller and much cleaner set.
   mixedSenders: ['paypal.com', 'apple.com', 'google.com'],
 
+  // Our own mail. A Suprascribe renewal reminder names a service, a price and a
+  // renewal date, which is everything a notice needs to pass as evidence - so a
+  // re-scan re-imported the user's own dashboard, stale prices included (ESET,
+  // Netflix, Meshy at its old $10), and a customer's reply quoting their
+  // reminder became the inbox owner's subscription.
+  ownDomains: ['suprascribe.com'],
+
   // How far back to search. Without a window the cap below truncates at an
   // arbitrary point in history rather than bounding a period, so two scans of
   // the same inbox could cover different spans.
@@ -69,10 +76,13 @@ export const EMAIL_DISCOVERY_CONFIG = {
 
   analysisModel: {
     provider: 'OpenRouter',
-    modelName: 'google/gemini-2.5-flash-lite',
+    // Not 2.5-flash-lite: Google closed it to new projects, so a BYOK key could
+    // not use it, and only AI Studio served it - an upstream rate limit had no
+    // fallback. 3.1 is served by both AI Studio and Vertex.
+    modelName: 'google/gemini-3.1-flash-lite',
     temperature: 0,
-    inputCostPerMillion: 0.1,
-    outputCostPerMillion: 0.4,
+    inputCostPerMillion: 0.25,
+    outputCostPerMillion: 1.5,
     // This model's documented output ceiling. Keep in step with modelName:
     // set too low it truncates mid-JSON, and a provider rejects it if too high.
     maxOutputTokens: 65_535,

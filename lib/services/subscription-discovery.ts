@@ -3,7 +3,12 @@ import type { DiscoveredSubscription } from '@/lib/types/forms'
 import { earliestDate } from '@/lib/utils/date'
 import { consolidateSubscriptionPeriods } from '@/lib/utils/subscription-period-extension'
 import type { ProviderConfig } from './ai-provider'
-import { analyzeEmailsBatch, type FailedUnit, type TokenUsage } from './email-analyzer'
+import {
+  analyzeEmailsBatch,
+  type EmailExclusion,
+  type FailedUnit,
+  type TokenUsage,
+} from './email-analyzer'
 import type { ClassificationVerdict } from './charge-classifier'
 import {
   countGmailEmails,
@@ -13,6 +18,7 @@ import {
   fetchOutlookEmails,
   fetchOutlookProfileEmail,
   fetchImapEmails,
+  isLoopbackHost,
 } from './email-fetcher'
 
 type _Provider = 'google' | 'microsoft' | 'imap'
@@ -50,16 +56,29 @@ export interface DiscoveryResult {
   rejectedCount: number
   /** Charges discarded as balance top-ups rather than subscription payments. */
   creditPurchases: number
+  /**
+   * Fetched emails set aside before analysis - our own mail, a seller's payment
+   * notices. Still counted in emailCount, which the no-new-email probe compares
+   * against a body-free listing that cannot tell them apart.
+   */
+  excluded: Partial<Record<EmailExclusion, number>>
   /** True when the mailbox held more matching email than the scan cap allows. */
   truncated: boolean
   /** Received date of the oldest email actually scanned, YYYY-MM-DD. */
   oldestEmailDate?: string
 }
 
-function isBlockedImapHost(host: string): boolean {
+const IMAP_URL_HOST_ERROR =
+  'Enter the IMAP server as a hostname only (for example imap.example.com), without http:// or imap://.'
+
+const IMAP_PRIVATE_HOST_ERROR =
+  'This IMAP server address points to your own computer or a private network (like 127.0.0.1 or localhost), which our servers cannot reach. ' +
+  'Local bridge apps such as Proton Mail Bridge only run on your device, so they are not supported. ' +
+  "Use your email provider's public IMAP server instead."
+
+function isPrivateNetworkHost(host: string): boolean {
   const h = host.trim().toLowerCase()
-  if (h.includes('://')) return true
-  if (h === 'localhost' || h === '::1' || h.startsWith('127.')) return true
+  if (isLoopbackHost(h)) return true
   if (h.startsWith('169.254.')) return true
   if (h.startsWith('10.')) return true
   if (h.startsWith('192.168.')) return true
@@ -72,12 +91,19 @@ function isBlockedImapHost(host: string): boolean {
   return false
 }
 
+/** Throws a user-facing error when the server host must not be dialled. */
+function assertImapHostAllowed(host: string | undefined): void {
+  if (!host) return
+  if (host.includes('://')) throw new Error(IMAP_URL_HOST_ERROR)
+  // Development may dial loopback so a local Proton Mail Bridge can be tested.
+  if (process.env.NODE_ENV === 'development' && isLoopbackHost(host)) return
+  if (isPrivateNetworkHost(host)) throw new Error(IMAP_PRIVATE_HOST_ERROR)
+}
+
 /** The address being scanned, resolved without touching a single message. */
 export async function resolveInboxAddress(input: DiscoveryInput): Promise<string> {
   if (input.provider === 'imap') {
-    if (input.credentials.server && isBlockedImapHost(input.credentials.server)) {
-      throw new Error('Invalid IMAP server address')
-    }
+    assertImapHostAllowed(input.credentials.server)
     return input.credentials.email
   }
   if (input.provider === 'google') return fetchGmailProfileEmail(input.credentials.token)
@@ -113,9 +139,7 @@ export async function discover(
 
   if (input.provider === 'imap') {
     const { credentials } = input
-    if (credentials.server && isBlockedImapHost(credentials.server)) {
-      throw new Error('Invalid IMAP server address')
-    }
+    assertImapHostAllowed(credentials.server)
     email = credentials.email
     rawEmails = await fetchImapEmails(credentials, keywords)
   } else if (input.provider === 'google') {
@@ -145,6 +169,7 @@ export async function discover(
       failedUnits: [],
       rejectedCount: 0,
       creditPurchases: 0,
+      excluded: {},
       truncated: false,
     }
   }
@@ -163,6 +188,7 @@ export async function discover(
     failedUnits,
     rejectedCount,
     creditPurchases,
+    excluded,
     totalUsage,
   } = await analyzeEmailsBatch(
     rawEmails,
@@ -186,6 +212,7 @@ export async function discover(
     failedUnits,
     rejectedCount,
     creditPurchases,
+    excluded,
     truncated,
     oldestEmailDate,
   }

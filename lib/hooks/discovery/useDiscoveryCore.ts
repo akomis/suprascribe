@@ -125,6 +125,15 @@ export function useDiscoveryCore(): DiscoveryCoreReturn {
           description: `No subscriptions found in ${data.emailCount} emails.`,
         })
       }
+
+      // A partial scan must not read as a complete one: the user would trust a
+      // short list and never look again.
+      if (data.unread) {
+        toast.warning('Some emails could not be read', {
+          description: `${data.unread.emails} of ${data.emailCount} emails (${data.unread.senders.join(', ')}) were not checked this time. Scan again in a few minutes to include them.`,
+          duration: 15_000,
+        })
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to discover subscriptions.'
       setError(errorMessage)

@@ -192,6 +192,12 @@ async function reserveTeaserSlot(
  *
  * Deliberately ignores DISCOVERY_TEASERS: an unclaimed teaser means the user
  * never received those results, so their first real scan must still run.
+ *
+ * A run that left units unread is no baseline either. Its emails_scanned counts
+ * what was fetched, not what was read, so an unchanged mailbox would match it
+ * and the skip would lock in the loss: a live scan lost 62 of 88 emails to an
+ * upstream rate limit, and the re-scan that could have recovered them would
+ * have been refused as "no new receipts".
  */
 async function lastScan(
   supabase: SupabaseClient,
@@ -211,12 +217,13 @@ async function lastScan(
 
   const { data: analytics } = await supabase
     .from('DISCOVERY_ANALYTICS')
-    .select('emails_scanned')
+    .select('emails_scanned, units_failed')
     .eq('status', 'completed')
     .eq('run_id', run.id)
     .maybeSingle()
 
   if (analytics?.emails_scanned == null) return null
+  if ((analytics.units_failed ?? 0) > 0) return null
 
   return { emailsScanned: analytics.emails_scanned, subscriptionsFound: run.subscriptions_found }
 }
@@ -395,6 +402,10 @@ export async function runDiscovery(
   // Never a group, so never a verdict - but the count belongs in the same
   // histogram, because it is the rule most likely to be over-reaching.
   if (result.creditPurchases > 0) droppedByReason.credit_purchase = result.creditPurchases
+  // Emails rather than groups, but the same question: what never reached a verdict.
+  for (const [reason, count] of Object.entries(result.excluded)) {
+    if (count) droppedByReason[`excluded_${reason}`] = count
+  }
 
   const classification = {
     chargesExtracted: result.chargeCount,
@@ -547,5 +558,17 @@ export async function runDiscovery(
     })
   }
 
-  return { success: true, subscriptions, emailCount, email }
+  const unreadEmails = result.failedUnits.reduce((sum, unit) => sum + unit.emailCount, 0)
+  return {
+    success: true,
+    subscriptions,
+    emailCount,
+    email,
+    ...(unreadEmails > 0 && {
+      unread: {
+        emails: unreadEmails,
+        senders: [...new Set(result.failedUnits.flatMap((unit) => unit.senders))],
+      },
+    }),
+  }
 }
