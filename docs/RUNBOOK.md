@@ -23,12 +23,12 @@ This document covers full deployment, re-deployment, and disaster recovery for t
 
 ## 1. Prerequisites
 
-| Tool         | Version | Install                                                      |
-| ------------ | ------- | ------------------------------------------------------------ |
-| Node.js      | ≥ 20    | https://nodejs.org                                           |
-| Yarn         | v4.10.3 | `corepack enable && corepack prepare yarn@4.10.3 --activate` |
-| Supabase CLI | latest  | `npm i -g supabase`                                          |
-| Railway CLI  | latest  | `npm i -g @railway/cli` (if deploying via CLI)               |
+| Tool         | Version | Install                                                                                                |
+| ------------ | ------- | ------------------------------------------------------------------------------------------------------ |
+| Node.js      | 24.22.1 | Pinned in `.nvmrc` (Railway builds use it). Exact pin: Railpack skips fuzzy versions under 14 days old |
+| pnpm         | 10.30.3 | `corepack enable` (version pinned in `package.json` `packageManager`)                                  |
+| Supabase CLI | latest  | `npm i -g supabase`                                                                                    |
+| Railway CLI  | latest  | `npm i -g @railway/cli` (if deploying via CLI)                                                         |
 
 **External accounts required:** Supabase, Railway, Stripe, Resend, OpenRouter, Brandfetch, Sentry, Google Cloud Console, Microsoft Azure (Entra ID).
 
@@ -94,10 +94,10 @@ Copy `.env.example` to `.env.local` and fill in all values before running locall
 
 ```bash
 # Install dependencies
-yarn install
+pnpm install
 
 # Verify build passes locally before deploying
-yarn build
+pnpm build
 
 # Deploy via Railway CLI
 railway up
@@ -139,12 +139,12 @@ select vault.create_secret('sb_secret_...', 'secret_key');
 
 ## 4. Re-deployment (Updates)
 
-The pre-commit hook (`prettier + eslint + yarn build`) enforces that only passing builds reach `main`. Re-deployment is triggered automatically by Railway on every push to `main`.
+The pre-commit hook (`prettier + eslint + pnpm typecheck`) enforces that only passing builds reach `main`. Re-deployment is triggered automatically by Railway on every push to `main`.
 
 **Manual re-deployment:**
 
 ```bash
-yarn build        # verify locally first
+pnpm build        # verify locally first
 railway up        # deploy
 ```
 
@@ -165,19 +165,24 @@ supabase db push
 
 ### 4.1 Notify search engines (IndexNow)
 
-After a deploy that adds or changes indexable content (blog posts, SEO landing pages, comparison pages), push the sitemap to IndexNow. It fans out to Bing, Yandex, Seznam, Naver, and Yep within seconds. Google does not participate, so this is in addition to Search Console, not instead of it.
+IndexNow fans changed URLs out to Bing, Yandex, Seznam, Naver, and Yep within seconds. Google does not participate, so this is in addition to Search Console, not instead of it.
+
+**Automatic:** `.github/workflows/indexnow.yml` runs on every successful production deploy (Railway reports deploys to GitHub as deployment statuses). It submits only the sitemap URLs whose `lastmod` is on or after the previous successful deploy's date, so a change only gets pushed if its `lastmod` in `app/sitemap.ts` (or the post/page config it reads) was bumped. Check the Actions tab if a submission looks missing.
+
+**Manual:**
 
 ```bash
-yarn indexnow --dry-run   # print the payload, submit nothing
-yarn indexnow             # submit every URL in the live sitemap
-yarn indexnow --url=https://www.suprascribe.com/blog/some-post   # single URL
+pnpm indexnow --dry-run   # print the payload, submit nothing
+pnpm indexnow             # submit every URL in the live sitemap
+pnpm indexnow --changed-since=2026-11-01   # only URLs with lastmod on/after that date
+pnpm indexnow --url=https://www.suprascribe.com/blog/some-post   # single URL
 ```
 
 Run it **after** the deploy is live - the script reads `https://www.suprascribe.com/sitemap.xml` from production, and engines crawl in response within minutes.
 
 Verification lives in `public/<key>.txt`, whose filename is its own contents. The script derives the key from that file and refuses to run if the two disagree.
 
-**Rotating the key:** rename `public/<key>.txt`, rewrite its contents to match the new filename (no trailing newline), and update the `source` of the matching `headers()` entry in `next.config.ts`. Deploy before running `yarn indexnow` again.
+**Rotating the key:** rename `public/<key>.txt`, rewrite its contents to match the new filename (no trailing newline), and update the `source` of the matching `headers()` entry in `next.config.ts`. Deploy before running `pnpm indexnow` again.
 
 Submission history is visible in Bing Webmaster Tools -> IndexNow.
 
@@ -300,7 +305,7 @@ If all infrastructure must be rebuilt from zero:
 supabase db push
 
 # 2. Install deps and verify build
-yarn install && yarn build
+pnpm install && pnpm build
 
 # 3. Set all env vars in Railway (see §2)
 
@@ -344,7 +349,7 @@ After any deployment or restore, verify the following:
 **Local smoke test:**
 
 ```bash
-yarn dev
+pnpm dev
 # visit http://localhost:3000
 ```
 
@@ -358,9 +363,11 @@ yarn dev
 | Railway            | Hosting, serverless functions              | https://status.railway.app   |
 | Stripe             | Payments, webhooks                         | https://status.stripe.com    |
 | Resend             | Transactional email                        | https://resend-status.com    |
-| OpenRouter         | Default AI provider for discovery          | https://status.openrouter.ai |
+| OpenRouter         | Discovery models (Jev + Gemini)            | https://status.openrouter.ai |
 | Brandfetch         | Service logo fetching                      | -                            |
 | Sentry             | Error monitoring                           | https://status.sentry.io     |
 | Google / Microsoft | OAuth providers for auth + email discovery | -                            |
 
 If a non-critical dependency (Brandfetch, OpenRouter) is unavailable, core auth and subscription management remain operational. If Supabase or Railway is down, the application is unavailable.
+
+Discovery calls two models through OpenRouter. `typesafe/jev-1.13` screens each fetched email and only payments, renewals and cancellations go on to `google/gemini-3.1-flash-lite` for extraction. The screening step fails open: if Jev errors, times out or the scan hits its 45s screening deadline, the emails are kept and a scan still completes at full extraction cost. Each scan logs one `[Prefilter]` line with the counts per email kind and Jev's cost next to the extraction tokens saved. BYOK scans skip screening. The mode (`off` / `shadow` / `enforce`) is the `PREFILTER_MODE` constant in `lib/config/email-discovery.ts`.

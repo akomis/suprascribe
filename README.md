@@ -36,7 +36,7 @@
 ### Prerequisites
 
 - Node.js 20+
-- Yarn v4 (`corepack enable && corepack prepare yarn@stable --activate`)
+- pnpm 10 (`corepack enable` picks up the pinned version from `package.json`)
 - A [Supabase](https://supabase.com) project (free tier works)
 - Optional: accounts for Stripe, Resend, Brandfetch (see env table below)
 
@@ -45,7 +45,7 @@
 ```bash
 git clone https://github.com/akomis/suprascribe.git
 cd suprascribe
-yarn
+pnpm install
 ```
 
 ### 2. Set up Supabase
@@ -84,9 +84,12 @@ In your Supabase project, go to **Authentication → Providers** and enable Goog
 
 ### 4. AI / Email discovery
 
-The default discovery model runs via [OpenRouter](https://openrouter.ai):
+Discovery runs two models via [OpenRouter](https://openrouter.ai), both on the same key:
 
-- Create an account, generate an API key → `MODEL_API_KEY`
+- `typesafe/jev-1.13` screens every fetched email and keeps only subscription payments, renewals and cancellations
+- `google/gemini-3.1-flash-lite` extracts the subscription details from the emails that were kept
+
+Create an account, generate an API key → `MODEL_API_KEY`
 
 Alternatively, leave `MODEL_API_KEY` empty - users can bring their own key (BYOK) via the dashboard settings.
 
@@ -122,7 +125,7 @@ Fill in all variables in `.env.local` - see `.env.example` for the full list and
 ### 7. Run
 
 ```bash
-yarn dev
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
@@ -130,10 +133,10 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Scripts
 
 ```bash
-yarn dev          # Development server (Turbopack)
-yarn build        # Production build
-yarn lint         # Lint and auto-fix
-yarn format       # Format with Prettier
+pnpm dev          # Development server (Turbopack)
+pnpm build        # Production build
+pnpm lint         # Lint and auto-fix
+pnpm format       # Format with Prettier
 ```
 
 ## Architecture & Security
@@ -166,8 +169,8 @@ yarn format       # Format with Prettier
 PRs are welcome. Before submitting:
 
 ```bash
-yarn lint    # must pass
-yarn build   # must pass
+pnpm lint    # must pass
+pnpm build   # must pass
 ```
 
 Please keep changes focused - one feature or fix per PR.

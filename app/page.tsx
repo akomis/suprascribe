@@ -40,6 +40,8 @@ import Link from 'next/link'
 
 export const metadata: Metadata = buildMetadata({
   title: 'Suprascribe - Free Subscription Tracker & Manager',
+  // Leads with the brand, so the og:title suffix would only repeat it.
+  absoluteTitle: 'Suprascribe - Free Subscription Tracker & Manager',
   description:
     'Stop losing money on forgotten subscriptions. Suprascribe auto-scans Gmail, Outlook & iCloud to find every recurring payment. Free forever.',
   path: '',

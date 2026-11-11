@@ -23,7 +23,8 @@ import { toDateString } from '@/lib/utils/date'
 import { formatDisplayDate } from '@/lib/utils/date-display'
 import { computePreview, generateEntries } from '@/lib/utils/subscription-entries'
 import { addMonths, addWeeks, addYears } from 'date-fns'
-import { CalendarIcon, Repeat } from 'lucide-react'
+import { CalendarIcon, CalendarRange, Repeat } from 'lucide-react'
+import { RadioGroup as RadioGroupPrimitive } from 'radix-ui'
 import * as React from 'react'
 import { ServiceSelector } from './ServiceSelector'
 
@@ -165,13 +166,21 @@ function AddModeControls({
         </div>
       )}
       {previewData && (
-        <p className="text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">{previewData.count}</span> {cycleLabel}{' '}
-          {previewData.count === 1 ? 'entry' : 'entries'} from{' '}
-          <span className="font-medium text-foreground">{formatDisplayDate(previewData.from)}</span>{' '}
-          to{' '}
-          <span className="font-medium text-foreground">{formatDisplayDate(previewData.to)}</span>
-        </p>
+        <div
+          aria-live="polite"
+          className="flex items-start gap-2 rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground"
+        >
+          <CalendarRange className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+          <p>
+            <span className="font-medium text-foreground">{previewData.count}</span> {cycleLabel}{' '}
+            {previewData.count === 1 ? 'entry' : 'entries'} from{' '}
+            <span className="font-medium text-foreground">
+              {formatDisplayDate(previewData.from)}
+            </span>{' '}
+            to{' '}
+            <span className="font-medium text-foreground">{formatDisplayDate(previewData.to)}</span>
+          </p>
+        </div>
       )}
     </>
   )
@@ -198,6 +207,9 @@ const BILLING_CYCLE_LABEL: Record<BillingCycle, string> = {
   annually: 'annual',
 }
 
+const STATUS_SEGMENT_CLASS =
+  'min-w-20 rounded-[5px] px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:shadow-xs'
+
 // The count itself sits next to the billing cycle; this only picks whether the
 // entries run up to today or cover a fixed number of past cycles.
 function DurationSelector({
@@ -213,40 +225,42 @@ function DurationSelector({
   setUpUntilToday: (v: boolean) => void
   setAddDuration: (v: string) => void
 }) {
+  // Past stays visible even when the start date leaves no full cycle behind it;
+  // it is only disabled then, so the choice is always discoverable.
+  const pastDisabled = isSubmitting || maxPastDuration < 1
+
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex h-9 rounded-md border border-input overflow-hidden">
-        <Button
-          type="button"
-          variant={upUntilToday ? 'default' : 'ghost'}
-          size="sm"
-          className="rounded-none h-full"
-          onClick={() => {
+    <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4">
+      <Label id="status-label">Is this subscription active or past?</Label>
+      <RadioGroupPrimitive.Root
+        aria-labelledby="status-label"
+        value={upUntilToday ? 'active' : 'past'}
+        onValueChange={(v) => {
+          if (v === 'active') {
             setUpUntilToday(true)
             setAddDuration('')
-          }}
-          disabled={isSubmitting}
+          } else {
+            setUpUntilToday(false)
+            // The count field takes over here, so it starts at one cycle
+            // rather than empty.
+            setAddDuration('1')
+          }
+        }}
+        disabled={isSubmitting}
+        orientation="horizontal"
+        className="inline-flex w-fit shrink-0 rounded-md border border-input p-0.5 shadow-xs dark:bg-input/30"
+      >
+        <RadioGroupPrimitive.Item value="active" className={STATUS_SEGMENT_CLASS}>
+          Active
+        </RadioGroupPrimitive.Item>
+        <RadioGroupPrimitive.Item
+          value="past"
+          disabled={pastDisabled}
+          className={STATUS_SEGMENT_CLASS}
         >
-          Currently active
-        </Button>
-        {maxPastDuration >= 1 && (
-          <Button
-            type="button"
-            variant={!upUntilToday ? 'default' : 'ghost'}
-            size="sm"
-            className="rounded-none h-full border-l border-input"
-            onClick={() => {
-              setUpUntilToday(false)
-              // The count field takes over here, so it starts at one cycle
-              // rather than empty.
-              setAddDuration('1')
-            }}
-            disabled={isSubmitting}
-          >
-            Past
-          </Button>
-        )}
-      </div>
+          Past
+        </RadioGroupPrimitive.Item>
+      </RadioGroupPrimitive.Root>
     </div>
   )
 }
@@ -527,9 +541,9 @@ function BillingCycleSelector({
   }
 }) {
   return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor="billing-cycle">Billing Cycle</Label>
-      <div className="flex gap-2">
+    <div className="flex items-end gap-2">
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <Label htmlFor="billing-cycle">Billing Cycle</Label>
         <Select
           value={value ?? undefined}
           onValueChange={(v) => onChange(v as PeriodChoice)}
@@ -546,7 +560,12 @@ function BillingCycleSelector({
             ))}
           </SelectContent>
         </Select>
-        {count && (
+      </div>
+      {count && (
+        <div className="flex w-20 shrink-0 flex-col gap-2">
+          <Label htmlFor="duration" className="capitalize">
+            {count.unit}
+          </Label>
           <Input
             id="duration"
             type="number"
@@ -567,10 +586,10 @@ function BillingCycleSelector({
             onKeyDown={handleNumericInputKeyDown}
             placeholder="1"
             disabled={disabled || count.disabled}
-            className="w-20 shrink-0"
+            className="w-full"
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

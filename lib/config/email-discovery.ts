@@ -60,6 +60,13 @@ export const EMAIL_DISCOVERY_CONFIG = {
   // billing, which is a far smaller and much cleaner set.
   mixedSenders: ['paypal.com', 'apple.com', 'google.com'],
 
+  // Our own mail. A Suprascribe renewal reminder names a service, a price and a
+  // renewal date, which is everything a notice needs to pass as evidence - so a
+  // re-scan re-imported the user's own dashboard, stale prices included (ESET,
+  // Netflix, Meshy at its old $10), and a customer's reply quoting their
+  // reminder became the inbox owner's subscription.
+  ownDomains: ['suprascribe.com'],
+
   // How far back to search. Without a window the cap below truncates at an
   // arbitrary point in history rather than bounding a period, so two scans of
   // the same inbox could cover different spans.
@@ -69,13 +76,45 @@ export const EMAIL_DISCOVERY_CONFIG = {
 
   analysisModel: {
     provider: 'OpenRouter',
-    modelName: 'google/gemini-2.5-flash-lite',
+    // Not 2.5-flash-lite: Google closed it to new projects, so a BYOK key could
+    // not use it, and only AI Studio served it - an upstream rate limit had no
+    // fallback. 3.1 is served by both AI Studio and Vertex.
+    modelName: 'google/gemini-3.1-flash-lite',
     temperature: 0,
-    inputCostPerMillion: 0.1,
-    outputCostPerMillion: 0.4,
+    inputCostPerMillion: 0.25,
+    outputCostPerMillion: 1.5,
     // This model's documented output ceiling. Keep in step with modelName:
     // set too low it truncates mid-JSON, and a provider rejects it if too high.
     maxOutputTokens: 65_535,
+  },
+
+  // TypeSafe's Jev sorts every keyword-matched email into a kind - subscription
+  // charge, renewal, cancellation, usage, one-off purchase, not billing - and only the
+  // subscription kinds reach the analysis model, grouped per sender as before.
+  // Jev cannot extract - it answers typed questions, it does not write - so this
+  // narrows Stage A's input and never replaces it. The mode is PREFILTER_MODE.
+  prefilter: {
+    // Jev is served through OpenRouter's decisions endpoint (it rejects
+    // chat/completions), so it authenticates with the same MODEL_API_KEY.
+    endpoint: 'https://openrouter.ai/api/alpha/decisions',
+    model: 'typesafe/jev-1.13',
+    // Kept when the subscription kinds together reach this probability.
+    // Deliberately low: a rejected email is a subscription that can never be
+    // found, and nothing downstream notices it missing.
+    keepThreshold: 0.15,
+    // Jev takes 32k tokens of state; receipt facts sit at the top of an email,
+    // and unrelated detail lowers its accuracy, so the tail is not worth sending.
+    maxBodyTokens: 4_000,
+    concurrency: 8,
+    requestTimeoutMs: 10_000,
+    // Whatever is still unanswered at the deadline is kept, not dropped.
+    deadlineMs: 45_000,
+    maxAttempts: 3,
+    // Keep dedicated billing senders and anything with recurrence wording
+    // without asking Jev. Safer, but the fetch query selects on words like
+    // "subscription" and "renewal", so it would wave most of a scan through.
+    // Off so the experiment measures Jev's own judgement.
+    hardKeeps: false,
   },
 
   batch: {
@@ -88,6 +127,19 @@ export const EMAIL_DISCOVERY_CONFIG = {
     maxBodyTokensPerEmail: null as number | null,
   },
 } as const
+
+export type PrefilterMode = 'off' | 'shadow' | 'enforce'
+
+/**
+ * 'shadow' runs the pre-filter and reports what it would have dropped while
+ * still analyzing everything; 'enforce' analyzes only what it keeps; 'off'
+ * skips it.
+ */
+const PREFILTER_MODE: PrefilterMode = 'enforce'
+
+export function prefilterMode(): PrefilterMode {
+  return PREFILTER_MODE
+}
 
 export interface SearchQueryOptions {
   /** Sender domains treated as billing mail whatever the subject says. */

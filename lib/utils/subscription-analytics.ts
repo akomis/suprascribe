@@ -313,7 +313,12 @@ export function buildInsights(
     yearly,
     mostExpensive: null,
     leastExpensive: null,
-    nextExpiring: expiring.map((sub) => ({ name: sub.name, url: sub.url, endDate: sub.endDate })),
+    nextExpiring: expiring.map((sub) => ({
+      name: sub.name,
+      url: sub.url,
+      endDate: sub.endDate,
+      price: sub.price,
+    })),
     pieData,
   }
 }

@@ -575,7 +575,7 @@ export function SubscriptionsSectionBase({ actions }: { actions: SubscriptionsSe
   )
 
   return (
-    <div className="flex flex-col gap-6 w-full">
+    <div className="flex flex-col gap-2 w-full">
       {Boolean(mergedSubscriptions.length) &&
         (effectiveTab === 'active' ? active.length > 0 : past.length > 0) && (
           <InsightsComponent

@@ -4,12 +4,15 @@
  * participating engine (Bing, Yandex, Seznam, Naver, Yep). Google does not
  * participate, so this complements Search Console rather than replacing it.
  *
- * Manual only - run it AFTER a deploy has landed, so the engines that crawl in
- * response see the new content rather than the previous build.
+ * Runs AFTER a deploy has landed, so the engines that crawl in response see the
+ * new content rather than the previous build. .github/workflows/indexnow.yml
+ * does this on every successful production deploy; the commands below are for
+ * running it by hand.
  *
- *   yarn indexnow              submit every URL in the live sitemap
- *   yarn indexnow --dry-run    print the payload, submit nothing
- *   yarn indexnow --url=<url>  submit a single URL
+ *   pnpm indexnow                           submit every URL in the live sitemap
+ *   pnpm indexnow --changed-since=<date>    only URLs whose lastmod is on/after <date>
+ *   pnpm indexnow --dry-run                 print the payload, submit nothing
+ *   pnpm indexnow --url=<url>               submit a single URL
  */
 
 import { readdirSync, readFileSync } from 'node:fs'
@@ -53,29 +56,54 @@ function readKey() {
   return key
 }
 
-async function fetchSitemapUrls() {
-  const response = await fetch(`${ORIGIN}/sitemap.xml`)
+/**
+ * `since` is a YYYY-MM-DD date; when set, only entries whose lastmod falls on or
+ * after it are kept. The comparison is by day because lastmod is a content date
+ * (midnight UTC), not a build time. Entries without a lastmod are always kept.
+ */
+async function fetchSitemapUrls(since) {
+  // The query string only busts any edge cache; Next ignores it.
+  const response = await fetch(`${ORIGIN}/sitemap.xml?t=${Date.now()}`)
 
   if (!response.ok) {
     fail(`GET ${ORIGIN}/sitemap.xml returned ${response.status}`)
   }
 
-  const urls = [...(await response.text()).matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1])
+  const entries = [...(await response.text()).matchAll(/<url>([\s\S]*?)<\/url>/g)].map(
+    ([, block]) => ({
+      loc: block.match(/<loc>(.*?)<\/loc>/)?.[1],
+      lastmod: block.match(/<lastmod>(.*?)<\/lastmod>/)?.[1],
+    }),
+  )
 
-  if (urls.length === 0) {
-    fail('sitemap contained no <loc> entries')
+  if (entries.length === 0 || entries.some((entry) => !entry.loc)) {
+    fail('sitemap contained no <loc> entries, or a <url> without one')
   }
 
-  return urls
+  return entries
+    .filter((entry) => !since || !entry.lastmod || entry.lastmod.slice(0, 10) >= since)
+    .map((entry) => entry.loc)
 }
 
 async function main() {
   const args = process.argv.slice(2)
   const dryRun = args.includes('--dry-run')
   const single = args.find((arg) => arg.startsWith('--url='))?.slice('--url='.length)
+  const since = args
+    .find((arg) => arg.startsWith('--changed-since='))
+    ?.slice('--changed-since='.length)
+
+  if (since !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(since)) {
+    fail(`--changed-since expects YYYY-MM-DD, got "${since}"`)
+  }
 
   const key = readKey()
-  const urlList = single ? [single] : await fetchSitemapUrls()
+  const urlList = single ? [single] : await fetchSitemapUrls(since)
+
+  if (urlList.length === 0) {
+    console.log(`indexnow: no sitemap URLs changed since ${since} - nothing to submit`)
+    return
+  }
 
   const offSite = urlList.filter((url) => !url.startsWith(ORIGIN))
   if (offSite.length > 0) {

@@ -4,6 +4,7 @@ import InsightCard from '@/components/dashboard/InsightCard'
 import { Spinner } from '@/components/ui/spinner'
 import type { InsightData, InsightTab } from '@/lib/types/subscriptions'
 import type { UserSubscriptionWithDetails } from '@/lib/types/database'
+import { useCurrency } from '@/lib/hooks/useCurrency'
 import { useInsightsSettings } from '@/providers/InsightsSettingsProvider'
 import dynamic from 'next/dynamic'
 import * as React from 'react'
@@ -48,6 +49,7 @@ export function InsightsContentBase({
   hideNextExpiring = false,
 }: InsightsContentBaseProps) {
   const { mode } = useInsightsSettings()
+  const { formatCurrency } = useCurrency()
   const [selectedSubName, setSelectedSubName] = React.useState<string | null>(null)
 
   const selectedMerged = React.useMemo(
@@ -61,6 +63,9 @@ export function InsightsContentBase({
     selectedMerged && selectedMerged.subscriptions.length > 1
       ? selectedMerged.subscriptions
       : undefined
+
+  // Prices arrive already converted to the display currency
+  const renewalTotal = insights.nextExpiring.reduce((sum, sub) => sum + (sub.price ?? 0), 0)
 
   return (
     <div className="flex flex-col gap-2 sm:gap-4 fade-on-mount">
@@ -76,6 +81,7 @@ export function InsightsContentBase({
       {!hideNextExpiring && tab === 'active' && insights.nextExpiring.length > 0 && (
         <InsightCard
           title={insights.nextExpiring.length === 1 ? 'Upcoming Renewal' : 'Upcoming Renewals'}
+          value={formatCurrency(renewalTotal)}
           subscriptions={insights.nextExpiring.map((sub) => ({
             name: sub.name,
             url: sub.url,

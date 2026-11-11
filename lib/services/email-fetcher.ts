@@ -386,7 +386,17 @@ export function buildImapSearchCriteria(
 function connectImap(imap: Imap): Promise<void> {
   return new Promise((resolve, reject) => {
     imap.once('ready', () => resolve())
-    imap.once('error', (err: Error) => {
+    imap.once('error', (err: Error & { source?: string }) => {
+      // The server refused the login itself. Nearly always the account's normal
+      // password where an app-specific one is required, so say that instead of
+      // pointing at server settings that were fine.
+      if (err.source === 'authentication') {
+        return reject(
+          new Error(
+            'The mail server rejected the sign-in. Use an app-specific password (not your normal account password) together with the full address of the mailbox itself.',
+          ),
+        )
+      }
       reject(
         new Error(
           `IMAP connection error: ${err.message}. Please check your credentials and server settings.`,
@@ -520,6 +530,11 @@ export async function fetchOutlookProfileEmail(token: string): Promise<string> {
   return data.mail || data.userPrincipalName
 }
 
+export function isLoopbackHost(host: string): boolean {
+  const h = host.trim().toLowerCase()
+  return h === 'localhost' || h === '::1' || h.startsWith('127.')
+}
+
 export async function fetchImapEmails(
   credentials: {
     email: string
@@ -532,14 +547,24 @@ export async function fetchImapEmails(
 ): Promise<EmailData[]> {
   const { maxEmailsPerProvider, dedicatedBillingSenders } = EMAIL_DISCOVERY_CONFIG
   const useTls = credentials.useTls !== false
+  // Local bridges (Proton Mail Bridge) use a self-signed cert in SSL mode. In
+  // STARTTLS mode they accept plain login on loopback, which is what we do:
+  // node-imap re-issues STARTTLS forever when the server keeps advertising it.
+  // Only reachable in development - production blocks loopback hosts upstream.
+  const localBridge =
+    process.env.NODE_ENV === 'development' && isLoopbackHost(credentials.server ?? '')
 
   const imap = new Imap({
-    user: credentials.email,
+    user: credentials.email.trim(),
     password: credentials.password,
     host: credentials.server!,
     port: credentials.port!,
     tls: useTls,
-    tlsOptions: useTls ? { rejectUnauthorized: true, servername: credentials.server! } : undefined,
+    tlsOptions: localBridge
+      ? { rejectUnauthorized: false }
+      : useTls
+        ? { rejectUnauthorized: true, servername: credentials.server! }
+        : undefined,
   })
 
   await connectImap(imap)

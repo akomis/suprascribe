@@ -174,7 +174,7 @@ export function DiscoveryResultsReadOnly({
       </div>
 
       <p className="text-xs text-muted-foreground text-center">
-        These results were identified by AI and may contain mistakes. Nothing was saved to
+        These results were identified by our system and may contain mistakes. Nothing was saved to
         Suprascribe.
       </p>
     </div>

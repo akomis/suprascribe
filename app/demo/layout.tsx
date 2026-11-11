@@ -4,6 +4,8 @@ import { buildMetadata } from '@/lib/utils/metadata'
 
 export const metadata: Metadata = buildMetadata({
   title: 'Live Demo - See Suprascribe in Action',
+  // The brand is already in the title, so the "| Suprascribe" suffix would repeat it.
+  absoluteTitle: 'Live Demo - See Suprascribe in Action',
   description:
     'Try Suprascribe without signing up. Explore the dashboard, test spending insights, and see how the subscription manager works - no account needed.',
   path: '/demo',

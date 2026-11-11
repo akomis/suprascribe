@@ -29,6 +29,7 @@ export const metadata: Metadata = {
     url: CANONICAL,
   },
   twitter: {
+    card: 'summary_large_image',
     title: TITLE,
     description: DESCRIPTION,
   },

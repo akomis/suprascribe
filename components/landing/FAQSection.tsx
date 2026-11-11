@@ -26,7 +26,12 @@ export function FAQSection({ items, showViewAll = false, heading }: FAQSectionPr
         {items.map((item, index) => (
           <AccordionItem key={index} value={`item-${index}`}>
             <AccordionTrigger className="text-left">{item.question}</AccordionTrigger>
-            <AccordionContent className="text-muted-foreground">{item.answer}</AccordionContent>
+            {/* forceMount: Radix otherwise renders closed panels empty, so the answers were
+                missing from the server HTML and crawlers - which never click - saw only the
+                questions. The answers also back the FAQPage JSON-LD, which must be on-page. */}
+            <AccordionContent forceMount className="text-muted-foreground">
+              {item.answer}
+            </AccordionContent>
           </AccordionItem>
         ))}
       </Accordion>

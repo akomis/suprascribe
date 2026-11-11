@@ -130,7 +130,7 @@ function AddKeyForm({
             <Input
               value={model}
               onChange={(e) => onModelChange(e.target.value)}
-              placeholder="e.g. google/gemini-2.5-flash-lite"
+              placeholder="e.g. google/gemini-3.1-flash-lite"
             />
           ) : (
             <Select value={model} onValueChange={onModelChange}>

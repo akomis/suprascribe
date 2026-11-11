@@ -95,9 +95,12 @@ export default function InsightCard({
               </>
             )}
             {value && (
-              <span className="text-xs sm:text-sm text-muted-foreground font-mono whitespace-nowrap shrink-0 text-end">
+              <Badge
+                variant="outline"
+                className="bg-white dark:bg-neutral-900 py-1 sm:py-1.5 text-xs/4 sm:text-sm/6 font-mono font-normal whitespace-nowrap shrink-0 cursor-default"
+              >
                 {value}
-              </span>
+              </Badge>
             )}
           </div>
         </CardContent>

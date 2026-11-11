@@ -7,6 +7,7 @@ interface ConfigureApiKeyButtonProps {
   variant?: 'default' | 'outline' | 'ghost'
   size?: 'default' | 'sm' | 'lg'
   className?: string
+  label?: string
 }
 
 // Navigates on click instead of linking: /limits is public and indexed, and
@@ -15,6 +16,7 @@ export function ConfigureApiKeyButton({
   variant = 'default',
   size = 'sm',
   className,
+  label = 'Configure BYOK',
 }: ConfigureApiKeyButtonProps) {
   const router = useRouter()
 
@@ -25,7 +27,7 @@ export function ConfigureApiKeyButton({
       className={className}
       onClick={() => router.push('/dashboard?settings=byok')}
     >
-      Configure BYOK
+      {label}
     </Button>
   )
 }

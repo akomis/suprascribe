@@ -1,0 +1,54 @@
+# Pings IndexNow (Bing, Yandex, Seznam, Naver, Yep) after each successful
+# production deploy. Railway reports its deploys to GitHub as deployment
+# statuses, so this fires once the new build is actually serving traffic.
+#
+# Only URLs whose sitemap lastmod is on or after the previous successful deploy
+# are submitted - IndexNow is for changed URLs, not the whole site every time.
+# With no earlier successful deploy on record, the full sitemap goes out.
+name: IndexNow
+
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+  deployments: read
+
+jobs:
+  submit:
+    if: >-
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment.environment == 'suprascribe.com / production'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Find the previous successful production deploy
+        id: previous
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ENVIRONMENT: ${{ github.event.deployment.environment }}
+          CURRENT_ID: ${{ github.event.deployment.id }}
+        run: |
+          ids=$(gh api -X GET "repos/$GITHUB_REPOSITORY/deployments" \
+            -f environment="$ENVIRONMENT" -F per_page=30 \
+            --jq ".[] | select(.id < $CURRENT_ID) | .id")
+          for id in $ids; do
+            at=$(gh api "repos/$GITHUB_REPOSITORY/deployments/$id/statuses" \
+              --jq '[.[] | select(.state == "success")][0].created_at // empty')
+            if [ -n "$at" ]; then
+              echo "date=${at%%T*}" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+
+      - name: Submit changed URLs
+        env:
+          SINCE: ${{ steps.previous.outputs.date }}
+        run: node scripts/indexnow.mjs ${SINCE:+--changed-since=$SINCE}

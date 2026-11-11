@@ -2,6 +2,7 @@
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 import { getCurrencySymbol } from '@/lib/utils/currency'
 import { UserSubscriptionWithDetails } from '@/lib/types/database'
 import * as React from 'react'
@@ -18,6 +19,8 @@ import {
 type SubscriptionHistoryProps = {
   subscriptions: UserSubscriptionWithDetails[]
   onEdit: (subscription: UserSubscriptionWithDetails) => void
+  /** Overrides the chart's default heights. */
+  chartClassName?: string
 }
 
 function formatPeriod(date: Date | string): string {
@@ -136,7 +139,7 @@ function CustomDot({ cx, cy, payload, onEdit }: CustomDotProps) {
   )
 }
 
-function SubscriptionHistory({ subscriptions, onEdit }: SubscriptionHistoryProps) {
+function SubscriptionHistory({ subscriptions, onEdit, chartClassName }: SubscriptionHistoryProps) {
   const mostRecentSubscription = React.useMemo(() => {
     return [...subscriptions].sort(
       (a, b) => new Date(b.end_date || '').getTime() - new Date(a.end_date || '').getTime(),
@@ -204,7 +207,10 @@ function SubscriptionHistory({ subscriptions, onEdit }: SubscriptionHistoryProps
             color: 'hsl(var(--chart-1))',
           },
         }}
-        className="h-[150px] sm:h-[250px] md:h-[320px] pt-1 sm:pt-6 w-full min-w-0 aspect-auto [&_.recharts-wrapper]:w-full! [&_.recharts-surface]:w-full!"
+        className={cn(
+          'h-[150px] sm:h-[250px] md:h-[320px] pt-1 sm:pt-6 w-full min-w-0 aspect-auto [&_.recharts-wrapper]:w-full! [&_.recharts-surface]:w-full!',
+          chartClassName,
+        )}
       >
         <ResponsiveContainer width="99%" height="100%" debounce={50}>
           <LineChart data={chartData} margin={{ left: 5, right: 5, top: 5, bottom: 0 }}>

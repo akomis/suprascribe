@@ -81,6 +81,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isCategory(category)) return {}
   return buildMetadata({
     title: `${COPY[category].title} - Suprascribe Blog`,
+    // Already branded via "Suprascribe Blog"; the root template would add a second one.
+    absoluteTitle: `${COPY[category].title} - Suprascribe Blog`,
     description: COPY[category].description,
     path: `/blog/category/${category}`,
   })

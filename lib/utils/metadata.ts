@@ -51,7 +51,10 @@ export function buildMetadata({
           }
         : { type: 'website' as const }),
     },
+    // `card` is restated because this object replaces the root layout's, not merges into it -
+    // without it every page fell back to the small `summary` card.
     twitter: {
+      card: 'summary_large_image',
       title: ogTitle,
       description,
     },

@@ -62,14 +62,14 @@ export const PRICING: Record<PricingCurrency, CurrencyPricing> = {
   usd: {
     symbol: '$',
     proFullCents: 2500,
-    // Exactly 20% off the full price, so the offer badge reads "20%" in every currency.
-    proDiscountCents: 2000,
+    // Exactly 50% off the full price, so the offer badge reads "50%" in every currency.
+    proDiscountCents: 1250,
     onceScanCents: 500,
   },
   gbp: {
     symbol: '£',
     proFullCents: 1800,
-    proDiscountCents: 1440,
+    proDiscountCents: 900,
     onceScanCents: 500,
   },
 }
@@ -124,7 +124,7 @@ export function getOnceScanPriceCents(currency: PricingCurrency): number {
   return PRICING[currency].onceScanCents
 }
 
-/** Whole-number discount of the offer price against the full price, e.g. 20 for €16 against €20. */
+/** Whole-number discount of the offer price against the full price, e.g. 50 for €10 against €20. */
 export function getProDiscountPercent(currency: PricingCurrency): number {
   const { proFullCents, proDiscountCents } = PRICING[currency]
   return Math.round((1 - proDiscountCents / proFullCents) * 100)

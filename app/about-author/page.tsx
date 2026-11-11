@@ -9,6 +9,8 @@ import { buildMetadata } from '@/lib/utils/metadata'
 
 export const metadata: Metadata = buildMetadata({
   title: 'About the Author - Who Writes Suprascribe',
+  // The brand is already in the title, so the "| Suprascribe" suffix would repeat it.
+  absoluteTitle: 'About the Author - Who Writes Suprascribe',
   description:
     'Who writes the Suprascribe blog, the privacy and transparency motivations behind the articles, and why the product scans email instead of your bank.',
   path: '/about-author',

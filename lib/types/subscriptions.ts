@@ -45,6 +45,7 @@ export type InsightData = {
     name: string
     url?: string
     endDate: string
+    price: number
   }>
   pieData: PieDataItem[]
 }
